@@ -1,0 +1,6 @@
+段落1, 标题=三只小猪, 作者:不明
+	段落2
+		image, "http://www.163.com\\"
+	p3; loop=true;
+    p4    test
+end

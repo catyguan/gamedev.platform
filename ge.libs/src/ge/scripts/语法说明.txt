@@ -1,0 +1,11 @@
+剧本脚本树
+Node<attributes>
+    ChildNodes
+× Node会产生Ref数据，用于定位内容资源关联性
+
+剧本脚本语法说明
+
+【对话】
+    名称：对话，说，say
+    含义：    
+    
