@@ -1,0 +1,24 @@
+
+luarunner.exe
+Debug
+Debug.win32
+Release
+Release.win32
+*.user
+
+*.class
+.classpath
+.project
+.buildpath
+.settings
+target
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.sln
+*.suo
+*.ncb
+*.filters
+*.vcxproj
