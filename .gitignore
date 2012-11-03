@@ -22,3 +22,7 @@ target
 *.ncb
 *.filters
 *.vcxproj
+_UpgradeReport_Files
+UpgradeLog.*
+*.sdf
+*.opensdf

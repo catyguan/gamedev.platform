@@ -47,8 +47,46 @@ if false then
     end
 end
 
--- timer
+-- AICall
 if true then
+	require("bma.host.AICall")
+	
+	local fun = function(...)
+        print("callback",...)    
+    end    
+    
+    print("asyn call")
+    if false then
+		local call = aicall("asyn","hello word-aicall")
+		call:next(fun):run()
+	end
+	
+	if false then
+		local call = aicall("asyn","hello word-aicall")
+	    call:next(
+	    	aicall("asyn","word-insert"):next(fun)
+	    ):run()    
+    end
+    
+    if false then
+    	local call = aicall("fail")
+    	call:error(function(err) print("error====",err) end):run()
+    end
+    
+    if true then
+		local call = aicall("asyn","hello word-aicall")
+	    call:error(
+	    	function(err)
+	    		print("error====",err)
+	    	end	    
+	    ):next(
+	    	aicall("fail","word-insert")
+	    ):run()    
+    end
+end
+
+-- timer
+if false then
     local timer = function()
     	print("timer", os.date())
     end

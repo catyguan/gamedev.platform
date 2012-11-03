@@ -27,6 +27,9 @@ JNIEXPORT jboolean JNICALL Java_ge_lua_LuaState__1setvar
 JNIEXPORT jboolean JNICALL Java_ge_lua_LuaState__1pcall
   (JNIEnv *, jobject, jlong, jstring, jobject);
 
+JNIEXPORT jstring JNICALL Java_ge_lua_LuaState__1eval
+  (JNIEnv *, jobject, jlong, jstring);
+
 #ifdef __cplusplus
 }
 #endif

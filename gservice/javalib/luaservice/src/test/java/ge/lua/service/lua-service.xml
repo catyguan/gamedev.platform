@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<import resource="netty-thrift-global.xml"/>
+
+	<!-- LuaAppHost -->
+	<bean id="luaAppHost" class="ge.lua.host.LuaAppHost"
+		init-method="init" destroy-method="close">
+		<property name="executor" ref="syncExecutor"/>
+		<property name="factory">
+			<bean class="ge.lua.host.impl.LuaAppFactorySimple">
+				<property name="pathList">
+					<list>
+						<value>d:/workroom/gamedev.platform/lua.libs/src</value>
+						<value>d:/workroom/gamedev.platform/gservice/javalib/luaservice/docs</value>
+					</list>
+				</property>
+				<property name="bootstrapList">
+					<list>
+						<value>bma.lang.FlushPrint</value>
+						<value>bma.app.api.Startup</value>
+					</list>
+				</property>				
+				<property name="shutdown" value="appShutdown"/>
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- luaAppHostManager -->	
+	<bean id="ifaceManager" class="ge.lua.service.impl.TLuaAppHostManager4AIThrift">
+		<property name="host" ref="luaAppHost"/>
+	</bean>
+	<bean id="atpManager" class="ge.lua.service.thrift.TLuaAppHostManager4AI.Processor">		
+		<constructor-arg ref="ifaceManager" />
+	</bean>
+	<bean id="tbeanManager" class="bma.common.thrift.servicehub.ThriftServiceBean">
+		<property name="module" value="lua"/>
+		<property name="processor" ref="atpManager"/>
+	</bean>	
+	
+	<!-- shutdown -->	
+	<bean id="ifaceShutdown" class="bma.siteone.netty.thrift.common.TShutdownImpl"/>
+	<bean id="tpShutdown" class="bma.siteone.netty.thrift.common.TShutdown.Processor">		
+		<constructor-arg ref="ifaceShutdown" />
+	</bean>
+	<bean id="tbeanShutdown" class="bma.common.thrift.servicehub.ThriftServiceBean">
+		<property name="module" value="shutdown"/>
+		<property name="processor" ref="tpShutdown"/>
+	</bean>
+	
+	<!-- ThriftServiceNode -->	
+	<bean id="thriftServiceNode" class="bma.common.thrift.servicehub.ThriftServiceNode">
+		<property name="name" value="nodeName"/>
+		<property name="type" value="socket"/>
+		<property name="accessHost" value="172.19.16.78"/>
+		<property name="port" value="9098" />				
+		<property name="frameSize" value="10m"/>
+		<property name="defaultModule" value="lua"/>
+		<property name="services">
+			<list>
+				<ref bean="tbeanManager"/>				
+				<ref bean="tbeanShutdown"/>
+			</list>
+		</property>
+	</bean>
+
+	<!-- BOOT -->
+	<!-- bma.common.langutil.ai.boot.AIServerBoot -->	
+	<!-- booter -->
+	<bean id="booter" class="bma.common.langutil.spring.SimpleServerBooter">
+        <property name="mainList">
+        	<list>
+        		<ref bean="thriftServiceServer"/>   
+        	</list>
+        </property>
+    </bean>	  
+
+</beans>

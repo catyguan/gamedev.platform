@@ -189,6 +189,7 @@ end
 function console(logPattern)
 	return new(  function(self, level, category, message)
 		io.stdout:write(prepareLogMsg(logPattern, os.date(), level, category, message))
+		io.stdout:flush()
 		return true
 	end
 	)
@@ -196,7 +197,8 @@ end
 
 function luaprint(logPattern)
 	return new(  function(self, level, category, message)
-		print(prepareLogMsg(logPattern, os.date(), level, category, message))
+	    local s = prepareLogMsg(logPattern, os.date(), level, category, message)
+		print(s:sub(1,#s-1))
 		return true
 	end
 	)

@@ -21,19 +21,24 @@ function Class.startup()
 	end
 end
 
-function Class.shutdown()
+function Class.shutdown(destroy)
 	local app = Class.instance()
 	if app then
-		app:close()
+		return app:close(destroy)
 	end
+	return true
 end
 
 function Class:ctor()
 	self.services = {}
 end
 
-function Class:getDesc()
-	return {}
+function Class:init()
+	
+end
+
+function Class:close()
+	
 end
 
 function Class:getService(name)
@@ -59,6 +64,10 @@ function Class:createService(name)
 	return nil
 end
 
+function Class:setService(name, s)
+	self.services[name] = s
+end
+
 function Class:appCall(serviceName,apiName,...)
 	local s = self:getService(serviceName)
 	if s==nil then
@@ -74,3 +83,12 @@ function Class:appCall(serviceName,apiName,...)
 	end
 	error("invalid api ["..serviceName..":"..apiName.."]")	
 end
+
+function appCall(serviceName,apiName,...)
+	local app = Class.instance()
+	if app then
+		return app:appCall(serviceName, apiName, ...)
+	end
+end
+
+appShutdown = Class.shutdown

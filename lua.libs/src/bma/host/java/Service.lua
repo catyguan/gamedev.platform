@@ -34,7 +34,7 @@ function Class:call(opts, ...)
 		end
 	else
 		LOG:debug("JavaHost",tostring(r).."\n"..et)
-		self:response(opts,nil,r)
+		self:response(opts,nil,r or "<empty error message>")
 		return -1
 	end
 end

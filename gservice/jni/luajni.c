@@ -367,3 +367,24 @@ JNIEXPORT jboolean JNICALL Java_ge_lua_LuaState__1pcall
 
 	return err==0;
 }
+
+JNIEXPORT jstring JNICALL Java_ge_lua_LuaState__1eval
+  (JNIEnv * env, jobject jThis, jlong data, jstring content)
+{
+	lua_State * L = getStateFromJObj( env , data );	
+	int top = lua_gettop(L);
+	const char* str = ( *env )->GetStringUTFChars( env, content, NULL );
+	int err;
+	
+	initJNICache(env, 0);
+
+	err = luaL_dostring(L, str);
+	( *env )->ReleaseStringUTFChars( env , content , str );
+	if(err!=0) {
+		const char* v = lua_tostring(L,-1);
+		jstring jstr = ( *env )->NewStringUTF(env, v);
+		lua_pop(L,1);
+		return jstr;
+	}
+	return NULL;
+}
