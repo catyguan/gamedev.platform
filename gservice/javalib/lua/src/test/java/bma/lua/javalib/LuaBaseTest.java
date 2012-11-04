@@ -1,10 +1,12 @@
 package bma.lua.javalib;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.LuaState;
 import ge.lua.LuaStateCallback;
 import ge.lua.LuaStateManager;
+import ge.lua.LuaTable;
 
+import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -32,14 +34,39 @@ public class LuaBaseTest {
 	@Test
 	public void base_pcall() {
 		LuaState L = LuaStateManager.newState();
-		LuaStackData data = new LuaStackData();
+		LuaArray data = buildAllType();
+		System.out.println("R:" + L.pcall("print", data) + "-" + data);
+		L.close();
+	}
+
+	private LuaArray buildAllType() {
+		LuaArray data = new LuaArray();
 		data.addBoolean(true);
 		data.addInt(100);
 		data.addNull();
 		data.addNumber(24.3);
 		data.addString("string");
-		System.out.println("R:" + L.pcall("print", data) + "-" + data);
-		L.close();
+		LuaTable table = new LuaTable();
+		table.putAt("k1", "v1");
+		table.putAt("k2", 123);
+		table.putAt("k3", true);
+		table.putAt("k4", null);
+		
+		LuaTable t2 = new LuaTable();
+		t2.putAt("kk", 234);
+		
+		LuaArray a1 = new LuaArray();
+		a1.addBoolean(true);
+		a1.addTable(t2);
+		
+		table.putAt("k5", a1);
+//		
+//		a.add(1);
+//		a.add(true);
+//		table.putAt("k5", a);
+		
+		data.addTable(table);
+		return data;
 	}
 
 	@Test
@@ -58,10 +85,15 @@ public class LuaBaseTest {
 
 		System.out.println("R:" + L.eval("print(\"eval-string\")", false));
 
-		LuaStackData data = new LuaStackData();
+		LuaArray data = new LuaArray();
 		data.addString("test");
-		System.out.println("require >> " + L.pcall("require", data) + "-"
-				+ data);
+		boolean pr = L.pcall("require", data);
+		System.out.println("require >> " + pr + "-" + data);
+
+		data = buildAllType();
+		System.out.print("printall >> ");
+		System.out.print(L.pcall("printall", data));
+		System.out.println("-" + data);
 
 		data.reset();
 		System.out.println("mulret >> " + L.pcall("mulret", data) + "-" + data);
@@ -79,7 +111,7 @@ public class LuaBaseTest {
 		L.setCallback(new LuaStateCallback() {
 
 			@Override
-			public boolean callback(LuaState state, LuaStackData data) {
+			public boolean callback(LuaState state, LuaArray data) {
 				System.out.println("InCallback >> " + state + "," + data);
 				data.reset();
 				if (data.empty()) {
@@ -95,11 +127,11 @@ public class LuaBaseTest {
 			}
 		});
 		L.addpath(IOUtil.getUserDirFile("docs").toString());
-		LuaStackData data = new LuaStackData();
+		LuaArray data = new LuaArray();
 		data.addString("test2");
 		System.out.println("require >> " + L.pcall("require", data));
 		L.close();
-	}	
+	}
 
 	@Test
 	public void base_multithread() {
@@ -108,7 +140,7 @@ public class LuaBaseTest {
 		L.setCallback(new LuaStateCallback() {
 
 			@Override
-			public boolean callback(LuaState state, LuaStackData data) {
+			public boolean callback(LuaState state, LuaArray data) {
 				return true;
 			}
 		});
@@ -121,7 +153,7 @@ public class LuaBaseTest {
 			public void run() {
 				System.out.println(Thread.currentThread());
 				L.threadInit();
-				LuaStackData data = new LuaStackData();
+				LuaArray data = new LuaArray();
 				data.addString("test2");
 				System.out.println("require >> " + L.pcall("require", data));
 			}

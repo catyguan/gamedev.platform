@@ -1,6 +1,6 @@
 package ge.lua.host;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.host.LuaApp.Command;
 import ge.lua.host.ai.LuaAICall;
 import ge.lua.host.impl.LuaAppFactorySimple;
@@ -66,7 +66,7 @@ public class AppHostTC {
 		r.addCall("say", new LuaCall() {
 
 			@Override
-			public boolean call(LuaApp app, int callId, LuaStackData data) {
+			public boolean call(LuaApp app, int callId, LuaArray data) {
 				log.info("LuaCall say => {}", data);
 				return true;
 			}
@@ -75,10 +75,10 @@ public class AppHostTC {
 
 			@Override
 			public boolean call(final LuaApp app, final int callId,
-					LuaStackData data) {
+					LuaArray data) {
 				log.info("LuaCall asyn => {}/{}", data,
 						System.identityHashCode(data));
-				final LuaStackData rdata = data.copy();
+				final LuaArray rdata = data.copy();
 				executor.execute(new Runnable() {
 
 					@Override
@@ -213,24 +213,24 @@ public class AppHostTC {
 			app.require("aicall");
 
 			if (app != null) {
-				AIStackSimple<LuaStackData> stack = new AIStackSimple<LuaStackData>(
+				AIStackSimple<LuaArray> stack = new AIStackSimple<LuaArray>(
 						null);
-				LuaStackData req = new LuaStackData();
+				LuaArray req = new LuaArray();
 				req.addString("word from java");
 				aicall.aicall(stack, app, "aicalllTest", req, 500, timer);
 
-				LuaStackData rep = stack.get(5, TimeUnit.SECONDS);
+				LuaArray rep = stack.get(5, TimeUnit.SECONDS);
 				System.out.println("TestResult ===== "+rep);
 			}
 
 			if (app != null) {
-				AIStackSimple<LuaStackData> stack = new AIStackSimple<LuaStackData>(
+				AIStackSimple<LuaArray> stack = new AIStackSimple<LuaArray>(
 						null);
-				LuaStackData req = new LuaStackData();
+				LuaArray req = new LuaArray();
 				req.addString("word from java");
 				aicall.aicall(stack, app, "aitimeout", req, 1000, timer);
 				try {
-					LuaStackData rep = stack.get(5, TimeUnit.SECONDS);
+					LuaArray rep = stack.get(5, TimeUnit.SECONDS);
 					System.out.println(rep);
 				} catch (Exception e) {
 					System.out.println("AICall error - " + e.getMessage());

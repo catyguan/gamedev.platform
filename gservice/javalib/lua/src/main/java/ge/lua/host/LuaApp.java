@@ -1,6 +1,6 @@
 package ge.lua.host;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.LuaState;
 
 import java.util.List;
@@ -117,8 +117,8 @@ public class LuaApp {
 		this.host.runAppCommand(this, command);
 	}
 
-	public boolean runCall(final AIStack<LuaStackData> stack,
-			final String funName, final LuaStackData data) {
+	public boolean runCall(final AIStack<LuaArray> stack,
+			final String funName, final LuaArray data) {
 		runCommand(new Command() {
 
 			@Override
@@ -134,7 +134,7 @@ public class LuaApp {
 		return false;
 	}
 
-	public void luaCallResponse(int callId, LuaStackData data, String error) {
+	public void luaCallResponse(int callId, LuaArray data, String error) {
 		this.host.luaCallResponse(this, callId, data, error);
 	}
 
@@ -142,7 +142,7 @@ public class LuaApp {
 		return state.setvar(key, value);
 	}
 
-	public void pcall(String funName, LuaStackData data) {
+	public void pcall(String funName, LuaArray data) {
 		state.pcall(funName, data, true);
 	}
 
@@ -151,7 +151,7 @@ public class LuaApp {
 	}
 
 	void require(String packageName) {
-		LuaStackData data = new LuaStackData();
+		LuaArray data = new LuaArray();
 		data.addString(packageName);
 		pcall("require", data);
 	}

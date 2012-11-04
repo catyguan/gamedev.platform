@@ -12,7 +12,7 @@ import bma.common.langutil.core.ValueUtil;
  * @author guanzhong
  * 
  */
-public class LuaStackData {
+public class LuaArray extends LuaProxy {
 
 	private List<Object> data;
 
@@ -62,6 +62,28 @@ public class LuaStackData {
 		sureData().add(idx, s);
 	}
 
+	public void addTable(LuaTable t) {
+		sureData().add(t);
+	}
+
+	public void addTable(int idx, LuaTable t) {
+		sureData().add(idx, t);
+	}
+
+	public void addArray(List<?> t) {
+		if (t == null || t.isEmpty())
+			return;
+		List<Object> l = sureData();
+		l.addAll(t);
+	}
+
+	public void addArray(int idx, List<?> t) {
+		if (t == null || t.isEmpty())
+			return;
+		List<Object> l = sureData();
+		l.addAll(idx, t);
+	}
+
 	public void addNull() {
 		sureData().add(null);
 	}
@@ -80,22 +102,7 @@ public class LuaStackData {
 
 	public int getType(int idx) {
 		Object v = getAt(idx);
-		if (v == null) {
-			return 0;
-		}
-		if (v instanceof String) {
-			return 4;
-		}
-		if (v instanceof Integer) {
-			return -2;
-		}
-		if (v instanceof Boolean) {
-			return 1;
-		}
-		if (v instanceof Number) {
-			return 3;
-		}
-		return 0;
+		return type(v);
 	}
 
 	public Object getAt(int idx) {
@@ -124,7 +131,7 @@ public class LuaStackData {
 		}
 		return ValueUtil.intValue(v.toString(), 0);
 	}
-	
+
 	public Number getNumberObject(int idx) {
 		Object v = getAt(idx);
 		if (v == null)
@@ -184,8 +191,8 @@ public class LuaStackData {
 		return false;
 	}
 
-	public LuaStackData copy() {
-		LuaStackData r = new LuaStackData();
+	public LuaArray copy() {
+		LuaArray r = new LuaArray();
 		r.data = new ArrayList<Object>(this.data);
 		return r;
 	}
@@ -207,4 +214,25 @@ public class LuaStackData {
 		}
 		return sb.toString();
 	}
+
+	@Override
+	public void pushValue(Object v) {
+		sureData().add(v);
+	}
+
+	@Override
+	public String nextKey() {
+		return null;
+	}
+
+	@Override
+	public int getType(String key) {
+		return 0;
+	}
+
+	@Override
+	public Object getAt(String key) {
+		return null;
+	}
+
 }

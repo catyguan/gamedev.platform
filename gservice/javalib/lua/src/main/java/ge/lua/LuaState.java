@@ -32,7 +32,7 @@ package ge.lua;
  */
 public class LuaState {
 
-	private final static String LUAJAVA_LIB = "luajni-1.0";
+	private final static String LUAJAVA_LIB = "luajni";
 
 	/**
 	 * Opens the library containing the luajava API
@@ -53,7 +53,7 @@ public class LuaState {
 	private native boolean _setvar(long luaState, String key, String value);
 
 	private native boolean _pcall(long luaState, String funName,
-			LuaStackData data);
+			LuaArray data);
 
 	private native String _eval(long luaState, String content);
 
@@ -84,7 +84,7 @@ public class LuaState {
 		return callback;
 	}
 
-	public static boolean _luacallback(int stateId, LuaStackData data) {
+	public static boolean _luacallback(int stateId, LuaArray data) {
 		try {
 			LuaState st = LuaStateManager.getState(stateId);
 			if (st == null) {
@@ -121,11 +121,11 @@ public class LuaState {
 		return _setvar(this.luaState, key, value);
 	}
 
-	public boolean pcall(String funName, LuaStackData data) {
+	public boolean pcall(String funName, LuaArray data) {
 		return pcall(funName, data, false);
 	}
 
-	public boolean pcall(String funName, LuaStackData data, boolean throwError) {
+	public boolean pcall(String funName, LuaArray data, boolean throwError) {
 		if (this.luaState == 0)
 			throw new NullPointerException("luaState");
 		boolean r = _pcall(this.luaState, funName, data);

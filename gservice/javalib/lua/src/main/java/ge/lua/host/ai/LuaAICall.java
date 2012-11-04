@@ -1,6 +1,6 @@
 package ge.lua.host.ai;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaApp.Command;
 import ge.lua.host.LuaCall;
@@ -26,13 +26,13 @@ public class LuaAICall implements LuaCall {
 
 	public static final String METHOD_NAME = "airesponse";
 
-	protected Map<Integer, AIStack<LuaStackData>> stacks = new ConcurrentSkipListMap<Integer, AIStack<LuaStackData>>();
+	protected Map<Integer, AIStack<LuaArray>> stacks = new ConcurrentSkipListMap<Integer, AIStack<LuaArray>>();
 	protected RoundRobinInteger callId = new RoundRobinInteger(10000000);
 
-	public int aicall(final AIStack<LuaStackData> stack, LuaApp app,
-			final String funName, final LuaStackData req, long timeout,
+	public int aicall(final AIStack<LuaArray> stack, LuaApp app,
+			final String funName, final LuaArray req, long timeout,
 			TimerManager tm) {
-		final AIStack<LuaStackData> callStack = new AIStackOne<LuaStackData>(
+		final AIStack<LuaArray> callStack = new AIStackOne<LuaArray>(
 				stack);
 		final int callId = aicall(callStack, app, funName, req);
 		ProcessTimerTask task = TimerManager.delay(new Runnable() {
@@ -49,8 +49,8 @@ public class LuaAICall implements LuaCall {
 		return callId;
 	}
 
-	public int aicall(final AIStack<LuaStackData> stack, LuaApp app,
-			final String funName, final LuaStackData req) {
+	public int aicall(final AIStack<LuaArray> stack, LuaApp app,
+			final String funName, final LuaArray req) {
 		final int cid = callId.next();
 		req.addInt(0, cid);
 		app.runCommand(new Command() {
@@ -94,7 +94,7 @@ public class LuaAICall implements LuaCall {
 	}
 
 	@Override
-	public boolean call(LuaApp app, int callId, LuaStackData data) {
+	public boolean call(LuaApp app, int callId, LuaArray data) {
 		int javaCallId = 0;
 		Object v = data.pop(0);
 		if (v != null && v instanceof Number) {
@@ -108,9 +108,9 @@ public class LuaAICall implements LuaCall {
 			throw new IllegalArgumentException("invalid callbackId");
 		}
 
-		LuaStackData rep = data.copy();
+		LuaArray rep = data.copy();
 		data.reset();
-		AIStack<LuaStackData> stack = stacks.remove(javaCallId);
+		AIStack<LuaArray> stack = stacks.remove(javaCallId);
 		if (stack != null) {
 			if (log.isDebugEnabled()) {
 				log.debug("stack[{}] success", javaCallId);
@@ -127,11 +127,11 @@ public class LuaAICall implements LuaCall {
 	}
 
 	public void close() {
-		List<AIStack<LuaStackData>> tmp = new ArrayList<AIStack<LuaStackData>>(
+		List<AIStack<LuaArray>> tmp = new ArrayList<AIStack<LuaArray>>(
 				stacks.values());
 		stacks.clear();
 		Exception e = new IllegalStateException("close");
-		for (AIStack<LuaStackData> stack : tmp) {
+		for (AIStack<LuaArray> stack : tmp) {
 			AIUtil.safeFailure(stack, e);
 		}
 	}

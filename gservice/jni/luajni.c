@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <string.h>
 #include "luajni.h"
 #include "lua.h"
@@ -26,23 +27,26 @@ static void pushJNIEnv( JNIEnv * env , lua_State * L );
 
 static JNIEnv * getEnvFromState( lua_State * L );
 
-#define JC_LuaStackData	0
+#define JC_LuaProxy	0
 #define JCLASS_MAX	1
 
-#define JM_LuaStackData_new			0
-#define JM_LuaStackData_getSize		1
-#define JM_LuaStackData_getType		2
-#define JM_LuaStackData_getInt		3
-#define JM_LuaStackData_getNumber	4
-#define JM_LuaStackData_getString	5
-#define JM_LuaStackData_getBoolean	6
-#define JM_LuaStackData_reset		7
-#define JM_LuaStackData_addNull		8
-#define JM_LuaStackData_addInt		9
-#define JM_LuaStackData_addNumber	10
-#define JM_LuaStackData_addString	11
-#define JM_LuaStackData_addBoolean	12
-#define JMETHOD_MAX	13
+#define JM_LuaProxy_new			0
+#define JM_LuaProxy_getSize		1
+#define JM_LuaProxy_getType		2
+#define JM_LuaProxy_getAt		3
+#define JM_LuaProxy_asInt		4
+#define JM_LuaProxy_asNumber	5
+#define JM_LuaProxy_asString	6
+#define JM_LuaProxy_asBoolean	7
+#define JM_LuaProxy_reset		8
+#define JM_LuaProxy_pushValue	9
+#define JM_LuaProxy_fromInt		10
+#define JM_LuaProxy_fromNumber	11
+#define JM_LuaProxy_fromBoolean	12
+#define JM_LuaProxy_nextKey		13
+#define JM_LuaProxy_getType2	14
+#define JM_LuaProxy_getAt2		15
+#define JMETHOD_MAX	16
 
 typedef struct {
 	jclass c[JCLASS_MAX];
@@ -51,10 +55,10 @@ typedef struct {
 
 static jclass jc(JNIEnv* env,JAPI* api,int id) {
 	if(!api->c[id]) {
-		jclass c;
+		jclass c = NULL;
 		switch(id) {
-		case JC_LuaStackData:
-			c = ( *env )->FindClass( env , "ge/lua/LuaStackData" );
+		case JC_LuaProxy:
+			c = ( *env )->FindClass( env , "ge/lua/LuaProxy" );
 			break;
 		}
 		api->c[id] = c;
@@ -64,46 +68,55 @@ static jclass jc(JNIEnv* env,JAPI* api,int id) {
 
 static jmethodID jm(JNIEnv* env, JAPI* api,int id) {
 	if(!api->m[id]) {
-		jmethodID m;
+		jmethodID m = NULL;
 		switch(id) {
-		case JM_LuaStackData_new:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "<init>", "()V" );
+		case JM_LuaProxy_new:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "create", "(Z)Ljava/lang/Object;" );
 			break;
-		case JM_LuaStackData_getSize:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getSize" , "()I" );	
+		case JM_LuaProxy_getSize:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "getSize" , "()I" );	
 			break;
-		case JM_LuaStackData_getType:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getType" , "(I)I" );	
+		case JM_LuaProxy_getType:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "getType" , "(I)I" );	
 			break;
-		case JM_LuaStackData_getInt:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getInt" , "(I)I" );	
+		case JM_LuaProxy_getAt:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "getAt" , "(I)Ljava/lang/Object;" );	
 			break;
-		case JM_LuaStackData_getNumber:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getNumber" , "(I)D" );	
+		case JM_LuaProxy_asInt:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "asInt" , "(Ljava/lang/Object;)I" );	
 			break;
-		case JM_LuaStackData_getString:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getString" , "(I)Ljava/lang/String;" );	
+		case JM_LuaProxy_asNumber:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "asNumber" , "(Ljava/lang/Object;)D" );	
 			break;
-		case JM_LuaStackData_getBoolean:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "getBoolean" , "(I)Z" );
+		case JM_LuaProxy_asString:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "asString" , "(Ljava/lang/Object;)Ljava/lang/String;" );	
 			break;
-		case JM_LuaStackData_reset:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "reset" , "()V" );
+		case JM_LuaProxy_asBoolean:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "asBoolean" , "(Ljava/lang/Object;)Z" );
 			break;
-		case JM_LuaStackData_addNull:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "addNull" , "()V" );
+		case JM_LuaProxy_reset:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "reset" , "()V" );
 			break;
-		case JM_LuaStackData_addInt:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "addInt" , "(I)V" );	
+		case JM_LuaProxy_pushValue:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "pushValue" , "(Ljava/lang/Object;)V" );
 			break;
-		case JM_LuaStackData_addNumber:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "addNumber" , "(D)V" );	
+		case JM_LuaProxy_fromInt:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "fromInt" , "(I)Ljava/lang/Object;" );	
 			break;
-		case JM_LuaStackData_addString:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "addString" , "(Ljava/lang/String;)V" );	
+		case JM_LuaProxy_fromNumber:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "fromNumber" , "(D)Ljava/lang/Object;" );	
 			break;
-		case JM_LuaStackData_addBoolean:
-			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaStackData), "addBoolean" , "(Z)V" );
+		case JM_LuaProxy_fromBoolean:
+			m = ( *env )->GetStaticMethodID( env , jc(env,api,JC_LuaProxy), "fromBoolean" , "(Z)Ljava/lang/Object;" );
+			break;
+		case JM_LuaProxy_nextKey:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "nextKey" , "()Ljava/lang/String;" );
+			break;
+		case JM_LuaProxy_getType2:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "getType" , "(Ljava/lang/String;)I" );
+			break;
+		case JM_LuaProxy_getAt2:
+			m = ( *env )->GetMethodID( env , jc(env,api,JC_LuaProxy), "getAt" , "(Ljava/lang/String;)Ljava/lang/Object;" );
 			break;
 		}
 		api->m[id] = m;
@@ -194,82 +207,186 @@ void pushJNIEnv( JNIEnv * env , lua_State * L )
 	}
 }
 
+static int isLuaArray(lua_State *l, int idx)
+{
+    double k;
+    int max;
+    int items;
+
+    max = 0;
+    items = 0;
+
+    lua_pushnil(l);
+    /* table, startkey */
+	while (lua_next(l, idx) != 0) {
+        /* table, key, value */
+		if (lua_type(l, -2) == LUA_TNUMBER &&
+			(k = lua_tonumber(l, -2))) {
+            /* Integer >= 1 ? */
+            if (floor(k) == k && k >= 1) {
+                if (k > max)
+                    max = k;
+                items++;
+                lua_pop(l, 1);
+                continue;
+            }
+        }
+
+        /* Must not be an array (non integer key) */
+        lua_pop(l, 2);
+        return -1;
+    }
+
+    return max;
+}
+
+static void popLuaValue(lua_State* L,JNIEnv* env, JAPI* api, jobject data,int idx) {
+	jobject v = NULL;
+	int type = lua_type(L,idx);				
+	switch(type) {
+	case LUA_TBOOLEAN: {
+		v = ( *env )->CallStaticObjectMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_fromBoolean),lua_toboolean(L,idx));
+		break;
+	}
+	case LUA_TNUMBER: {
+		lua_Integer v1 = lua_tointeger(L,idx);
+		lua_Number v2 = lua_tonumber(L,idx);
+		if(v1==v2) {
+			v = ( *env )->CallStaticObjectMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_fromInt), (int) v1);
+		} else {
+			v = ( *env )->CallStaticObjectMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_fromNumber),v2);
+		}				
+		break;
+	}
+	case LUA_TSTRING: {
+		const char* v = lua_tostring(L, idx);
+		jstring jstr = ( *env )->NewStringUTF(env,v);
+		( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaProxy_pushValue), (jobject) jstr);
+		( *env )->DeleteLocalRef(env, jstr);
+		return;
+	}		
+	case LUA_TTABLE: {
+		int len;
+
+		if(idx<0) {
+			idx = lua_gettop(L)+idx+1;
+		}
+		len = isLuaArray(L, idx);
+        if (len > 0) {
+			int i;			
+			v = (*env)->CallStaticObjectMethod(env, jc(env,api,JC_LuaProxy), jm(env,api,JM_LuaProxy_new), 0);
+			for (i = 1; i <= len; i++) {		
+				lua_rawgeti(L, idx, i);
+				popLuaValue(L, env, api, v, -1);
+				lua_pop(L, 1);
+			}
+		} else {
+			v = (*env)->CallStaticObjectMethod(env, jc(env,api,JC_LuaProxy), jm(env,api,JM_LuaProxy_new), 1);			
+			lua_pushnil(L);
+			while (lua_next(L, idx) != 0) {
+				popLuaValue(L, env, api, v, -2);
+				popLuaValue(L, env, api, v, -1);
+				lua_pop(L, 1);
+			}
+		}
+		break;
+	}
+	case LUA_TNIL:
+	default:		
+		break;
+	}
+	( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaProxy_pushValue),v);
+}
+
 static void popStackData(lua_State* L,JNIEnv* env, JAPI* api, jobject data,int top,int nresults) {
 	int i;
-	( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_reset));
-	for(i=1;i<=nresults;i++) {
-		int type = lua_type(L,top+i);				
-		switch(type) {
-		case LUA_TBOOLEAN:
-			( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_addBoolean),lua_toboolean(L,top+i));
-			break;
-		case LUA_TNUMBER: {
-				lua_Integer v = lua_tointeger(L,top+i);
-				lua_Number v2 = lua_tonumber(L,top+i);
-				if(v==v2) {
-					( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_addInt),v);
-				} else {
-					( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_addNumber),v2);
-				}				
-				break;
-			}
-		case LUA_TSTRING: {
-				const char* v = lua_tostring(L,top+i);
-				jstring jstr = ( *env )->NewStringUTF(env,v);
-				( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_addString),jstr);
-				( *env )->DeleteLocalRef(env, jstr);
-				break;
-			}			
-		case LUA_TNIL:
-		default:
-			( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaStackData_addNull));
-			break;
-		}
+	( *env )->CallVoidMethod(env,data,jm(env,api,JM_LuaProxy_reset));
+	for(i=1;i<=nresults;i++) {		
+		popLuaValue(L,env,api,data,top+i);		
 	}
 	if(nresults>0) {
 		lua_pop(L,nresults);
 	}
 }
 
+static void pushJavaValue(lua_State* L,JNIEnv* env, JAPI* api, int type, jobject data) {
+	switch(type) {
+		case -2: {
+			lua_Integer v = ( *env )->CallStaticIntMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_asInt), data);
+			lua_pushinteger(L, v);
+			break;
+		}			
+		case LUA_TBOOLEAN: {
+			jboolean v = ( *env )->CallStaticBooleanMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_asBoolean),data);
+			lua_pushboolean(L,v);
+			break;
+		}
+		case LUA_TNUMBER: {
+			jdouble v = ( *env )->CallStaticDoubleMethod(env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_asNumber), data);
+			lua_pushnumber(L,v);
+			break;
+		}
+		case LUA_TSTRING: {
+				jstring ret;
+				ret = (jstring) ( *env )->CallStaticObjectMethod( env,jc(env,api,JC_LuaProxy),jm(env,api,JM_LuaProxy_asString),data);
+				if(ret!=NULL) {
+					const char* c = ( *env )->GetStringUTFChars( env, ret, NULL );
+					lua_pushstring(L, c);
+					( *env )->ReleaseStringUTFChars( env , ret, c );
+				} else {
+					lua_pushnil(L);
+				}
+				break;
+			}
+		case -3: {
+				int sz = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaProxy_getSize));
+				int i;	 
+				lua_newtable(L);
+				for(i=0;i<sz;i++) {
+					int type2 = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaProxy_getType),i);
+					jobject v2 = ( *env )->CallObjectMethod(env,data,jm(env,api,JM_LuaProxy_getAt),i);
+					lua_pushnumber(L, i+1);
+					pushJavaValue(L,env,api,type2,v2);
+					lua_settable(L,-3);
+				}	
+				break;
+			}
+		case LUA_TTABLE: {
+				int type2;
+				jobject v2;
+				jstring key;
+
+				lua_newtable(L);
+				key = (jstring) ( *env )->CallObjectMethod( env,data,jm(env,api,JM_LuaProxy_nextKey));
+				while(key!=NULL) {
+					const char* c = ( *env )->GetStringUTFChars( env, key, NULL );
+					lua_pushstring(L, c);
+					( *env )->ReleaseStringUTFChars( env , key, c );
+
+					type2 = ( *env )->CallIntMethod( env,data,jm(env,api,JM_LuaProxy_getType2), key);
+					v2 = ( *env )->CallObjectMethod( env,data,jm(env,api,JM_LuaProxy_getAt2), key);
+					pushJavaValue(L, env, api, type2, v2);
+					lua_settable(L,-3);
+
+					key = (jstring) ( *env )->CallObjectMethod( env,data,jm(env,api,JM_LuaProxy_nextKey));
+				}
+				break;
+			}
+		case LUA_TNIL:
+		default:{
+				lua_pushnil(L);
+				break;
+			}
+	}		
+}
+
 static int pushStackData(lua_State* L,JNIEnv* env, JAPI* api, jobject data) {
-	int sz = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaStackData_getSize));
+	int sz = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaProxy_getSize));
 	int i;	 
 	for(i=0;i<sz;i++) {
-		int type = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaStackData_getType),i);
-		switch(type) {
-			case -2: {
-					lua_Integer v = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaStackData_getInt),i);
-					lua_pushinteger(L, v);
-					break;
-				}			
-			case LUA_TBOOLEAN: {
-					jboolean v = ( *env )->CallBooleanMethod(env,data,jm(env,api,JM_LuaStackData_getBoolean),i);
-					lua_pushboolean(L,v);
-					break;
-				}
-			case LUA_TNUMBER: {
-					jdouble v = ( *env )->CallDoubleMethod(env,data,jm(env,api,JM_LuaStackData_getNumber),i);
-					lua_pushnumber(L,v);
-					break;
-				}
-			case LUA_TSTRING: {
-					jstring ret;
-					ret = (jstring) ( *env )->CallObjectMethod( env,data,jm(env,api,JM_LuaStackData_getString),i);
-					if(ret!=NULL) {
-						const char* c = ( *env )->GetStringUTFChars( env, ret, NULL );
-						lua_pushstring(L, c);
-						( *env )->ReleaseStringUTFChars( env , ret, c );
-					} else {
-						lua_pushnil(L);
-					}
-					break;
-				}
-			case LUA_TNIL:
-			default:{
-					lua_pushnil(L);
-					break;
-				}
-		}		
+		int type = ( *env )->CallIntMethod(env,data,jm(env,api,JM_LuaProxy_getType),i);
+		jobject v = ( *env )->CallObjectMethod(env,data,jm(env,api,JM_LuaProxy_getAt),i);
+		pushJavaValue(L,env,api,type,v);
 	}	
 	return sz;
 }
@@ -282,12 +399,12 @@ static int lua_javacall(lua_State *L) {
 	jobject obj;
 	jboolean ret;
 	jclass    cls_LuaState = ( *env )->FindClass( env , "ge/lua/LuaState" );	
-	jmethodID mid_LuaState__luacall	= ( *env )->GetStaticMethodID( env , cls_LuaState, "_luacallback" , "(ILge/lua/LuaStackData;)Z" );
+	jmethodID mid_LuaState__luacall	= ( *env )->GetStaticMethodID( env , cls_LuaState, "_luacallback" , "(ILge/lua/LuaArray;)Z" );
 	JAPI api;
 
 	memset(&api,0,sizeof(api));
 	
-	obj = (*env)->NewObject(env, jc(env,&api,JC_LuaStackData), jm(env,&api,JM_LuaStackData_new));
+	obj = (*env)->CallStaticObjectMethod(env, jc(env,&api,JC_LuaProxy), jm(env,&api,JM_LuaProxy_new), 0);
 	popStackData(L,env,&api,obj,0, n);
 	ret = ( *env )->CallStaticBooleanMethod( env , cls_LuaState, mid_LuaState__luacall , 
 			stateId , obj);

@@ -8,5 +8,5 @@ public interface LuaStateCallback {
 	 * @param data
 	 * @return false 表示错误
 	 */
-	public boolean callback(LuaState state, LuaStackData data);
+	public boolean callback(LuaState state, LuaArray data);
 }

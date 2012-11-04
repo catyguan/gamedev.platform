@@ -1,11 +1,11 @@
 package ge.lua.host.impl;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
 import bma.common.langutil.ai.stack.AIStackROOT;
 import bma.common.langutil.core.ValueUtil;
 
-public class AIStackLuaResponse extends AIStackROOT<LuaStackData> {
+public class AIStackLuaResponse extends AIStackROOT<LuaArray> {
 
 	protected LuaApp app;
 	protected int callId;
@@ -25,7 +25,7 @@ public class AIStackLuaResponse extends AIStackROOT<LuaStackData> {
 	}
 
 	@Override
-	public boolean end(LuaStackData result, Throwable t) {
+	public boolean end(LuaArray result, Throwable t) {
 		if (t != null) {
 			String msg = t.getMessage();
 			if (ValueUtil.empty(msg))
@@ -33,7 +33,7 @@ public class AIStackLuaResponse extends AIStackROOT<LuaStackData> {
 			app.luaCallResponse(callId, null, msg);
 		} else {
 			if (result == null)
-				result = new LuaStackData();
+				result = new LuaArray();
 			app.luaCallResponse(callId, result, null);
 		}
 		return true;

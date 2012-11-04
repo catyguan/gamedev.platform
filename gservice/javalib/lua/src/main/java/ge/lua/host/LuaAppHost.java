@@ -1,6 +1,6 @@
 package ge.lua.host;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.LuaState;
 import ge.lua.LuaStateCallback;
 import ge.lua.LuaStateManager;
@@ -214,7 +214,7 @@ public class LuaAppHost {
 
 						@Override
 						public boolean callback(LuaState state,
-								LuaStackData data) {
+								LuaArray data) {
 							return luaCall(fApp, data);
 						}
 					});
@@ -231,7 +231,7 @@ public class LuaAppHost {
 
 					if (app.getBootstrapList() != null) {
 						for (String boot : app.getBootstrapList()) {
-							LuaStackData data = new LuaStackData();
+							LuaArray data = new LuaArray();
 							data.addString(boot);
 							L.pcall("require", data);
 							if (log.isDebugEnabled()) {
@@ -319,7 +319,7 @@ public class LuaAppHost {
 						log.info("{} closing", app);
 					}
 					if (ValueUtil.notEmpty(app.getShutdown())) {
-						LuaStackData data = new LuaStackData();
+						LuaArray data = new LuaArray();
 						data.addBoolean(destroy);
 						try {
 							L.pcall(app.getShutdown(), data);
@@ -365,7 +365,7 @@ public class LuaAppHost {
 		return new ArrayList<LuaApp>(this.apps.values());
 	}
 
-	public boolean luaCall(LuaApp app, LuaStackData data) {
+	public boolean luaCall(LuaApp app, LuaArray data) {
 		String name = ObjectUtil.toString(data.pop(0));
 		if (StringUtil.equals(name, "hostCall")) {
 			String tmp = ObjectUtil.toString(data.pop(0));
@@ -406,7 +406,7 @@ public class LuaAppHost {
 
 										@Override
 										public void process(LuaApp app) {
-											LuaStackData data = new LuaStackData();
+											LuaArray data = new LuaArray();
 											data.addInt(tid);
 											LuaState L = app.getState();
 											boolean r = L.pcall(
@@ -434,7 +434,7 @@ public class LuaAppHost {
 	}
 
 	public void luaCallResponse(LuaApp app, final int callId,
-			final LuaStackData data, final String error) {
+			final LuaArray data, final String error) {
 		runAppCommand(app, new Command() {
 
 			@Override
@@ -445,10 +445,10 @@ public class LuaAppHost {
 						log.debug("{} callResponse ({},{})", new Object[] {
 								app, callId, data });
 					}
-					LuaStackData ls = data;
+					LuaArray ls = data;
 					try {
 						if (ls == null)
-							ls = new LuaStackData();
+							ls = new LuaArray();
 						ls.addInt(0, callId);
 						if (error != null) {
 							ls.addBoolean(1, false);

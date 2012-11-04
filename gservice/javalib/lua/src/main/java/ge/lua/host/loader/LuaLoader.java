@@ -1,6 +1,6 @@
 package ge.lua.host.loader;
 
-import ge.lua.LuaStackData;
+import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaAppBuilder;
 import ge.lua.host.LuaCall;
@@ -16,7 +16,7 @@ public abstract class LuaLoader implements LuaCall, LuaAppBuilder {
 	}
 
 	@Override
-	public boolean call(LuaApp app, int callId, LuaStackData data) {
+	public boolean call(LuaApp app, int callId, LuaArray data) {
 		String moduleName = data.getString(0);
 		data.reset();
 		Chunk chunk = loadChunk(moduleName);
