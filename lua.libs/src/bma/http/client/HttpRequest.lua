@@ -1,4 +1,4 @@
--- bma/http/HttpRequest.lua
+-- bma/http/client/HttpRequest.lua
 
 require("bma.lang.ext.Core")
 local modCurl = require("curl")

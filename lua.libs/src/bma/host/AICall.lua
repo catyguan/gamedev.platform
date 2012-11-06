@@ -38,6 +38,25 @@ function Class:next(fn)
 	error("unknow type "..type(fn))		
 end
 
+function Class:callback()
+    local s = self
+	return function(err,...)
+		if err then
+			if s.errorFunction then
+				s.errorFunction(err)
+			else
+				s.errorData = err
+			end
+		else
+			if s.nextFunction then
+				s.nextFunction(...)
+			else
+				s.resultData = {...}
+			end
+		end
+	end	
+end
+
 function Class:run(...)
 	local s = self
 	local f = function(err,...)
@@ -79,8 +98,11 @@ end
 function Class:response(callId)
 	return self:next(function(...)
 		local HS = class.instance("bma.host.Service")
-		HS:aiResponse(callId,...)	
-	end)	
+		HS:aiResponse(callId,nil,...)
+	end):error(function(err)
+	    local HS = class.instance("bma.host.Service")
+		HS:aiResponse(callId,err)
+	end)
 end
 
 function aicall(...)
