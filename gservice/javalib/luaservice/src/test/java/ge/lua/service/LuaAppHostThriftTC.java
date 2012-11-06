@@ -1,5 +1,6 @@
 package ge.lua.service;
 
+import ge.lua.service.thrift.TLuaAppCallResult;
 import ge.lua.service.thrift.TLuaAppHostManager;
 
 import org.junit.Before;
@@ -92,6 +93,32 @@ public class LuaAppHostThriftTC {
 					.createObject(TLuaAppHostManager.Client.class);
 			Object r = obj.closeApp("app1");
 			log.info("closeApp = {}", r);
+		} catch (Exception e) {
+			log.error("error", e);
+			e.printStackTrace();
+		} finally {
+			client.close();
+		}
+	}
+
+	@Test
+	public void client_test1() throws Exception {
+		ThriftClient client = client(false);
+		try {
+			TLuaAppHostManager.Client obj = client
+					.createObject(TLuaAppHostManager.Client.class);
+
+			if (obj != null) {
+				String params = "[\"app.demo1.test1\"]";
+				TLuaAppCallResult r = obj.appCall("app1", "require", params);
+				log.info("appCall(require) = {}", r.getResult());
+			}
+			if (obj != null) {
+				String params = "[]";
+				TLuaAppCallResult r = obj.appAICall("app1", "testHttpClient",
+						params, 5000);
+				log.info("appCall(testHttpClient) = {}", r.getResult());
+			}
 		} catch (Exception e) {
 			log.error("error", e);
 			e.printStackTrace();

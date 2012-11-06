@@ -2,7 +2,7 @@ if false then
     function aicalllTest(callId, word)
         local HS = class.instance("bma.host.Service")
         local f = function(r,word)
-            HS:aiResponse(callId, word)
+            HS:aiResponse(callId,nil,word)
         end
         HS:call(f,"asyn",word)
         return true

@@ -24,6 +24,11 @@ struct TLuaAppInfo {
   3: string createTime,
 }
 
+struct TLuaAppCallResult {
+  1: bool done,
+  2: string result,
+}
+
 service TLuaAppHostManager {
 
 	bool createApp(1:string appId, 2:string appType),
@@ -34,5 +39,9 @@ service TLuaAppHostManager {
 	
 	TLuaAppInfo getApp(1:string appId),
 
-	list<TLuaAppInfo> listApp();
+	list<TLuaAppInfo> listApp(),
+	
+	TLuaAppCallResult appCall(1:string appId, 2:string name, 3:string params),
+	
+	TLuaAppCallResult appAICall(1:string appId, 2:string name, 3:string params, 4:i32 timeout),
 }

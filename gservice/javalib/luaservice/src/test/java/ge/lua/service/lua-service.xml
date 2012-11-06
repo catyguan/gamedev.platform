@@ -5,6 +5,18 @@
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 	
 	<import resource="netty-thrift-global.xml"/>
+	
+	<!-- NettyPool -->
+	<bean id="nettyPool" class="bma.common.netty.pool.NettyChannelPool" destroy-method="close">
+		<property name="maxActive" value="10"/>
+		<property name="idleMaxTime" value="300000"/>
+		<property name="timer" ref="aitimer"/>
+		<property name="factory">
+			<bean class="bma.common.netty.pool.SimpleNettyChannelPoolFactory">
+				<property name="bootstrap" ref="nettyClientBootstrap"/>				
+			</bean>
+		</property>
+	</bean>
 
 	<!-- LuaAppHost -->
 	<bean id="luaAppHost" class="ge.lua.host.LuaAppHost"
@@ -15,17 +27,27 @@
 				<property name="pathList">
 					<list>
 						<value>d:/workroom/gamedev.platform/lua.libs/src</value>
+						<value>d:/workroom/gamedev.platform/lua.libs/test</value>
 						<value>d:/workroom/gamedev.platform/gservice/javalib/luaservice/docs</value>
 					</list>
 				</property>
 				<property name="bootstrapList">
 					<list>
 						<value>bma.lang.FlushPrint</value>
+						<value>bma.host.javahost</value>
 						<value>bma.app.api.Startup</value>
 					</list>
 				</property>				
 				<property name="shutdown" value="appShutdown"/>
 			</bean>
+		</property>
+		<property name="namedCalls">
+			<list>
+				<bean class="ge.lua.host.ai.LuaAICall" destroy-method="close"/>
+				<bean class="ge.lua.http.client.ServiceLuaCall">
+					<property name="pool" ref="nettyPool"/>
+				</bean>
+			</list>
 		</property>
 	</bean>
 	

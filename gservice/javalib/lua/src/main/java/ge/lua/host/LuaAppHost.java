@@ -68,6 +68,16 @@ public class LuaAppHost {
 		this.calls = calls;
 	}
 
+	public LuaCall getCall(String name) {
+		return this.calls == null ? null : this.calls.get(name);
+	}
+
+	public void setNamedCalls(List<LuaCallWithName> calls) {
+		for (LuaCallWithName c : calls) {
+			addCall(c.getName(), c);
+		}
+	}
+
 	public boolean hasCall(String name) {
 		return this.calls.containsKey(name);
 	}
@@ -213,8 +223,7 @@ public class LuaAppHost {
 					L.setCallback(new LuaStateCallback() {
 
 						@Override
-						public boolean callback(LuaState state,
-								LuaArray data) {
+						public boolean callback(LuaState state, LuaArray data) {
 							return luaCall(fApp, data);
 						}
 					});
@@ -375,7 +384,16 @@ public class LuaAppHost {
 				if (calls != null) {
 					LuaCall call = calls.get(method);
 					if (call != null) {
-						boolean r = call.call(app, cid, data);
+						boolean r = false;
+						try {
+							r = call.call(app, cid, data);
+						} catch (Exception e) {
+							if (log.isDebugEnabled()) {
+								log.debug("call fail", e);
+							}
+							r = true;
+							data.error(e.getMessage());
+						}
 						if (r) {
 							data.addBoolean(0, true);
 						} else {
@@ -469,4 +487,5 @@ public class LuaAppHost {
 			}
 		});
 	}
+
 }

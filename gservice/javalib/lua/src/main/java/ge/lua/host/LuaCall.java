@@ -11,5 +11,5 @@ public interface LuaCall {
 	 * @param data
 	 * @return true/同步响应,false/异步响应
 	 */
-	public boolean call(LuaApp app, int callId, LuaArray data);
+	public boolean call(LuaApp app, int callId, LuaArray data) throws Exception;
 }

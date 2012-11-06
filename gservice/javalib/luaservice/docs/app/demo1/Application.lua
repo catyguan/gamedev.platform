@@ -1,4 +1,4 @@
--- app/app1/Application.lua
+-- app/demo1/Application.lua
 require("bma.app.Application")
 require("bma.app.AppService")
 

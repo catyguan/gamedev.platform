@@ -1,7 +1,11 @@
 package ge.lua.service.impl;
 
+import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaAppHost;
+import ge.lua.host.LuaCall;
+import ge.lua.host.ai.LuaAICall;
+import ge.lua.service.thrift.TLuaAppCallResult;
 import ge.lua.service.thrift.TLuaAppHostManager4AI.Iface;
 import ge.lua.service.thrift.TLuaAppInfo;
 
@@ -11,6 +15,7 @@ import java.util.List;
 
 import org.apache.thrift.TException;
 
+import bma.common.json.JsonUtil;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackStep;
 import bma.common.langutil.core.DateTimeUtil;
@@ -89,5 +94,84 @@ public class TLuaAppHostManager4AIThrift implements Iface {
 			r.add(create(app));
 		}
 		return stack.success(r);
+	}
+
+	@Override
+	public boolean appCall(AIStack<TLuaAppCallResult> stack, String appId,
+			String name, String params) throws TException {
+		LuaApp app = host.queryApp(appId);
+		if (app == null) {
+			return stack.failure(new IllegalArgumentException("app[" + appId
+					+ "] not exists"));
+		}
+
+		try {
+			List ps = JsonUtil.getDefaultMapper().readValue(params, List.class);
+			LuaArray data = new LuaArray();
+			data.bind(ps);
+
+			AIStackStep<LuaArray, TLuaAppCallResult> step = new AIStackStep<LuaArray, TLuaAppCallResult>(
+					stack) {
+
+				@Override
+				protected boolean next(LuaArray result) {
+					try {
+						List list = result.toList();
+						String str = JsonUtil.getDefaultMapper()
+								.writeValueAsString(list);
+						TLuaAppCallResult r = new TLuaAppCallResult(true, str);
+						return successForward(r);
+					} catch (Exception e) {
+						return failure(e);
+					}
+				}
+			};
+			return app.runCall(step, name, data);
+		} catch (Exception e) {
+			throw new TException(e);
+		}
+	}
+
+	@Override
+	public boolean appAICall(AIStack<TLuaAppCallResult> stack, String appId,
+			String name, String params, int timeout) throws TException {
+		LuaApp app = host.queryApp(appId);
+		if (app == null) {
+			return stack.failure(new IllegalArgumentException("app[" + appId
+					+ "] not exists"));
+		}
+
+		try {
+			List ps = JsonUtil.getDefaultMapper().readValue(params, List.class);
+			LuaArray data = new LuaArray();
+			data.bind(ps);
+
+			AIStackStep<LuaArray, TLuaAppCallResult> step = new AIStackStep<LuaArray, TLuaAppCallResult>(
+					stack) {
+
+				@Override
+				protected boolean next(LuaArray result) {
+					try {
+						List list = result.toList();
+						String str = JsonUtil.getDefaultMapper()
+								.writeValueAsString(list);
+						TLuaAppCallResult r = new TLuaAppCallResult(true, str);
+						return successForward(r);
+					} catch (Exception e) {
+						return failure(e);
+					}
+				}
+			};
+			LuaCall lcall = app.getHost().getCall(LuaAICall.METHOD_NAME);
+			if (lcall == null || !(lcall instanceof LuaAICall)) {
+				return stack.failure(new IllegalStateException("app[" + appId
+						+ "] not support AICall"));
+			}
+			LuaAICall call = (LuaAICall) lcall;
+			call.aicall(step, app, name, data, timeout, null);
+			return false;
+		} catch (Exception e) {
+			throw new TException(e);
+		}
 	}
 }

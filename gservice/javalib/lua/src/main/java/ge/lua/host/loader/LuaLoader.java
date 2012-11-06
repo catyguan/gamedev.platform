@@ -3,12 +3,17 @@ package ge.lua.host.loader;
 import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaAppBuilder;
-import ge.lua.host.LuaCall;
+import ge.lua.host.LuaCallWithName;
 import bma.common.langutil.core.ValueUtil;
 
-public abstract class LuaLoader implements LuaCall, LuaAppBuilder {
+public abstract class LuaLoader implements LuaCallWithName, LuaAppBuilder {
 
 	public static final String METHOD_NAME = "loader";
+
+	@Override
+	public String getName() {
+		return METHOD_NAME;
+	}
 
 	public static class Chunk {
 		public String name;

@@ -3,6 +3,7 @@ package ge.lua;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import bma.common.langutil.core.ValueUtil;
 
@@ -171,6 +172,16 @@ public class LuaArray extends LuaProxy {
 		return ValueUtil.booleanValue(v.toString(), false);
 	}
 
+	public LuaTable getTable(int idx) {
+		Object v = getAt(idx);
+		if (v == null)
+			return null;
+		if (v instanceof LuaTable) {
+			return (LuaTable) v;
+		}
+		return null;
+	}
+
 	public List<Object> getData() {
 		return data;
 	}
@@ -187,6 +198,9 @@ public class LuaArray extends LuaProxy {
 
 	public boolean error(String msg) {
 		this.reset();
+		if (ValueUtil.empty(msg)) {
+			msg = "error";
+		}
 		this.addString(msg);
 		return false;
 	}
@@ -235,4 +249,44 @@ public class LuaArray extends LuaProxy {
 		return null;
 	}
 
+	public void bind(List ps) {
+		if (ps != null && !ps.isEmpty()) {
+			List<Object> l = sureData();
+			for (Object o : ps) {
+				if (o != null) {
+					if (o instanceof List) {
+						LuaArray la = new LuaArray();
+						la.bind((List) o);
+						o = la;
+					} else if (o instanceof Map) {
+						LuaTable lt = new LuaTable();
+						lt.bind((Map) o);
+						o = lt;
+					}
+				}
+
+				l.add(o);
+			}
+		}
+	}
+
+	public List toList() {		
+		if (data != null && !data.isEmpty()) {
+			List<Object> r = new ArrayList<Object>(data.size());
+			for (Object o : data) {
+				if (o != null) {
+					if (o instanceof LuaArray) {
+						LuaArray la = (LuaArray) o;						
+						o = la.toList();
+					} else if (o instanceof LuaTable) {
+						LuaTable lt = (LuaTable) o;						
+						o = lt.toMap();
+					}
+				}
+				r.add(o);
+			}
+			return r;
+		}
+		return null;
+	}
 }
