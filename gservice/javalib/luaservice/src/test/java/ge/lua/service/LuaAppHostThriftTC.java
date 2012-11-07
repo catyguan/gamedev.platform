@@ -6,6 +6,7 @@ import ge.lua.service.thrift.TLuaAppHostManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import bma.common.jdbctemplate.JdbcTemplateUtil;
 import bma.common.langutil.ai.boot.AIServerBoot;
 import bma.common.langutil.log.LogbackUtil;
 import bma.common.thrift.ThriftClient;
@@ -28,6 +29,7 @@ public class LuaAppHostThriftTC {
 	public void luaService() {
 		System.setProperty("spring_server_xml",
 				"classpath:ge/lua/service/lua-service.xml");
+		JdbcTemplateUtil.disableDebug(true);
 		AIServerBoot.main(new String[0]);
 	}
 
@@ -102,14 +104,14 @@ public class LuaAppHostThriftTC {
 	}
 
 	@Test
-	public void client_test1() throws Exception {
+	public void client_testHttpClient() throws Exception {
 		ThriftClient client = client(false);
 		try {
 			TLuaAppHostManager.Client obj = client
 					.createObject(TLuaAppHostManager.Client.class);
 
 			if (obj != null) {
-				String params = "[\"app.demo1.test1\"]";
+				String params = "[\"app.demo1.testHttpClient\"]";
 				TLuaAppCallResult r = obj.appCall("app1", "require", params);
 				log.info("appCall(require) = {}", r.getResult());
 			}
@@ -118,6 +120,32 @@ public class LuaAppHostThriftTC {
 				TLuaAppCallResult r = obj.appAICall("app1", "testHttpClient",
 						params, 5000);
 				log.info("appCall(testHttpClient) = {}", r.getResult());
+			}
+		} catch (Exception e) {
+			log.error("error", e);
+			e.printStackTrace();
+		} finally {
+			client.close();
+		}
+	}
+
+	@Test
+	public void client_testDAL() throws Exception {
+		ThriftClient client = client(false);
+		try {
+			TLuaAppHostManager.Client obj = client
+					.createObject(TLuaAppHostManager.Client.class);
+
+			if (obj != null) {
+				String params = "[\"app.demo1.testDAL\"]";
+				TLuaAppCallResult r = obj.appCall("app1", "require", params);
+				log.info("appCall(require) = {}", r.getResult());
+			}
+			if (obj != null) {
+				String params = "[]";
+				TLuaAppCallResult r = obj.appAICall("app1", "testDAL", params,
+						5000);
+				log.info("appCall(testDAL) = {}", r.getResult());
 			}
 		} catch (Exception e) {
 			log.error("error", e);

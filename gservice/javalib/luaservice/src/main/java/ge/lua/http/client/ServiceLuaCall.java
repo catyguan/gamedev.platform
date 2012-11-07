@@ -98,7 +98,7 @@ public class ServiceLuaCall implements LuaCallWithName {
 							t == null ? null : t.getMessage());
 				} else {
 					if (log.isDebugEnabled()) {
-						log.debug("app is null,discard {}", result);
+						log.debug("app is null,discard {}/{}", result, t);
 					}
 				}
 				return true;

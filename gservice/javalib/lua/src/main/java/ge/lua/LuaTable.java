@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import bma.common.langutil.core.ValueUtil;
+
 public class LuaTable extends LuaProxy {
 
 	public static Object NULL = new Object();
@@ -110,6 +112,39 @@ public class LuaTable extends LuaProxy {
 		return r.toString();
 	}
 
+	public boolean getBoolean(String key, boolean def) {
+		Object r = data.get(key);
+		if (r == null)
+			return def;
+		if (r instanceof Boolean) {
+			Boolean v = (Boolean) r;
+			return v.booleanValue();
+		}
+		return ValueUtil.booleanValue(r.toString(), def);
+	}
+
+	public int getInt(String key, int def) {
+		Object r = data.get(key);
+		if (r == null)
+			return def;
+		if (r instanceof Number) {
+			Number v = (Number) r;
+			return v.intValue();
+		}
+		return ValueUtil.intValue(r.toString(), def);
+	}
+
+	public double getNumber(String key, double def) {
+		Object r = data.get(key);
+		if (r == null)
+			return def;
+		if (r instanceof Number) {
+			Number v = (Number) r;
+			return v.doubleValue();
+		}
+		return ValueUtil.doubleValue(r.toString(), def);
+	}
+
 	public static LuaTable checkNull(LuaTable v) {
 		return v == null ? EMPTY : v;
 	}
@@ -153,7 +188,7 @@ public class LuaTable extends LuaProxy {
 					}
 				}
 				r.put(k, o);
-			}	
+			}
 			return r;
 		}
 		return null;

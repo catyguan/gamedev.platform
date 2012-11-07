@@ -6,6 +6,25 @@
 	
 	<import resource="netty-thrift-global.xml"/>
 	
+	<!-- dataSource -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl"
+			value="jdbc:mysql://127.0.0.1:3306/test?user=root&amp;password=root&amp;useUnicode=true&amp;characterEncoding=utf8" />
+		<property name="initialPoolSize" value="10"/>
+		<property name="minPoolSize" value="5"/>
+		<property name="maxPoolSize" value="30"/>
+		<property name="acquireIncrement" value="5"/>
+		<property name="maxIdleTime" value="10"/>
+		<property name="maxStatements" value="0"/>
+	</bean>
+
+	<!-- jdbcTemplate -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">		
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
 	<!-- NettyPool -->
 	<bean id="nettyPool" class="bma.common.netty.pool.NettyChannelPool" destroy-method="close">
 		<property name="maxActive" value="10"/>
@@ -46,6 +65,14 @@
 				<bean class="ge.lua.host.ai.LuaAICall" destroy-method="close"/>
 				<bean class="ge.lua.http.client.ServiceLuaCall">
 					<property name="pool" ref="nettyPool"/>
+				</bean>
+				<bean class="ge.lua.dal.ServiceLuaCall">
+					<property name="jdbcTemplates">
+						<map>
+							<entry key="test" value-ref="jdbcTemplate"/>
+						</map>
+					</property>
+					<property name="executor" ref="syncExecutor"/>
 				</bean>
 			</list>
 		</property>

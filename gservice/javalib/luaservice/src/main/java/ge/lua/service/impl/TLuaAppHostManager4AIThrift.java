@@ -2,6 +2,7 @@ package ge.lua.service.impl;
 
 import ge.lua.LuaArray;
 import ge.lua.host.LuaApp;
+import ge.lua.host.LuaApp.Command;
 import ge.lua.host.LuaAppHost;
 import ge.lua.host.LuaCall;
 import ge.lua.host.ai.LuaAICall;
@@ -16,6 +17,7 @@ import java.util.List;
 import org.apache.thrift.TException;
 
 import bma.common.json.JsonUtil;
+import bma.common.langutil.ai.AIUtil;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackStep;
 import bma.common.langutil.core.DateTimeUtil;
@@ -169,6 +171,34 @@ public class TLuaAppHostManager4AIThrift implements Iface {
 			}
 			LuaAICall call = (LuaAICall) lcall;
 			call.aicall(step, app, name, data, timeout, null);
+			return false;
+		} catch (Exception e) {
+			throw new TException(e);
+		}
+	}
+
+	@Override
+	public boolean appEval(final AIStack<Boolean> stack, String appId,
+			final String content) throws TException {
+		LuaApp app = host.queryApp(appId);
+		if (app == null) {
+			return stack.failure(new IllegalArgumentException("app[" + appId
+					+ "] not exists"));
+		}
+
+		try {
+			app.runCommand(new Command() {
+
+				@Override
+				public void process(LuaApp app) {
+					try {
+						app.eval(content);
+						AIUtil.safeSuccess(stack, true);
+					} catch (Exception e) {
+						AIUtil.safeFailure(stack, e);
+					}
+				}
+			});
 			return false;
 		} catch (Exception e) {
 			throw new TException(e);

@@ -71,14 +71,22 @@ public class LuaArray extends LuaProxy {
 		sureData().add(idx, t);
 	}
 
-	public void addArray(List<?> t) {
+	public void addArray(LuaArray a) {
+		sureData().add(a);
+	}
+
+	public void addArray(int idx, LuaArray a) {
+		sureData().add(idx, a);
+	}
+
+	public void addAll(List<?> t) {
 		if (t == null || t.isEmpty())
 			return;
 		List<Object> l = sureData();
 		l.addAll(t);
 	}
 
-	public void addArray(int idx, List<?> t) {
+	public void addAll(int idx, List<?> t) {
 		if (t == null || t.isEmpty())
 			return;
 		List<Object> l = sureData();
@@ -182,6 +190,16 @@ public class LuaArray extends LuaProxy {
 		return null;
 	}
 
+	public LuaArray getArray(int idx) {
+		Object v = getAt(idx);
+		if (v == null)
+			return null;
+		if (v instanceof LuaArray) {
+			return (LuaArray) v;
+		}
+		return null;
+	}
+
 	public List<Object> getData() {
 		return data;
 	}
@@ -270,16 +288,16 @@ public class LuaArray extends LuaProxy {
 		}
 	}
 
-	public List toList() {		
+	public List toList() {
 		if (data != null && !data.isEmpty()) {
 			List<Object> r = new ArrayList<Object>(data.size());
 			for (Object o : data) {
 				if (o != null) {
 					if (o instanceof LuaArray) {
-						LuaArray la = (LuaArray) o;						
+						LuaArray la = (LuaArray) o;
 						o = la.toList();
 					} else if (o instanceof LuaTable) {
-						LuaTable lt = (LuaTable) o;						
+						LuaTable lt = (LuaTable) o;
 						o = lt.toMap();
 					}
 				}

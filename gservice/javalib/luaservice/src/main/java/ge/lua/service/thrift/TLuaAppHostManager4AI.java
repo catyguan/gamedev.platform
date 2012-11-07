@@ -4,6 +4,8 @@ import ge.lua.service.thrift.TLuaAppHostManager.appAICall_args;
 import ge.lua.service.thrift.TLuaAppHostManager.appAICall_result;
 import ge.lua.service.thrift.TLuaAppHostManager.appCall_args;
 import ge.lua.service.thrift.TLuaAppHostManager.appCall_result;
+import ge.lua.service.thrift.TLuaAppHostManager.appEval_args;
+import ge.lua.service.thrift.TLuaAppHostManager.appEval_result;
 import ge.lua.service.thrift.TLuaAppHostManager.closeApp_args;
 import ge.lua.service.thrift.TLuaAppHostManager.closeApp_result;
 import ge.lua.service.thrift.TLuaAppHostManager.createApp_args;
@@ -55,6 +57,9 @@ public class TLuaAppHostManager4AI {
 				String appId, String name, String params, int timeout)
 				throws org.apache.thrift.TException;
 
+		public boolean appEval(AIStack<Boolean> stack, String appId,
+				String content) throws org.apache.thrift.TException;
+
 	}
 
 	public static class Processor<IFACE extends Iface> extends
@@ -75,6 +80,7 @@ public class TLuaAppHostManager4AI {
 			processMap.put("listApp", new listApp());
 			processMap.put("appCall", new appCall());
 			processMap.put("appAICall", new appAICall());
+			processMap.put("appEval", new appEval());
 			return processMap;
 		}
 
@@ -221,6 +227,26 @@ public class TLuaAppHostManager4AI {
 						.getParams());
 			}
 		}
+
+		private static class appEval<I extends Iface> extends
+				TAIProcessFunction<I, appEval_args> {
+			public appEval() {
+				super("appEval");
+			}
+
+			@Override
+			protected appEval_args getEmptyArgsInstance() {
+				return new appEval_args();
+			}
+
+			@Override
+			protected boolean getResult(AIStack<TBase> stack, I iface,
+					appEval_args args) throws org.apache.thrift.TException {
+				appEval_result result = new appEval_result();
+				return iface.appEval(new AIBaseStack<Boolean>(stack, result),
+						args.getAppId(), args.getContent());
+			}
+		}
 	}
 
 	public static class Client extends TAIBaseServiceClient implements Iface {
@@ -277,6 +303,13 @@ public class TLuaAppHostManager4AI {
 				throws TException {
 			return super.invoke(stack, new appAICall_result(), "appAICall",
 					new appAICall_args(appId, name, params, timeout));
+		}
+
+		@Override
+		public boolean appEval(AIStack<Boolean> stack, String appId,
+				String content) throws TException {
+			return super.invoke(stack, new appEval_result(), "appEval",
+					new appEval_args(appId, content));
 		}
 	}
 }
