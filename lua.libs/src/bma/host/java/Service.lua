@@ -24,32 +24,39 @@ function Class:call(opts, ...)
 	end)	
 	if done then
 		local syn = unpack(r,1,1)
-		if syn then
+		if syn then			
 			table.remove(r,1)
-			self:response(opts, r, nil)
+			if LOG:debugEnabled() then
+				LOG:debug("JavaHost","hostCall done -- T"..#r)
+			end
+			self:response(opts, nil, r)			
 			return -1
 		else									
 			self.calls[cid] = opts
 			return cid			
 		end
 	else
-		LOG:debug("JavaHost",tostring(r).."\n"..et)
-		self:response(opts,nil,r or "<empty error message>")
+		if LOG:debugEnabled() then
+			LOG:debug("JavaHost",tostring(r).."\n"..et)
+		end
+		self:response(opts, r or "<empty error message>", nil)
 		return -1
 	end
 end
 
-function luaCallResponse(callId, done, ...)
+function luaCallResponse(callId, err, ...)
 	if LOG:debugEnabled() then
-		LOG:debug("JavaHost","luaCallResponse - callId="..callId..",done="..tostring(done))
-		LOG:debug("JavaHost",{...})
+		LOG:debug("JavaHost","luaCallResponse - callId="..callId..",err="..tostring(err))
+		if not err then
+			LOG:debug("JavaHost",{...})
+		end
 	end
 	local opts = instance.calls[callId]
 	if opts then
-		if done then
-			instance:response(opts,{...},nil)
+		if err then
+			instance:response(opts,err)			
 		else
-			instance:response(opts,nil,select(1,...))
+			instance:response(opts,nil,{...})
 		end
 	else
 		LOG:debug("JavaHost","discard response "..callId)

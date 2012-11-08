@@ -85,7 +85,7 @@ public class AppHostTC {
 					public void run() {
 						log.info("LuaCall asyn do => {}/{}", rdata,
 								System.identityHashCode(rdata));
-						app.luaCallResponse(callId, rdata, null);
+						app.luaCallResponse(callId, null, rdata);
 					}
 				});
 				return false;
@@ -220,7 +220,7 @@ public class AppHostTC {
 				aicall.aicall(stack, app, "aicalllTest", req, 500, timer);
 
 				LuaArray rep = stack.get(5, TimeUnit.SECONDS);
-				System.out.println("TestResult ===== "+rep);
+				System.out.println("TestResult ===== " + rep);
 			}
 
 			if (app != null) {

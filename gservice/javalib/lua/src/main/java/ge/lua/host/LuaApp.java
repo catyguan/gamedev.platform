@@ -117,8 +117,8 @@ public class LuaApp {
 		this.host.runAppCommand(this, command);
 	}
 
-	public boolean runCall(final AIStack<LuaArray> stack,
-			final String funName, final LuaArray data) {
+	public boolean runCall(final AIStack<LuaArray> stack, final String funName,
+			final LuaArray data) {
 		runCommand(new Command() {
 
 			@Override
@@ -134,8 +134,8 @@ public class LuaApp {
 		return false;
 	}
 
-	public void luaCallResponse(int callId, LuaArray data, String error) {
-		this.host.luaCallResponse(this, callId, data, error);
+	public void luaCallResponse(int callId, String error, LuaArray data) {
+		this.host.luaCallResponse(this, callId, error, data);
 	}
 
 	public boolean setvar(String key, String value) {

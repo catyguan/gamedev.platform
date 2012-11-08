@@ -4,6 +4,7 @@ import ge.lua.LuaArray;
 import ge.lua.LuaTable;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaCallWithName;
+import ge.lua.host.impl.AIStackLuaResponse;
 
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -27,7 +28,6 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 
 import bma.common.langutil.ai.stack.AIStack;
-import bma.common.langutil.ai.stack.AIStackROOT;
 import bma.common.langutil.ai.stack.AIStackStep;
 import bma.common.langutil.core.ExceptionUtil;
 import bma.common.langutil.core.SizeUtil;
@@ -86,25 +86,8 @@ public class ServiceLuaCall implements LuaCallWithName {
 	@Override
 	public boolean call(final LuaApp app, final int callId, LuaArray data)
 			throws Exception {
-		AIStackROOT<LuaArray> root = new AIStackROOT<LuaArray>() {
-
-			@Override
-			public boolean end(LuaArray result, Throwable t) {
-				if (t != null && log.isDebugEnabled()) {
-					log.debug("HttpServiceLuaCall fail", t);
-				}
-				if (app != null) {
-					app.luaCallResponse(callId, result,
-							t == null ? null : t.getMessage());
-				} else {
-					if (log.isDebugEnabled()) {
-						log.debug("app is null,discard {}/{}", result, t);
-					}
-				}
-				return true;
-			}
-		};
-
+		AIStackLuaResponse root = new AIStackLuaResponse(app, callId);
+		
 		String url = data.getString(0);
 		if (ValueUtil.empty(url)) {
 			throw new IllegalArgumentException("url invalid");

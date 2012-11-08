@@ -4,6 +4,7 @@ import ge.lua.LuaArray;
 import ge.lua.LuaTable;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaCallWithName;
+import ge.lua.host.impl.AIStackLuaResponse;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +23,7 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 
 import bma.common.langutil.ai.AIUtil;
 import bma.common.langutil.ai.stack.AIStack;
-import bma.common.langutil.ai.stack.AIStackROOT;
+import bma.common.langutil.ai.stack.AIStackSimple;
 import bma.common.langutil.core.DateTimeUtil;
 import bma.common.langutil.core.ValueUtil;
 
@@ -68,27 +69,8 @@ public class ServiceLuaCall implements LuaCallWithName {
 	}
 
 	@Override
-	public boolean call(final LuaApp app, final int callId, LuaArray data)
+	public boolean call(final LuaApp app, final int callId, final LuaArray data)
 			throws Exception {
-
-		AIStackROOT<LuaArray> root = new AIStackROOT<LuaArray>() {
-
-			@Override
-			public boolean end(LuaArray result, Throwable t) {
-				if (t != null && log.isDebugEnabled()) {
-					log.debug("DAL ServiceLuaCall fail", t);
-				}
-				if (app != null) {
-					app.luaCallResponse(callId, result,
-							t == null ? null : t.getMessage());
-				} else {
-					if (log.isDebugEnabled()) {
-						log.debug("app is null,discard {}/{}", result, t);
-					}
-				}
-				return true;
-			}
-		};
 
 		String dsName = data.getString(0);
 		if (ValueUtil.empty(dsName)) {
@@ -99,16 +81,32 @@ public class ServiceLuaCall implements LuaCallWithName {
 			throw new IllegalArgumentException("sql invalid");
 		}
 		LuaArray params = data.getArray(2);
-		LuaTable options = data.getTable(3);
-		return invoke(root, dsName, sql, params, options);
+		LuaTable options = LuaTable.checkNull(data.getTable(3));
+		data.reset();
+
+		final boolean syn = this.executor == null
+				|| options.getBoolean("syn", false);
+		AIStack<LuaArray> root;
+		if (syn) {
+			root = new AIStackSimple<LuaArray>(null);
+		} else {
+			root = new AIStackLuaResponse(app, callId);
+		}
+
+		invoke(root, dsName, sql, params, options, syn);
+		if (syn) {
+			LuaArray r = ((AIStackSimple<LuaArray>) root).get();
+			data.copyFrom(r);
+		}
+		return syn;
 	}
 
 	public boolean invoke(final AIStack<LuaArray> stack, final String dsName,
-			final String sql, final LuaArray params, LuaTable options) {
+			final String sql, final LuaArray params, final LuaTable options,
+			boolean syn) {
 		try {
-			final LuaTable opt = LuaTable.checkNull(options);
-			if (this.executor == null || opt.getBoolean("syn", false)) {
-				LuaArray r = invoke(dsName, sql, params, opt);
+			if (syn) {
+				LuaArray r = invoke(dsName, sql, params, options);
 				return stack.success(r);
 			} else {
 				this.executor.execute(new Runnable() {
@@ -116,7 +114,8 @@ public class ServiceLuaCall implements LuaCallWithName {
 					@Override
 					public void run() {
 						try {
-							LuaArray result = invoke(dsName, sql, params, opt);
+							LuaArray result = invoke(dsName, sql, params,
+									options);
 							AIUtil.safeSuccess(stack, result);
 						} catch (Exception e) {
 							AIUtil.safeFailure(stack, e);

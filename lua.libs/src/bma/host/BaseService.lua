@@ -36,7 +36,7 @@ function Class:callStack(opts)
 	end
 end
 
-function Class:response(opts,result,error)
+function Class:response(opts,error,result)
 	if error then		
 		if type(opts)=="function" then 
 			opts(error)

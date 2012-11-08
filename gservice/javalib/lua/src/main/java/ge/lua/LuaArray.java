@@ -307,4 +307,13 @@ public class LuaArray extends LuaProxy {
 		}
 		return null;
 	}
+
+	public void copyFrom(LuaArray result) {
+		reset();
+		if(result!=null && result.data!=null) {
+			for(Object o : result.data) {
+				pushValue(o);
+			}
+		}
+	}
 }

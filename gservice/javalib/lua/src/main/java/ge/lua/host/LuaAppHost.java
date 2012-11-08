@@ -386,16 +386,15 @@ public class LuaAppHost {
 					if (call != null) {
 						boolean r = false;
 						try {
-							r = call.call(app, cid, data);
+							r = call.call(app, cid, data);							
 						} catch (Exception e) {
 							if (log.isDebugEnabled()) {
 								log.debug("call fail", e);
 							}
-							r = true;
-							data.error(e.getMessage());
+							return data.error(e.getMessage());
 						}
 						if (r) {
-							data.addBoolean(0, true);
+							data.addBoolean(0, true);							
 						} else {
 							data.reset();
 							data.addBoolean(false);
@@ -452,7 +451,7 @@ public class LuaAppHost {
 	}
 
 	public void luaCallResponse(LuaApp app, final int callId,
-			final LuaArray data, final String error) {
+			final String error, final LuaArray data) {
 		runAppCommand(app, new Command() {
 
 			@Override
@@ -460,8 +459,8 @@ public class LuaAppHost {
 				LuaState L = app.getState();
 				if (L != null && L.isOpen()) {
 					if (log.isDebugEnabled()) {
-						log.debug("{} callResponse ({},{})", new Object[] {
-								app, callId, data });
+						log.debug("{} lua-java response ({},{},{})",
+								new Object[] { app, callId, error, data });
 					}
 					LuaArray ls = data;
 					try {
@@ -469,15 +468,11 @@ public class LuaAppHost {
 							ls = new LuaArray();
 						ls.addInt(0, callId);
 						if (error != null) {
-							ls.addBoolean(1, false);
-							ls.addString(2, error);
+							ls.addString(1, error);
 						} else {
-							ls.addBoolean(1, true);
+							ls.addNull(1);
 						}
 						L.pcall("luaCallResponse", ls);
-						if (log.isDebugEnabled()) {
-							log.debug("luaCallResponse => {}", ls);
-						}
 					} catch (Exception e) {
 						if (log.isWarnEnabled()) {
 							log.warn("luaCallResponse fail", e);

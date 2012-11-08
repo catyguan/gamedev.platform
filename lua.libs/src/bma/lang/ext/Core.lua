@@ -182,15 +182,9 @@ function enum( tbl )
 	return ret
 end
 
-module("testcase", package.seeall)
-
 function include(name)
 	package.loaded[name] = nil
 	return require(name)
-end
-
-function unload(name)
-	package.loaded[name] = nil
 end
 
 return true
