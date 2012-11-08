@@ -144,7 +144,7 @@ public class ServiceLuaCall implements LuaCallWithName {
 			public PreparedStatement createPreparedStatement(Connection con)
 					throws SQLException {
 				if (log.isDebugEnabled()) {
-					log.debug("execute {}", sql);
+					log.debug("execute {}/{}", sql, params);
 				}
 				PreparedStatement st = con.prepareStatement(sql);
 				if (params != null) {
@@ -180,9 +180,13 @@ public class ServiceLuaCall implements LuaCallWithName {
 				if (options.getBoolean("update", false)) {
 					int c = ps.executeUpdate();
 					r.addInt(c);
-					return r;
-				} else {
+					if(log.isDebugEnabled()) {
+						log.debug("update result - {}", c);
+					}
+				} else {					
 					ResultSet rs = ps.executeQuery();
+					LuaArray rsl = new LuaArray();
+					
 					ResultSetMetaData rsmd = rs.getMetaData();
 					int cc = rsmd.getColumnCount();
 
@@ -199,7 +203,12 @@ public class ServiceLuaCall implements LuaCallWithName {
 							}
 							t.putAt(k, v);
 						}
-						r.addTable(t);
+						rsl.addTable(t);
+					}
+					r.addArray(rsl);
+					
+					if(log.isDebugEnabled()) {
+						log.debug("select result - {}", rsl);
 					}
 				}
 				return r;

@@ -1,6 +1,3 @@
-require("bma.test.bootstrap")
-
-local simulate = false
 
 local DAL
 if true then

@@ -67,13 +67,4 @@ M.run = function()
 	end
 end
 
-M.runTestcase = function()
-	M.run()
-	
-	-- helper
-	_G.unload = testcase.unload
-	_G.run = testcase.include
-	_G.reload = testcase.unload	
-end
-
 return M

@@ -17,5 +17,6 @@ end
 -- records:int or resultSet:list<map>
 function Class:execute(callback, dsName, sql, params, executeOpts)
 	local HS = class.instance("bma.host.Service")
-    return HS:call(callback, "dal.execute", dsName, sql, params, executeOpts)
+	local dsname = self:mapDSName(dsName)
+    return HS:call(callback, "dal.execute", dsname, sql, params, executeOpts)
 end

@@ -52,11 +52,10 @@
 				</property>
 				<property name="bootstrapList">
 					<list>
-						<value>bma.lang.FlushPrint</value>
-						<value>bma.host.javahost</value>
-						<value>bma.app.api.Startup</value>
+						<value>bma.lang.FlushPrint</value>						
 					</list>
 				</property>				
+				<property name="launch" value="bma.app.api.Startup"/>
 				<property name="shutdown" value="appShutdown"/>
 			</bean>
 		</property>
