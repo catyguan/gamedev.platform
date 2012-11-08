@@ -11,8 +11,9 @@ public class LuaAppFactorySimple implements LuaAppFactory {
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
 			.getLogger(LuaAppFactorySimple.class);
 
-	private List<String> bootstrapList;
 	private List<String> pathList;
+	private List<String> bootstrapList;
+	private List<String> launchList;
 	private String shutdown;
 
 	public String getShutdown() {
@@ -42,6 +43,26 @@ public class LuaAppFactorySimple implements LuaAppFactory {
 		this.bootstrapList.add(v);
 	}
 
+	public List<String> getLaunchList() {
+		return launchList;
+	}
+
+	public void setLaunchList(List<String> launchList) {
+		this.launchList = launchList;
+	}
+
+	public void setLaunch(String v) {
+		if (this.launchList == null)
+			this.launchList = new ArrayList<String>();
+		this.launchList.add(v);
+	}
+
+	public void addLaunch(String v) {
+		if (this.launchList == null)
+			this.launchList = new ArrayList<String>();
+		this.launchList.add(v);
+	}
+
 	public List<String> getPathList() {
 		return pathList;
 	}
@@ -66,6 +87,7 @@ public class LuaAppFactorySimple implements LuaAppFactory {
 		LuaApp app = new LuaApp();
 		app.setPathList(this.pathList);
 		app.setBootstrapList(this.bootstrapList);
+		app.setLaunchList(this.launchList);
 		app.setShutdown(this.shutdown);
 		return app;
 	}

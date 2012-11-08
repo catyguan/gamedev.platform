@@ -22,6 +22,7 @@ public class LuaApp {
 	private String type;
 	private List<String> pathList;
 	private List<String> bootstrapList;
+	private List<String> launchList;
 	private String shutdown;
 
 	private long createTime;
@@ -85,6 +86,14 @@ public class LuaApp {
 		this.bootstrapList = bootstrapList;
 	}
 
+	public List<String> getLaunchList() {
+		return launchList;
+	}
+
+	public void setLaunchList(List<String> launchList) {
+		this.launchList = launchList;
+	}
+	
 	public String getShutdown() {
 		return shutdown;
 	}

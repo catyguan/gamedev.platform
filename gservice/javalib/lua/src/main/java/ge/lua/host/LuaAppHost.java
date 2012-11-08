@@ -251,6 +251,22 @@ public class LuaAppHost {
 
 					this.initApp(app, true);
 
+					if (app.getLaunchList() != null) {
+						for (String pack : app.getLaunchList()) {
+							final String p = pack;
+							app.runCommand(new Command() {
+
+								@Override
+								public void process(LuaApp app) {
+									app.require(p);
+									if (log.isDebugEnabled()) {
+										log.debug("launch => {}", p);
+									}
+								}
+							});
+						}
+					}
+
 				} else {
 					throw new IllegalArgumentException("create [" + id + ","
 							+ type + "] fail");
@@ -386,7 +402,7 @@ public class LuaAppHost {
 					if (call != null) {
 						boolean r = false;
 						try {
-							r = call.call(app, cid, data);							
+							r = call.call(app, cid, data);
 						} catch (Exception e) {
 							if (log.isDebugEnabled()) {
 								log.debug("call fail", e);
@@ -394,7 +410,7 @@ public class LuaAppHost {
 							return data.error(e.getMessage());
 						}
 						if (r) {
-							data.addBoolean(0, true);							
+							data.addBoolean(0, true);
 						} else {
 							data.reset();
 							data.addBoolean(false);
