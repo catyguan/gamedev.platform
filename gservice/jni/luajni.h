@@ -9,10 +9,8 @@ extern "C" {
 #endif
 
 JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject /*, jint*/);
 
-JNIEXPORT void JNICALL Java_ge_lua_LuaState__1threadInit
-  (JNIEnv *, jobject, jlong);
 
 JNIEXPORT void JNICALL Java_ge_lua_LuaState__1close
   (JNIEnv *, jobject, jlong);

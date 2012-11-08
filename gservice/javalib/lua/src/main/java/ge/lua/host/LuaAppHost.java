@@ -3,7 +3,6 @@ package ge.lua.host;
 import ge.lua.LuaArray;
 import ge.lua.LuaState;
 import ge.lua.LuaStateCallback;
-import ge.lua.LuaStateManager;
 import ge.lua.host.LuaApp.Command;
 
 import java.util.ArrayList;
@@ -215,7 +214,7 @@ public class LuaAppHost {
 
 					apps.put(id, app);
 
-					LuaState L = LuaStateManager.newState();
+					LuaState L = new LuaState();
 					app.setState(L);
 
 					L.setContext(id);
@@ -296,9 +295,6 @@ public class LuaAppHost {
 				}
 			}
 			try {
-				LuaState L = app.getState();
-				if (L != null)
-					L.threadInit();
 				cmd.process(app);
 			} catch (Exception e) {
 				log.error("app execute fail", e);

@@ -19,7 +19,7 @@ void luamodule_des56(lua_State *L);
 /* Constant that is used to index the JNI Environment */
 #define LUAJAVA_JNIENV		"__JAVA_JNIEnv"
 /* Defines the lua State Index Property Name */
-#define LUAJAVA_STATEID		"__JAVA_StateId"
+#define LUAJAVA_STATEOBJ		"__JAVA_StateObj"
 
 static lua_State * getStateFromJObj( JNIEnv * env , jlong cptr );
 
@@ -124,19 +124,18 @@ static jmethodID jm(JNIEnv* env, JAPI* api,int id) {
 	return api->m[id];
 }
 
-int getLuaStateId(lua_State* L) {
-	int r = 0;
+jobject getLuaStateObj(lua_State* L) {
+	jobject r;
 
-	lua_pushstring( L , LUAJAVA_STATEID );
+	lua_pushstring( L , LUAJAVA_STATEOBJ );
 	lua_rawget( L , LUA_REGISTRYINDEX );
 
-	if ( !lua_isnumber( L , -1 ) )
+	if( !lua_islightuserdata(L, -1))	
 	{
-		lua_pushstring( L , "Impossible to identify luaState id." );
+		lua_pushstring( L , "Impossible to identify luaStateObject." );
 		lua_error( L );
 	}
-	
-	r = lua_tointeger( L , -1 );
+	r = (jobject) lua_touserdata(L , -1);
 	lua_pop(L,1);
 	return r;
 }
@@ -393,21 +392,21 @@ static int pushStackData(lua_State* L,JNIEnv* env, JAPI* api, jobject data) {
 
 /*********************** LUA API FUNCTIONS ******************************/
 static int lua_javacall(lua_State *L) {		
-	int stateId = getLuaStateId(L);	
+	jobject jobj = getLuaStateObj(L);	
 	JNIEnv * env = getEnvFromState( L );	
 	int n = lua_gettop(L);  /* number of arguments */	
 	jobject obj;
 	jboolean ret;
 	jclass    cls_LuaState = ( *env )->FindClass( env , "ge/lua/LuaState" );	
-	jmethodID mid_LuaState__luacall	= ( *env )->GetStaticMethodID( env , cls_LuaState, "_luacallback" , "(ILge/lua/LuaArray;)Z" );
+	jmethodID mid_LuaState__luacall	= ( *env )->GetMethodID( env , cls_LuaState, "_luacallback" , "(Lge/lua/LuaArray;)Z" );
 	JAPI api;
 
 	memset(&api,0,sizeof(api));
 	
 	obj = (*env)->CallStaticObjectMethod(env, jc(env,&api,JC_LuaProxy), jm(env,&api,JM_LuaProxy_new), 0);
 	popStackData(L,env,&api,obj,0, n);
-	ret = ( *env )->CallStaticBooleanMethod( env , cls_LuaState, mid_LuaState__luacall , 
-			stateId , obj);
+	ret = ( *env )->CallBooleanMethod( env , jobj, mid_LuaState__luacall , 
+			obj);
 	n = pushStackData(L,env,&api,obj);
 	( *env )->DeleteLocalRef(env, obj);
 	if(ret) {		
@@ -433,9 +432,12 @@ int luaopen_java_ext (lua_State *L) {
 ************************************************************************/
 
 JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
-  (JNIEnv * env , jobject jobj, jint stateId)
+  (JNIEnv * env , jobject jobj  /*, jint*/)
 {
+	jobject gobj;
 	lua_State * L = NULL;
+
+	gobj = ( *env )->NewGlobalRef( env, jobj );
 
 	L = luaL_newstate();
 
@@ -444,10 +446,11 @@ JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
 	luamodule_cjson_safe(L);
 	luamodule_md5(L);
 	luamodule_des56(L);
-	luaopen_java_ext(L);
- 
-	lua_pushstring( L , LUAJAVA_STATEID );
-	lua_pushnumber( L , (lua_Number)stateId );
+	luaopen_java_ext(L); 	
+	
+	lua_pushstring( L , LUAJAVA_STATEOBJ );
+	lua_pushlightuserdata(L, (void*) gobj);
+	// lua_pushnumber( L , (lua_Number)stateId );
 	lua_settable( L , LUA_REGISTRYINDEX );
 
 	pushJNIEnv(env, L);   
@@ -455,18 +458,12 @@ JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
 	return (jlong) L;
 }
 
-JNIEXPORT void JNICALL Java_ge_lua_LuaState__1threadInit
-  (JNIEnv * env , jobject jobj, jlong cptr)
-{
-	lua_State * L = getStateFromJObj( env , cptr );
-	pushJNIEnv(env, L);	
-	
-}
-
 JNIEXPORT void JNICALL Java_ge_lua_LuaState__1close
   (JNIEnv * env , jobject jobj , jlong cptr)
 {
 	lua_State * L = getStateFromJObj( env , cptr );
+	jobject gobj = getLuaStateObj(L);
+	( *env )->DeleteGlobalRef(env, gobj);
 	lua_close( L );
 }
 
@@ -514,6 +511,7 @@ JNIEXPORT jboolean JNICALL Java_ge_lua_LuaState__1pcall
 	int sz,err;
 	JAPI api;
 
+	pushJNIEnv(env, L);
 	memset(&api,0,sizeof(api));
 
 	lua_getfield(L, LUA_GLOBALSINDEX, f); /* function to be called */
@@ -533,6 +531,8 @@ JNIEXPORT jstring JNICALL Java_ge_lua_LuaState__1eval
 	int top = lua_gettop(L);
 	const char* str = ( *env )->GetStringUTFChars( env, content, NULL );
 	int err;
+
+	pushJNIEnv(env, L);
 	
 	err = luaL_dostring(L, str);
 	( *env )->ReleaseStringUTFChars( env , content , str );

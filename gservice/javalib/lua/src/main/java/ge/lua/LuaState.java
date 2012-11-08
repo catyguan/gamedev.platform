@@ -42,18 +42,17 @@ public class LuaState {
 	}
 
 	/********************* Lua Native Interface *************************/
-	private native long _open(int stateId);
+	private native long _open();
 
-	private native void _threadInit(long ptr);
+	// private native void _threadInit(long ptr);
 
-	private native void _close(long ptr);
+	private native void _close(long luaState);
 
 	private native boolean _addpath(long luaState, String path);
 
 	private native boolean _setvar(long luaState, String key, String value);
 
-	private native boolean _pcall(long luaState, String funName,
-			LuaArray data);
+	private native boolean _pcall(long luaState, String funName, LuaArray data);
 
 	private native String _eval(long luaState, String content);
 
@@ -61,17 +60,14 @@ public class LuaState {
 
 	private long luaState;
 
-	private int stateId;
-
 	/**
 	 * Constructor to instance a new LuaState and initialize it with LuaJava's
 	 * functions
 	 * 
 	 * @param stateId
 	 */
-	protected LuaState(int stateId) {
-		luaState = _open(stateId);
-		this.stateId = stateId;
+	public LuaState() {
+		luaState = _open();
 	}
 
 	private LuaStateCallback callback;
@@ -84,16 +80,12 @@ public class LuaState {
 		return callback;
 	}
 
-	public static boolean _luacallback(int stateId, LuaArray data) {
-		try {
-			LuaState st = LuaStateManager.getState(stateId);
-			if (st == null) {
-				return data.error("luaState[" + stateId + "] invalid");
-			}
-			if (st.callback == null) {
+	public boolean _luacallback(LuaArray data) {
+		try {			
+			if (callback == null) {
 				return data.error("callback is null");
 			}
-			return st.callback.callback(st, data);
+			return callback.callback(this, data);
 		} catch (Throwable t) {
 			return data.error(t.getMessage());
 		}
@@ -151,15 +143,9 @@ public class LuaState {
 	 */
 	public void close() {
 		if (this.luaState != 0) {
-			LuaStateManager.removeState(stateId);
-			_close(luaState);
+			long p = luaState;
 			this.luaState = 0;
-		}
-	}
-
-	public void threadInit() {
-		if (this.luaState != 0) {
-			_threadInit(luaState);
+			_close(p);			
 		}
 	}
 
@@ -171,7 +157,7 @@ public class LuaState {
 
 	@Override
 	public String toString() {
-		return "LuaState[" + stateId + ",0x" + Long.toHexString(luaState) + "]";
+		return "LuaState[0x" + Long.toHexString(luaState) + "]";
 	}
 
 	/**
