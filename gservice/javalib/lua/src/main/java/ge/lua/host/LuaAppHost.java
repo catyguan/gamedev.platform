@@ -438,13 +438,22 @@ public class LuaAppHost {
 											LuaArray data = new LuaArray();
 											data.addInt(tid);
 											LuaState L = app.getState();
-											boolean r = L.pcall(
-													"luaTimerResponse", data,
-													false);
-											if (log.isDebugEnabled()) {
-												log.debug("timer[{}] => {}-{}",
-														new Object[] { tid, r,
-																data });
+											if (L != null && L.isOpen()) {
+												boolean r = L.pcall(
+														"luaTimerResponse",
+														data, false);
+												if (log.isDebugEnabled()) {
+													log.debug(
+															"timer[{}] => {}-{}",
+															new Object[] { tid,
+																	r, data });
+												}
+											} else {
+												if (log.isDebugEnabled()) {
+													log.debug(
+															"timer[{}] => invalid LuaState",
+															tid);
+												}
 											}
 										}
 									});

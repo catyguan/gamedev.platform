@@ -6,13 +6,25 @@ local Class = class.define("app.demo1.Application",{bma.app.StatefulApplication}
 
 function Class:listMainObject()
 	local r = {}
-	table.insert(r,{id="counter", type="app.demo1.Counter"})
+	r["counter"] = "app.demo1.Counter"
+	r["c1"] = "app.demo1.Counter"
+	r["c2"] = "app.demo1.Counter"
 	return r
 end
 
 function Class:onLaunch(olist)
-    print("demo1","onLaunch");
-	LOG:info("demo1", "onLaunch")	
+	LOG:info("demo1", "onLaunch")
+	local o1 = olist.counter
+	o1:start()
+	
+	local SS = class.instance("bma.state.Service")
+	SS:schedule("counter")	
+	-- SS:schedule("c1")
+	-- SS:schedule("c2")
+	
+	local HS = class.instance("bma.host.Service")	
+	HS:setTimer(function() SS:unschedule("counter") end, 60*1000*1.5) 
+	
 	return true
 end
 

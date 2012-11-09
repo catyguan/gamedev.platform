@@ -5,9 +5,13 @@ require("bma.lang.ext.Json")
 
 -- << class - BaseService >>
 local Class = class.define("bma.state.BaseService",{})
+local CFG = CONFIG.StateService or {}
+local timerInterval = CFG.timerInterval or 60000
+local queueRunTask = CFG.queueRunTask or 20
 
 function Class:ctor()
 	self.objects = {}
+	self.queue = {}
 end
 
 function Class:register(obj, v)
@@ -19,6 +23,27 @@ function Class:register(obj, v)
 		error("object["..id.."] exists")
 	end
 	self.objects[id] = {o=obj, v=v }
+end
+
+function Class:unregister(id)
+	local item = self.objects[id]
+	if item.l then
+		for _, c in ipairs(item.l) do
+			local done,r1,r2 = pcall(function() 
+				c("unregister")
+			end)			
+		end
+		item.l = nil
+	end
+	
+	if item.s then
+		for _, c in ipairs(item.s) do
+			local done,r1,r2 = pcall(function() 
+				c("unregister")
+			end)			
+		end
+		item.s = nil
+	end	
 end
 
 function Class:load(callback, id, type, syn)
@@ -72,7 +97,7 @@ function Class:load(callback, id, type, syn)
 						end
 					end
 				end
-				item.v = self:initObjectData(cb2, LUA_APP_ID, LUA_APP_TYPE, id, table.json(state), false)
+				item.v = self:initObjectData(cb2, id, table.json(state), false)
 			end
 			
 		end
@@ -90,7 +115,7 @@ function Class:load(callback, id, type, syn)
 		item.l = nil
 	end
 	
-	self:loadObjectData(cb, LUA_APP_ID, LUA_APP_TYPE, id, syn)	
+	self:loadObjectData(cb, id, syn)	
 end
 
 function Class:save(callback, id, syn)
@@ -144,7 +169,7 @@ function Class:save(callback, id, syn)
 	local state = {}
 	item.o:saveState(state)
 	item.o:stateModify(false)
-	item.v = self:saveObjectData(cb, LUA_APP_ID, LUA_APP_TYPE, id, table.json(state), item.v, syn)
+	item.v = self:saveObjectData(cb, id, table.json(state), item.v, syn)
 	return true	
 end
 
@@ -178,7 +203,7 @@ function Class:delete(id, syn)
 	end
 	
 	self.objects[id] = nil
-	self:deleteObjectData(cb, LUA_APP_ID, LUA_APP_TYPE, id, syn)
+	self:deleteObjectData(cb, id, syn)
 	return true
 end
 
@@ -194,6 +219,77 @@ function Class:deleteAll(syn)
 	end
 	
 	self.objects = {}
-	self:deleteAllObjectData(cb, LUA_APP_ID, LUA_APP_TYPE, syn)
+	self:deleteAllObjectData(cb, syn)
 	return true
+end
+
+function Class:schedule(id)
+	if not self.objects[id] then return false end
+	for _, value in pairs(self.queue) do
+    	if value == id then
+      		return true 
+		end
+  	end
+	table.insert(self.queue, id)
+	if self.timerId then
+		return true
+	end
+	local HS = class.instance("bma.host.Service")
+	self.timerId = HS:setTimer(function() self:onTimer() end, timerInterval)
+end
+
+function Class:unschedule(id)
+	for i, value in pairs(self.queue) do
+    	if value == id then
+      		table.remove(self.queue, i)
+      		local HS = class.instance("bma.host.Service")
+      		if #self.queue==0 and self.timerId then
+				HS:removeTimer(self.timerId)
+			end
+			return true
+		end
+  	end
+  	return false
+end
+
+function Class:onTimer()
+	if LOG:debugEnabled() then
+		LOG:debug("StatefulObjectManager", "timer active")
+	end
+	self.timerId = 0
+	
+	local c = 1
+	local s = self.workAt or 1
+	local i = s
+	
+	while true do
+		local id = self.queue[i]
+		if self.objects[id] then			
+			if self.objects[id].o:isStateModify() then
+				if LOG:debugEnabled() then
+					LOG:debug("StatefulObjectManager", "timer save - %s", tostring(id))
+				end
+				self:save(function()end, id)
+			else
+				if LOG:debugEnabled() then
+					LOG:debug("StatefulObjectManager", "timer skip - %s", tostring(id))
+				end
+			end
+			i = i + 1
+		else
+			table.remove(self.queue, i)
+		end
+		
+		c = c + 1
+		if i>#self.queue then i = 1 end
+		if i==s or c>queueRunTask then
+			self.workAt = i
+			break
+		end
+	end	
+	
+	if #self.queue>0 then
+		local HS = class.instance("bma.host.Service")
+		self.timerId = HS:setTimer(function() self:onTimer() end, timerInterval)
+	end
 end

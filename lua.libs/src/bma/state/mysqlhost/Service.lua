@@ -5,6 +5,7 @@ require("bma.state.BaseService")
 local DAL = class.instance("bma.dal.Service")
 local CFG = CONFIG.StateService or {}
 local tableName = CFG.tableName or "lua_stateful_object"
+local dispatcher = CFG.dispatcher or function(id) return LUA_APP_ID, LUA_APP_TYPE, id end
 
 -- << class - Service >>
 local Class = class.define("bma.state.mysqlhost.Service",{bma.state.BaseService})
@@ -15,7 +16,8 @@ function Class.install()
 	class.setInstance("bma.state.Service", instance)
 end
 
-function Class:initObjectData(callback, appId, appType, objId, data, syn)
+-- interface
+function Class:initObjectData(callback, objId, data, syn)
 		
 	local cb = function(err, r)		
 		if err then			
@@ -25,14 +27,15 @@ function Class:initObjectData(callback, appId, appType, objId, data, syn)
 		end
 	end
 	
+	local appId,appType,oid = dispatcher(objId)
 	local sql = "INSERT IGNORE INTO "..tableName.." VALUES(?,?,?,?,NOW(),NOW(),1)"	
-	local params = {appId, appType, objId, data}
-	
+	local params = {appId, appType, oid, data}
 	DAL:execute(cb, "state", sql, params ,{update=true, syn=syn})
 	return 1
 end
 
-function Class:loadObjectData(callback, appId, appType, objId, syn)
+-- interface
+function Class:loadObjectData(callback, objId, syn)
 		
 	local cb = function(err, r)		
 		if err then			
@@ -47,13 +50,15 @@ function Class:loadObjectData(callback, appId, appType, objId, syn)
 		end
 	end
 	
+	local appId,appType,oid = dispatcher(objId)
 	local sql = "SELECT * FROM "..tableName.." WHERE app_id = ? AND app_type = ? AND object_id = ?"	
-	local params = {appId, appType, objId}
+	local params = {appId, appType, oid}
 	
 	DAL:execute(cb, "state", sql, params ,{syn=syn})
 end
 
-function Class:saveObjectData(callback, appId, appType, objId, data, version, syn)
+-- interface
+function Class:saveObjectData(callback, objId, data, version, syn)
 		
 	local cb = function(err, r)		
 		if err then			
@@ -63,15 +68,17 @@ function Class:saveObjectData(callback, appId, appType, objId, data, version, sy
 		end
 	end
 	
+	local appId,appType,oid = dispatcher(objId)
 	local ver = version+1
 	local sql = "UPDATE "..tableName.." SET data=?, version=?, last_update_time=NOW() WHERE app_id = ? AND app_type = ? AND object_id = ? AND version<?"	
-	local params = {data, ver, appId, appType, objId, ver}
+	local params = {data, ver, appId, appType, oid, ver}
 	
 	DAL:execute(cb, "state", sql, params ,{update=true, syn=syn})
 	return ver
 end
 
-function Class:deleteObjectData(callback, appId, appType, objId, syn)
+-- interface
+function Class:deleteObjectData(callback, objId, syn)
 		
 	local cb = function(err, r)		
 		if err then			
@@ -81,12 +88,14 @@ function Class:deleteObjectData(callback, appId, appType, objId, syn)
 		end
 	end
 	
+	local appId,appType,oid = dispatcher(objId)
 	local sql = "DELETE FROM "..tableName.." WHERE app_id=? AND app_type=? AND object_id=?"	
-	local params = {appId, appType, objId}	
+	local params = {appId, appType, oid}	
 	DAL:execute(cb, "state", sql, params ,{update=true, syn=syn})
 end
 
-function Class:deleteAllObjectData(callback, appId, appType, syn)
+-- interface
+function Class:deleteAllObjectData(callback, syn)
 		
 	local cb = function(err, r)		
 		if err then			
@@ -97,6 +106,6 @@ function Class:deleteAllObjectData(callback, appId, appType, syn)
 	end
 	
 	local sql = "DELETE FROM "..tableName.." WHERE app_id=? AND app_type=?"	
-	local params = {appId, appType}	
+	local params = {LUA_APP_ID, LUA_APP_TYPE}	
 	DAL:execute(cb, "state", sql, params ,{update=true, syn=syn})
 end
