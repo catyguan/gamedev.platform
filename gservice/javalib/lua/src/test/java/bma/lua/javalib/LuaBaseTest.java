@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 import org.junit.Test;
 
 import bma.common.langutil.core.ObjectUtil;
+import bma.common.langutil.core.SizeUtil;
+import bma.common.langutil.core.SizeUtil.Unit;
 import bma.common.langutil.io.IOUtil;
 
 public class LuaBaseTest {
@@ -158,6 +160,16 @@ public class LuaBaseTest {
 		exec.execute(r);
 
 		ObjectUtil.waitFor(this, 1000);
+		L.close();
+	}
+
+	@Test
+	public void os_memuse() {
+		LuaState L = new LuaState();
+		System.out.println("R:" + L.eval("memuse = os.memuse", false));
+		LuaArray data = new LuaArray();
+		System.out.println("R:" + L.pcall("memuse", data, false));
+		System.out.println(SizeUtil.convert(data.getInt(0), 1024, Unit.K));
 		L.close();
 	}
 }

@@ -244,6 +244,23 @@ static int os_mclock(lua_State *L) {
   return 0;
 }
 
+static int os_memuse(lua_State *L) {
+	int* p;
+
+	lua_pushstring( L , "_memuse");
+	lua_rawget( L , LUA_REGISTRYINDEX );
+
+	if( !lua_islightuserdata(L, -1))	
+	{
+		lua_pushstring( L , "Impossible to identify memuse." );
+		lua_error( L );
+	}
+	p = (int*) lua_touserdata(L , -1);
+	lua_pop(L,1);
+	lua_pushinteger(L, *p);
+	return 1;
+}
+
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
@@ -257,6 +274,7 @@ static const luaL_Reg syslib[] = {
   {"time",      os_time},
   {"tmpname",   os_tmpname},
   {"mclock",     os_mclock},
+  {"memuse",     os_memuse},
   {NULL, NULL}
 };
 

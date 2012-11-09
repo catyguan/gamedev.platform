@@ -431,15 +431,42 @@ int luaopen_java_ext (lua_State *L) {
 *   JNI Called function
 ************************************************************************/
 
+static void* MyAlloc(void* ud, void* ptr, size_t osize, size_t nsize)
+{
+	int* p = (int*) ud;
+    if (nsize == 0)
+    {
+        free(ptr);
+		*p-=osize;
+        return NULL;
+    }
+    else
+    {
+		void* r = realloc(ptr,nsize);
+        *p-=osize;
+		if (r) *p+=nsize;
+		return r;
+    }
+}
+
 JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
   (JNIEnv * env , jobject jobj  /*, jint*/)
 {
 	jobject gobj;
 	lua_State * L = NULL;
+	int *ud;
 
 	gobj = ( *env )->NewGlobalRef( env, jobj );
 
-	L = luaL_newstate();
+	// L = luaL_newstate();
+
+	ud = (int*) realloc(NULL,sizeof(int));
+	*ud = 0;
+	L = lua_newstate(&MyAlloc, ud);
+
+	lua_pushstring( L , "_memuse");
+	lua_pushlightuserdata(L, ud);
+	lua_settable( L , LUA_REGISTRYINDEX );
 
 	luaL_openlibs(L);  /* open libraries */
 	luamodule_cjson(L);
@@ -461,9 +488,17 @@ JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
 JNIEXPORT void JNICALL Java_ge_lua_LuaState__1close
   (JNIEnv * env , jobject jobj , jlong cptr)
 {
+	void* p;
 	lua_State * L = getStateFromJObj( env , cptr );
 	jobject gobj = getLuaStateObj(L);
 	( *env )->DeleteGlobalRef(env, gobj);
+
+	lua_pushstring( L , "_memuse");
+	lua_rawget( L , LUA_REGISTRYINDEX );
+	p = lua_touserdata(L , -1);
+	free(p);	
+	lua_pop(L,1);	
+
 	lua_close( L );
 }
 
