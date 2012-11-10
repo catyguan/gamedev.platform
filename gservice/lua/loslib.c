@@ -231,7 +231,6 @@ static int os_mclock(lua_State *L) {
   if (gettimeofday(&tp, NULL)) {
     lua_pushboolean(L, 0);
   }
-  ::timeGetTime
   lua_pushnumber(L, (double)(tp.tv_sec*1000 + tp.tv_usec/1000));
   if(1)return 1;
 #endif
