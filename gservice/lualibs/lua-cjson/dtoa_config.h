@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "stdint.h"
+#include <stdint.h>
 
 /* Ensure dtoa.c does not USE_LOCALE. Lua CJSON must not use locale
  * aware conversion routines. */

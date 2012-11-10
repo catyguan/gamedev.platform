@@ -1260,7 +1260,6 @@ static void json_process_value(lua_State *l, json_parse_t *json,
 		lua_pushnil(l);
 		/* In Lua, setting "t[k] = nil" will delete k from the table.
          * Hence a NULL pointer lightuserdata object is used instead */
-        // lua_pushlightuserdata(l, NULL);
         break;;
     default:
         json_throw_parse_error(l, json, "value", token);

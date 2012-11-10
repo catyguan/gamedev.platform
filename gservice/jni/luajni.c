@@ -496,10 +496,10 @@ JNIEXPORT void JNICALL Java_ge_lua_LuaState__1close
 	lua_pushstring( L , "_memuse");
 	lua_rawget( L , LUA_REGISTRYINDEX );
 	p = lua_touserdata(L , -1);
-	free(p);	
 	lua_pop(L,1);	
 
 	lua_close( L );
+	free(p);
 }
 
 static void addSearchPath(lua_State* L, const char* path)

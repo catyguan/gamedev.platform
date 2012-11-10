@@ -6,7 +6,9 @@
  * -1.7976931348623e+308 */
 # define FPCONV_G_FMT_BUFSIZE   32
 
+#ifndef USE_INTERNAL_FPCONV
 #define USE_INTERNAL_FPCONV
+#endif
 
 #ifdef USE_INTERNAL_FPCONV
 static __inline void fpconv_init()
