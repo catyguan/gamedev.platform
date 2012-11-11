@@ -4,6 +4,7 @@ require("bma.host.BaseService")
 
 local super = bma.host.BaseService
 local Class = class.define("bma.host.java.Service",{super})
+local LDEBUG = LOG:debugEnabled()
 local instance;
 
 function Class.install()
@@ -43,7 +44,7 @@ function Class:call(opts, ...)
 		local syn = unpack(r,1,1)
 		if syn then			
 			table.remove(r,1)
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("JavaHost","hostCall done -- T"..#r)
 			end
 			self:response(opts, nil, r)			
@@ -53,7 +54,7 @@ function Class:call(opts, ...)
 			return cid			
 		end
 	else
-		if LOG:debugEnabled() then
+		if LDEBUG then
 			LOG:debug("JavaHost",tostring(r).."\n"..et)
 		end
 		self:response(opts, r or "<empty error message>", nil)
@@ -62,7 +63,7 @@ function Class:call(opts, ...)
 end
 
 function luaCallResponse(callId, err, ...)
-	if LOG:debugEnabled() then
+	if LDEBUG then
 		LOG:debug("JavaHost","luaCallResponse - callId="..callId..",err="..tostring(err))
 		if not err then
 			LOG:debug("JavaHost",{...})

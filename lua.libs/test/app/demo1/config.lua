@@ -2,7 +2,8 @@
 CONFIG.DEBUG = true
 
 CONFIG.Log = {
-	type="console"
+	type="console",
+	logPattern="#LUA# %date [%category] %level - %message\n",
 }
 
 CONFIG.Services = {

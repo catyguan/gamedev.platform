@@ -15,7 +15,7 @@ end
 function Class:onLaunch(olist)
 	LOG:info("demo1", "onLaunch")
 	local o1 = olist.counter
-	o1:start()
+	-- o1:start()
 	
 	local SS = class.instance("bma.state.Service")
 	SS:schedule("counter")	

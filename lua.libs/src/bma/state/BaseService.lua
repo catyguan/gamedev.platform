@@ -5,6 +5,7 @@ require("bma.lang.ext.Json")
 
 -- << class - BaseService >>
 local Class = class.define("bma.state.BaseService",{})
+local LDEBUG = LOG:debugEnabled()
 local CFG = CONFIG.StateService or {}
 local timerInterval = CFG.timerInterval or 60000
 local queueRunTask = CFG.queueRunTask or 20
@@ -46,6 +47,12 @@ function Class:unregister(id)
 	end	
 end
 
+function Class:get(callback, id, type, syn)
+	local item = self.objects[id]
+	if item.ld then return callback(nil, item.o) end
+	self:load(callback, id, type, syn)
+end
+
 function Class:load(callback, id, type, syn)
 	local item = self.objects[id]	
 	if item==nil then
@@ -71,22 +78,42 @@ function Class:load(callback, id, type, syn)
 	local cb = function(err, data, version)
 		local item = self.objects[id]		
 		if not item then
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "skip load object [%s]", tostring(id))
 			end
 			return
 		end
-				
+		
+		local loaded = function()
+			if item.l then
+				for _, c in ipairs(item.l) do
+					local done,r1,r2 = pcall(function() 
+						c(err, item.o)
+					end)
+					if not done and LDEBUG then
+						LOG:debug("StatefulObjectManager", "load object callback fail - %s\n%s", tostring(r1), tostring(r2))
+					end
+				end
+			end
+			item.l = nil
+			item.ld = true
+		end
 		if err then
 			LOG:error("StatefulObjectManager", "load object [%s] fail - %s", tostring(id), err)
 		else
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "query object [%s] done - %s", tostring(id), string.dump(data))
 			end			
 			if data then
 				local state = string.json(data)
-				item.o:loadState(state)
-				item.v = version or 0
+				local w = item.o:loadState(state, loaded)
+				item.v = version or 0			
+				if w=="loading" then
+					if LDEBUG then
+						LOG:debug("StatefulObjectManager", "waiting object [%s] loading", tostring(id))
+					end
+					return
+				end
 			else
 				local state = {}
 				item.o:initState(state)
@@ -98,21 +125,10 @@ function Class:load(callback, id, type, syn)
 					end
 				end
 				item.v = self:initObjectData(cb2, id, table.json(state), false)
-			end
-			
+			end			
 		end
+		loaded()
 		
-		if item.l then
-			for _, c in ipairs(item.l) do
-				local done,r1,r2 = pcall(function() 
-					c(err, item.o)
-				end)
-				if not done and LOG:debugEnabled() then
-					LOG:debug("StatefulObjectManager", "load object callback fail - %s\n%s", tostring(r1), tostring(r2))
-				end
-			end
-		end
-		item.l = nil
 	end
 	
 	self:loadObjectData(cb, id, syn)	
@@ -139,7 +155,7 @@ function Class:save(callback, id, syn)
 	local cb = function(err, done)
 		local item = self.objects[id]		
 		if not item then
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "skip save object [%s]", tostring(id))
 			end
 			return
@@ -148,7 +164,7 @@ function Class:save(callback, id, syn)
 		if err then
 			LOG:error("StatefulObjectManager", "save object [%s] fail - %s", tostring(id), err)
 		else
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "save object [%s] done - %s", tostring(id), tostring(done))
 			end			
 		end
@@ -158,7 +174,7 @@ function Class:save(callback, id, syn)
 				local done,r1,r2 = pcall(function() 
 					c(err, item.o)
 				end)
-				if not done and LOG:debugEnabled() then
+				if not done and LDEBUG then
 					LOG:debug("StatefulObjectManager", "save object callback fail - %s\n%s", tostring(r1), tostring(r2))
 				end
 			end
@@ -179,7 +195,7 @@ function Class:saveAll(syn)
 		if item.o:isStateModify() then
 			self:save(fn,k,syn)
 		else
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "skip save object[%s]", tostring(k))
 			end
 		end
@@ -196,7 +212,7 @@ function Class:delete(id, syn)
 		if err then
 			LOG:error("StatefulObjectManager", "delete object [%s] fail - %s", tostring(id), err)
 		else
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "delete object [%s] done - %s", tostring(id), tostring(done))
 			end
 		end
@@ -212,7 +228,7 @@ function Class:deleteAll(syn)
 		if err then
 			LOG:error("StatefulObjectManager", "delete all object [%s] fail - %s", tostring(id), err)
 		else
-			if LOG:debugEnabled() then
+			if LDEBUG then
 				LOG:debug("StatefulObjectManager", "delete all object [%s] done - %s", tostring(id), tostring(done))
 			end
 		end
@@ -253,7 +269,7 @@ function Class:unschedule(id)
 end
 
 function Class:onTimer()
-	if LOG:debugEnabled() then
+	if LDEBUG then
 		LOG:debug("StatefulObjectManager", "timer active")
 	end
 	self.timerId = 0
@@ -266,12 +282,12 @@ function Class:onTimer()
 		local id = self.queue[i]
 		if self.objects[id] then			
 			if self.objects[id].o:isStateModify() then
-				if LOG:debugEnabled() then
+				if LDEBUG then
 					LOG:debug("StatefulObjectManager", "timer save - %s", tostring(id))
 				end
 				self:save(function()end, id)
 			else
-				if LOG:debugEnabled() then
+				if LDEBUG then
 					LOG:debug("StatefulObjectManager", "timer skip - %s", tostring(id))
 				end
 			end
