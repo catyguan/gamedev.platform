@@ -49,7 +49,7 @@ end
 
 function Class:get(callback, id, type, syn)
 	local item = self.objects[id]
-	if item.ld then return callback(nil, item.o) end
+	if item and item.ld then return callback(nil, item.o) end
 	self:load(callback, id, type, syn)
 end
 
@@ -114,9 +114,9 @@ function Class:load(callback, id, type, syn)
 					end
 					return
 				end
-			else
+			else				
 				local state = {}
-				item.o:initState(state)
+				item.o:initState(state)				
 				local cb2 = function(err)
 					if err then
 						if LOG:warnEnabled() then

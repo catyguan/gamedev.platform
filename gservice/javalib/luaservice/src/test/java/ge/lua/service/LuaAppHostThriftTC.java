@@ -56,12 +56,28 @@ public class LuaAppHostThriftTC {
 	}
 
 	@Test
-	public void client_createApp() throws Exception {
+	public void client_createApp_demo1() throws Exception {
 		ThriftClient client = client(false);
 		try {
 			TLuaAppHostManager.Client obj = client
 					.createObject(TLuaAppHostManager.Client.class);
 			Object r = obj.createApp("app1", "demo1");
+			log.info("createApp = {}", r);
+		} catch (Exception e) {
+			log.error("error", e);
+			e.printStackTrace();
+		} finally {
+			client.close();
+		}
+	}
+	
+	@Test
+	public void client_createApp_app1() throws Exception {
+		ThriftClient client = client(false);
+		try {
+			TLuaAppHostManager.Client obj = client
+					.createObject(TLuaAppHostManager.Client.class);
+			Object r = obj.createApp("app1", "app1");
 			log.info("createApp = {}", r);
 		} catch (Exception e) {
 			log.error("error", e);

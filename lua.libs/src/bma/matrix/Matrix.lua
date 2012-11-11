@@ -35,8 +35,9 @@ table.filter.BY_ID = function(id)
     end
 end
 
+local CFG = CONFIG.Matrix or {}
 local LDEBUG = LOG:debugEnabled()
-local LCMDDEBUG = true
+local LCMDDEBUG = CFG.CommandDebug or LDEBUG
 local LTAG = "Matrix"
 
 -- << class - MatrixObject >>
@@ -51,13 +52,11 @@ MatrixObject.defEvent = function(k,v)
     MatrixObject.EVENT[k] = v
 end
 
--- abtract
 function MatrixObject:id(v)
     if v~=nil then self._id = v end
     return self._id
 end
 
--- abtract
 function MatrixObject:parent(v)
     if v~=nil then 
         if type(v)=="table" then
@@ -69,7 +68,6 @@ function MatrixObject:parent(v)
     return self._parent
 end
 
--- abtract
 function MatrixObject:events(s)
     if self._events==nil and s then 
         self._events = bma.lang.Events.new()
@@ -141,8 +139,7 @@ function Matrix:ctor()
     self.config = {}
     setmetatable(self.config,{__index=
 			function(t,k)
-			    if CONFIG.Matrix == nil then return nil end
-				return CONFIG.Matrix[k]
+				return CFG[k]
 			end
 		})
 end
@@ -370,6 +367,25 @@ function Matrix:save()
     r.objects = olist
 end
 
+function Matrix:loadFromData(k, sdata)
+	local o = nil
+    if sdata ~= nil then
+        local done,r,stt = pcall(function(th,data)
+            return class.loadObject(data)
+        end,self,sdata)                
+        if not done then
+            LOG:warn(LTAG,"newInstance[%s -- %s] fail\n%s\n%s", k, tostring(sdata.class), r, stt)                    
+        else 
+            o = r
+        end
+    end
+    if o ~= nil then
+        self.objects[k] = o
+    else
+        LOG:warn(LTAG,"load objcet[%s] fail",tostring(k))
+    end
+end
+
 function Matrix:load(data,init)
     if init~=nil then
         init(self)
@@ -387,22 +403,7 @@ function Matrix:load(data,init)
     local olist = data.objects
     if olist ~= nil then
         for k,sdata in pairs(olist) do
-            local o = nil
-            if sdata ~= nil then
-                local done,r,stt = pcall(function(th,data)
-                    return class.loadObject(data)
-                end,self,sdata)                
-                if not done then
-                    LOG:warn(LTAG,"newInstance[%s -- %s] fail\n%s\n%s", k, tostring(sdata.class), r, stt)                    
-                else 
-                    o = r
-                end
-            end
-            if o ~= nil then
-                self.objects[k] = o
-            else
-                LOG:warn(LTAG,"load objcet[%s] fail",tostring(k))
-            end
+            self:loadFromData(k, sdata)
         end
     end
 end
