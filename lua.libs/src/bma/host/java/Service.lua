@@ -2,7 +2,8 @@
 require("bma.lang.ext.Core")
 require("bma.host.BaseService")
 
-local Class = class.define("bma.host.java.Service",{bma.host.BaseService})
+local super = bma.host.BaseService
+local Class = class.define("bma.host.java.Service",{super})
 local instance;
 
 function Class.install()
@@ -13,6 +14,22 @@ end
 function Class:ctor()
 	self.calls = {}
 	self.timers = {}
+end
+
+function Class:nextCallId()
+	local cid = super.nextCallId(self)
+	while self.calls[cid] do
+		cid = super.nextCallId(self)
+	end
+	return cid
+end
+
+function Class:nextTimerId()
+	local tid = super.nextTimerId(self)
+	while self.timers[tid] do
+		tid = super.nextTimerId(self)
+	end
+	return tid
 end
 
 -- return callId:int
@@ -86,16 +103,33 @@ end
 function Class:setTimer(fun, delayTime)
 	local tid = self:nextTimerId()
 	self.timers[tid] = fun
-	java.call("hostTimer", tid, delayTime)
+	java.call("hostTimer", tid, nil, delayTime)
 	return tid
 end
 
-function luaTimerResponse(timerId)	
+-- fun:timerFunction 定时调用的哦函数
+-- fixTime:int 固定执行间隔的时间，毫秒
+-- delayTime:int 延迟调用的时间，毫秒
+-- return timerId:int 定时器的编号
+function Class:setFixTimer(fun, fixTime, delayTime)
+	if not delayTime then delayTime = fixTime end 
+	local tid = self:nextTimerId()
+	self.timers[tid] = fun
+	java.call("hostTimer", tid, fixTime, delayTime)
+	return tid
+end
+
+function luaTimerResponse(timerId, fix)	
 	local fun = instance.timers[timerId]
 	if fun then
 		LOG:debug("JavaHost","timer "..timerId.." active")
-		fun()
-		return true;
+		if fix then
+			return fun()
+		else
+			instance.timers[timerId] = nil
+			fun()
+			return true;
+		end
 	else
 		LOG:debug("JavaHost","timer "..timerId.." discard")
 		return false

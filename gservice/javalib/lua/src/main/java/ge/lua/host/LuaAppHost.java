@@ -18,7 +18,7 @@ import bma.common.json.JsonUtil;
 import bma.common.langutil.ai.executor.AIExecutor;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackNone;
-import bma.common.langutil.concurrent.ProcessTimerTask;
+import bma.common.langutil.concurrent.ProcessTimerTaskAbstract;
 import bma.common.langutil.concurrent.TimerManager;
 import bma.common.langutil.core.ObjectUtil;
 import bma.common.langutil.core.StringUtil;
@@ -386,6 +386,61 @@ public class LuaAppHost {
 		return new ArrayList<LuaApp>(this.apps.values());
 	}
 
+	private class TimerTask extends ProcessTimerTaskAbstract {
+
+		private LuaApp app;
+		private int timerId;
+		private int fix;
+
+		public TimerTask(long time, LuaApp app, int timerId, int fix) {
+			super(time);
+			this.app = app;
+			this.timerId = timerId;
+			this.fix = fix;
+		}
+
+		@Override
+		public void run() {
+			app.runCommand(new Command() {
+
+				@Override
+				public void process(LuaApp app) {
+					LuaArray data = new LuaArray();
+					data.addInt(timerId);
+					if (fix > 0) {
+						data.addBoolean(true);
+					}
+					LuaState L = app.getState();
+					if (L != null && L.isOpen()) {
+						boolean r = L.pcall("luaTimerResponse", data, false);
+						if (log.isDebugEnabled()) {
+							log.debug("timer[{}] => {}-{}", new Object[] {
+									timerId, r, data });
+						}
+						if (r && fix > 0) {
+							boolean bv = data.getBoolean(0);
+							if (bv) {
+								setTime(getTime() + fix);
+								sureTmer().postTimerTask(TimerTask.this);
+							} else {
+								if (log.isDebugEnabled()) {
+									log.debug("timer[{}] => stop fix timer",
+											timerId);
+								}
+							}
+						}
+					} else {
+						if (log.isDebugEnabled()) {
+							log.debug("timer[{}] => invalid LuaState", timerId);
+						}
+					}
+				}
+			});
+
+		}
+
+	}
+
 	public boolean luaCall(LuaApp app, LuaArray data) {
 		String name = ObjectUtil.toString(data.pop(0));
 		if (StringUtil.equals(name, "hostCall")) {
@@ -420,51 +475,21 @@ public class LuaAppHost {
 		} else if (StringUtil.equals(name, "hostTimer")) {
 			final int tid = data.getInt(0);
 			if (tid > 0) {
-				Number delay = data.getNumber(1);
-				if (delay != null) {
-					if (log.isDebugEnabled()) {
-						log.debug("setTimer - {},{}", tid, delay);
-					}
-					final LuaApp capp = app;
-					ProcessTimerTask task = TimerManager.delaySync(
-							new Runnable() {
-
-								@Override
-								public void run() {
-									capp.runCommand(new Command() {
-
-										@Override
-										public void process(LuaApp app) {
-											LuaArray data = new LuaArray();
-											data.addInt(tid);
-											LuaState L = app.getState();
-											if (L != null && L.isOpen()) {
-												boolean r = L.pcall(
-														"luaTimerResponse",
-														data, false);
-												if (log.isDebugEnabled()) {
-													log.debug(
-															"timer[{}] => {}-{}",
-															new Object[] { tid,
-																	r, data });
-												}
-											} else {
-												if (log.isDebugEnabled()) {
-													log.debug(
-															"timer[{}] => invalid LuaState",
-															tid);
-												}
-											}
-										}
-									});
-
-								}
-							}, delay.intValue());
-					sureTmer().postTimerTask(task);
-					data.reset();
-					return true;
+				int fix = data.getInt(1);
+				Number delay = data.getNumberObject(2);
+				if (delay == null) {
+					return data.error("invalid timer delay");
 				}
-				return data.error("invalid timer delay");
+
+				if (log.isDebugEnabled()) {
+					log.debug("setTimer - {},{},{}", new Object[] { tid, fix,
+							delay });
+				}
+				TimerTask task = new TimerTask(System.currentTimeMillis()
+						+ delay.intValue(), app, tid, fix);
+				sureTmer().postTimerTask(task);
+				data.reset();
+				return true;
 			}
 			return data.error("invalid timerId '" + tid + "'");
 		}

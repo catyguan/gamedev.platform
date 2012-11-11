@@ -29,7 +29,7 @@ function Class:start()
 		self.counter = self.counter + 1
 		self:stateModify(true)
 		
-		HS:setTimer(f, 5000)
+		return true
 	end
-	HS:setTimer(f, 5000)
+	HS:setFixTimer(f, 5000)
 end

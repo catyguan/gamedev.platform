@@ -129,7 +129,7 @@ public class LuaArray extends LuaProxy {
 			return data.remove(idx);
 		return null;
 	}
-
+	
 	public int getInt(int idx) {
 		Object v = getAt(idx);
 		if (v == null)

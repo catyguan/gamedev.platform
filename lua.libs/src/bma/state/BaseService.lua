@@ -235,7 +235,7 @@ function Class:schedule(id)
 		return true
 	end
 	local HS = class.instance("bma.host.Service")
-	self.timerId = HS:setTimer(function() self:onTimer() end, timerInterval)
+	self.timerId = HS:setFixTimer(function() self:onTimer() end, timerInterval)
 end
 
 function Class:unschedule(id)
@@ -288,8 +288,5 @@ function Class:onTimer()
 		end
 	end	
 	
-	if #self.queue>0 then
-		local HS = class.instance("bma.host.Service")
-		self.timerId = HS:setTimer(function() self:onTimer() end, timerInterval)
-	end
+	return #self.queue>0
 end
