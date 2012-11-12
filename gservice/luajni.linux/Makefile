@@ -7,11 +7,8 @@
 # Your platform. See PLATS for possible values.
 PLAT= none
 
-CC=g++
-CFLAGS=
-LDFLAGS=
-
-JAVA_HOME=/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+#JAVA_HOME=/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+JAVA_HOME=/usr/local/jdk1.6.0_31
 LUA_DIR=../lua
 LL_DIR=../lualibs
 JNI_DIR=../jni
