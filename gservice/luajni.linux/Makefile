@@ -41,7 +41,7 @@ linux macosx:
 	gcc -c $(INC) $(LL_DIR)/md5/des56.c $(LL_DIR)/md5/ldes56.c $(LL_DIR)/md5/md5.c $(LL_DIR)/md5/md5lib.c
 	gcc -c -O3 -Wall -pedantic -DNDEBUG -DUSE_INTERNAL_FPCONV $(INC) $(LL_DIR)/lua-cjson/g_fmt.c $(LL_DIR)/lua-cjson/lua_cjson.c $(LL_DIR)/lua-cjson/strbuf.c $(LL_DIR)/lua-cjson/dtoa.c
 	gcc -c $(INC) $(JNI_DIR)/luajni.c
-	g++ $(INC) -o libluajni.$(SOEXT) -shared -Wl,-$(SONAME),luajni.$(SOEXT) $(LUA_A_DIR)/liblua.a *.o -static -lc
+	g++ $(INC) -o libluajni.$(SOEXT) -shared -Wl,-$(SONAME),luajni.$(SOEXT) *.o $(LUA_A_DIR)/liblua.a -static -lc
 	rm *.o
 
 # list targets that do not create files (but not all makes understand .PHONY)

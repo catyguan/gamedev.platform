@@ -36,7 +36,8 @@ public class LuaAppHostThriftTC {
 	private ThriftClient client(boolean shutdown) throws Exception {
 		ThriftClientConfig cfg = new ThriftClientConfig();
 		cfg.setFrameMaxLength(1024 * 1024);
-		cfg.setHostPort("127.0.0.1:9098");
+		cfg.setHostPort("172.19.16.195:9098");
+		// cfg.setHostPort("127.0.0.1:9098");
 		cfg.setModule(shutdown ? "shutdown" : "lua");
 
 		ThriftClientFactoryCommon fac = new ThriftClientFactoryCommon();

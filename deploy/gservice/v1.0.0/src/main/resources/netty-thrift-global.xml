@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- timer -->
+	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager" />
+	<!-- main thread -->
+	<bean id="mainThread" class="bma.common.langutil.ai.common.AIExecutorMain" />
+	<!-- sync thread pool -->
+	<bean id="syncExecutor" class="bma.common.langutil.ai.common.AIExecutorJava">
+		<property name="executor">
+			<bean
+				class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+				<property name="threadNamePrefix" value="threadPool-" />
+				<property name="corePoolSize" value="${threadpool.coreSize}" />
+				<property name="maxPoolSize" value="${threadpool.maxSize}" />
+				<property name="keepAliveSeconds" value="${threadpool.keepAlive}" />
+			</bean>
+		</property>
+	</bean>
+	<!-- ai thread -->
+	<bean id="aiExecutor" class="bma.common.langutil.ai.common.AIExecutorJava">
+		<property name="executor">
+			<bean
+				class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+				<property name="threadNamePrefix" value="aithread-" />
+				<property name="corePoolSize" value="1" />
+				<property name="maxPoolSize" value="1" />
+			</bean>
+		</property>
+	</bean>
+
+	<!-- netty client -->
+	<bean id="nettyClientBootstrap" class="bma.common.netty.client.NettyClientBootstrap"
+		init-method="init">
+		<property name="worker" value="3" />
+	</bean>
+	
+	<!-- NettyPool -->
+	<bean id="nettyPool" class="bma.common.netty.pool.NettyChannelPool" destroy-method="close">
+		<property name="maxActive" value="${nettypool.maxActive}"/>
+		<property name="idleMaxTime" value="${nettypool.idleMaxTime}"/>
+		<property name="timer" ref="aitimer"/>
+		<property name="factory">
+			<bean class="bma.common.netty.pool.SimpleNettyChannelPoolFactory">
+				<property name="bootstrap" ref="nettyClientBootstrap"/>				
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- thrift client -->
+	<bean id="aiThriftClientFactory" class="bma.siteone.netty.thrift.client.AIThriftClientFactoryNetty">
+		<property name="bootstrap" ref="nettyClientBootstrap" />
+		<property name="traceBufferSize" value="0" />
+	</bean>
+
+	<!-- ip limit -->
+	<bean id="secureFilter" class="bma.siteone.netty.thrift.common.ThriftIpLimit"
+		init-method="init">
+		<property name="whiteAddress">
+			<value></value>
+		</property>
+	</bean>
+
+	<bean id="thriftServiceServer" class="bma.siteone.netty.thrift.core.NettyThriftServer"
+		destroy-method="close">
+		<property name="name" value="thriftService" />
+		<property name="worker" value="${thrift.server.worker}" />
+		<property name="traceBufferSize" value="0" />
+		<property name="Pipelines">
+			<list>
+				<ref bean="secureFilter" />
+			</list>
+		</property>
+		<property name="node" ref="thriftServiceNode" />
+		<property name="processExecutor" ref="syncExecutor" />
+	</bean>
+	
+</beans>

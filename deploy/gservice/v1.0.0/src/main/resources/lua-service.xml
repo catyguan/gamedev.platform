@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<!-- dataSource -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="initialPoolSize" value="${jdbc.initialPoolSize}"/>
+		<property name="minPoolSize" value="${jdbc.minPoolSize}"/>
+		<property name="maxPoolSize" value="${jdbc.maxPoolSize}"/>
+		<property name="acquireIncrement" value="${jdbc.acquireIncrement}"/>
+		<property name="maxIdleTime" value="${jdbc.maxIdleTime}"/>
+		<property name="maxStatements" value="${jdbc.maxStatements}"/>
+	</bean>
+
+	<!-- jdbcTemplate -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">		
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- lua thread pool -->
+	<bean id="luaExecutor" class="bma.common.langutil.ai.common.AIExecutorJava">
+		<property name="executor">
+			<bean
+				class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+				<property name="threadNamePrefix" value="lua-" />
+				<property name="corePoolSize" value="${threadpool.lua.coreSize}" />
+				<property name="maxPoolSize" value="${threadpool.lua.maxSize}" />
+				<property name="keepAliveSeconds" value="${threadpool.lua.keepAlive}" />
+			</bean>
+		</property>
+	</bean>
+
+	<!-- LuaAppHost -->
+	<bean id="luaAppHost" class="ge.lua.host.LuaAppHost"
+		init-method="init" destroy-method="close">
+		<property name="executor" ref="luaExecutor"/>
+		<property name="factory">
+			<bean class="ge.lua.host.impl.LuaAppFactorySimple">
+				<property name="pathList">
+					<list>
+						<value>${lua.libs.basedir}src</value>
+						<value>${lua.libs.basedir}test</value>
+						<value>$(lua.apps.basedir)</value>
+					</list>
+				</property>
+				<property name="bootstrapList">
+					<list>
+						<value>bma.lang.FlushPrint</value>						
+					</list>
+				</property>				
+				<property name="launch" value="bma.app.api.Startup"/>
+				<property name="shutdown" value="appShutdown"/>
+			</bean>
+		</property>
+		<property name="namedCalls">
+			<list>
+				<bean class="ge.lua.host.ai.LuaAICall" destroy-method="close"/>
+				<bean class="ge.lua.http.client.ServiceLuaCall">
+					<property name="pool" ref="nettyPool"/>
+				</bean>
+				<bean class="ge.lua.dal.ServiceLuaCall">
+					<property name="jdbcTemplates">
+						<map>
+							<entry key="main" value-ref="jdbcTemplate"/>
+							<entry key="test" value-ref="jdbcTemplate"/>
+						</map>
+					</property>
+					<property name="executor" ref="syncExecutor"/>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- luaAppHostManager -->	
+	<bean id="ifaceManager" class="ge.lua.service.impl.TLuaAppHostManager4AIThrift">
+		<property name="host" ref="luaAppHost"/>
+	</bean>
+	<bean id="atpManager" class="ge.lua.service.thrift.TLuaAppHostManager4AI.Processor">		
+		<constructor-arg ref="ifaceManager" />
+	</bean>
+	<bean id="tbeanManager" class="bma.common.thrift.servicehub.ThriftServiceBean">
+		<property name="module" value="lua"/>
+		<property name="processor" ref="atpManager"/>
+	</bean>	
+	
+	<!-- shutdown -->	
+	<bean id="ifaceShutdown" class="bma.siteone.netty.thrift.common.TShutdownImpl"/>
+	<bean id="tpShutdown" class="bma.siteone.netty.thrift.common.TShutdown.Processor">		
+		<constructor-arg ref="ifaceShutdown" />
+	</bean>
+	<bean id="tbeanShutdown" class="bma.common.thrift.servicehub.ThriftServiceBean">
+		<property name="module" value="shutdown"/>
+		<property name="processor" ref="tpShutdown"/>
+	</bean>
+	
+	<!-- ThriftServiceNode -->	
+	<bean id="thriftServiceNode" class="bma.common.thrift.servicehub.ThriftServiceNode">
+		<property name="name" value="nodeName"/>
+		<property name="type" value="socket"/>
+		<property name="accessHost" value="${thrift.server.accessHost}"/>
+		<property name="port" value="${thrift.server.port}" />				
+		<property name="frameSize" value="${thrift.server.maxFrameSize}"/>
+		<property name="defaultModule" value="lua"/>
+		<property name="services">
+			<list>
+				<ref bean="tbeanManager"/>				
+				<ref bean="tbeanShutdown"/>
+			</list>
+		</property>
+	</bean>	
+
+</beans>
