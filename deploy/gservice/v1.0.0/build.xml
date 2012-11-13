@@ -85,28 +85,28 @@
 		<fail unless="git.bin" message="git未设置" />
 		<echo message="git = ${git.bin}" />
 		<fail unless="gservice.url" message="gservice源代码库未设置" />
-		<mkdir dir="${work.basedir}/repository/gservice" />
+		<mkdir dir="${work.basedir}/repository/gamedev.platform" />
 		<exec executable="${git.bin}">
 			<arg value="clone" />
 			<arg value="-n" />
 			<arg value="${gservice.url}" />
-			<arg value="${work.basedir}/repository/gservice" />
+			<arg value="${work.basedir}/repository/gamedev.platform" />
 		</exec>
-		<exec executable="${git.bin}" dir="${work.basedir}/repository/gservice">
+		<exec executable="${git.bin}" dir="${work.basedir}/repository/gamedev.platform">
 			<arg value="checkout" />
 			<arg value="${gservice.version}" />
 		</exec>
 		<!-- install -->
-		<artifact:mvn pom="${work.basedir}/repository/gservice/gservice/javalib/lua/pom.xml">
+		<artifact:mvn pom="${work.basedir}/repository/gamedev.platform/gservice/javalib/lua/pom.xml">
 		    <arg value="clean"/>
 		</artifact:mvn>
-		<artifact:mvn pom="${work.basedir}/repository/gservice/gservice/javalib/lua/pom.xml">
+		<artifact:mvn pom="${work.basedir}/repository/gamedev.platform/gservice/javalib/lua/pom.xml">
 		    <arg value="install"/>
 		 </artifact:mvn>
-		 <artifact:mvn pom="${work.basedir}/repository/gservice/gservice/javalib/luaservice/pom.xml">
+		 <artifact:mvn pom="${work.basedir}/repository/gamedev.platform/gservice/javalib/luaservice/pom.xml">
 		    <arg value="clean"/>
 		</artifact:mvn>
-		<artifact:mvn pom="${work.basedir}/repository/gservice/gservice/javalib/luaservice/pom.xml">
+		<artifact:mvn pom="${work.basedir}/repository/gamedev.platform/gservice/javalib/luaservice/pom.xml">
 		    <arg value="install"/>
 		 </artifact:mvn>
 	</target>	
