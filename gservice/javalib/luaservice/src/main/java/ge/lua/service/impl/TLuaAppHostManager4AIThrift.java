@@ -24,6 +24,9 @@ import bma.common.langutil.core.DateTimeUtil;
 
 public class TLuaAppHostManager4AIThrift implements Iface {
 
+	final org.slf4j.Logger log = org.slf4j.LoggerFactory
+			.getLogger(TLuaAppHostManager4AIThrift.class);
+
 	private LuaAppHost host;
 
 	public LuaAppHost getHost() {
@@ -65,9 +68,9 @@ public class TLuaAppHostManager4AIThrift implements Iface {
 	}
 
 	@Override
-	public boolean closeApp(AIStack<Boolean> stack, String appId)
-			throws TException {
-		return host.closeApp(stack, appId, true);
+	public boolean closeApp(AIStack<Boolean> stack, String appId,
+			boolean destroy) throws TException {
+		return host.closeApp(stack, appId, destroy);
 	}
 
 	public static TLuaAppInfo create(LuaApp app) {
@@ -105,6 +108,10 @@ public class TLuaAppHostManager4AIThrift implements Iface {
 		if (app == null) {
 			return stack.failure(new IllegalArgumentException("app[" + appId
 					+ "] not exists"));
+		}
+
+		if (log.isDebugEnabled()) {
+			log.debug("appCall({},{},{})", new Object[] { appId, name, params });
 		}
 
 		try {

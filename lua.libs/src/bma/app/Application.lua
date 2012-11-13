@@ -84,6 +84,12 @@ function Class:appCall(serviceName,apiName,...)
 	error("invalid api ["..serviceName..":"..apiName.."]")	
 end
 
+function Class:status()
+	local r = {}
+	r.memuse = os.memuse()
+	return r
+end
+
 function appCall(serviceName,apiName,...)
 	local app = Class.instance()
 	if app then
@@ -92,3 +98,10 @@ function appCall(serviceName,apiName,...)
 end
 
 appShutdown = Class.shutdown
+appStatus = function()
+	local app = Class.instance()
+	if app and app.status then
+		return app:status()
+	end
+	return {}
+end

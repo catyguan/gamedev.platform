@@ -35,7 +35,7 @@ public class TLuaAppHostManager {
 
     public boolean restartApp(String appId) throws org.apache.thrift.TException;
 
-    public boolean closeApp(String appId) throws org.apache.thrift.TException;
+    public boolean closeApp(String appId, boolean destroy) throws org.apache.thrift.TException;
 
     public TLuaAppInfo getApp(String appId) throws org.apache.thrift.TException;
 
@@ -55,7 +55,7 @@ public class TLuaAppHostManager {
 
     public void restartApp(String appId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.restartApp_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void closeApp(String appId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.closeApp_call> resultHandler) throws org.apache.thrift.TException;
+    public void closeApp(String appId, boolean destroy, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.closeApp_call> resultHandler) throws org.apache.thrift.TException;
 
     public void getApp(String appId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getApp_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -136,16 +136,17 @@ public class TLuaAppHostManager {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "restartApp failed: unknown result");
     }
 
-    public boolean closeApp(String appId) throws org.apache.thrift.TException
+    public boolean closeApp(String appId, boolean destroy) throws org.apache.thrift.TException
     {
-      send_closeApp(appId);
+      send_closeApp(appId, destroy);
       return recv_closeApp();
     }
 
-    public void send_closeApp(String appId) throws org.apache.thrift.TException
+    public void send_closeApp(String appId, boolean destroy) throws org.apache.thrift.TException
     {
       closeApp_args args = new closeApp_args();
       args.setAppId(appId);
+      args.setDestroy(destroy);
       sendBase("closeApp", args);
     }
 
@@ -364,24 +365,27 @@ public class TLuaAppHostManager {
       }
     }
 
-    public void closeApp(String appId, org.apache.thrift.async.AsyncMethodCallback<closeApp_call> resultHandler) throws org.apache.thrift.TException {
+    public void closeApp(String appId, boolean destroy, org.apache.thrift.async.AsyncMethodCallback<closeApp_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      closeApp_call method_call = new closeApp_call(appId, resultHandler, this, ___protocolFactory, ___transport);
+      closeApp_call method_call = new closeApp_call(appId, destroy, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class closeApp_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String appId;
-      public closeApp_call(String appId, org.apache.thrift.async.AsyncMethodCallback<closeApp_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean destroy;
+      public closeApp_call(String appId, boolean destroy, org.apache.thrift.async.AsyncMethodCallback<closeApp_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.appId = appId;
+        this.destroy = destroy;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("closeApp", org.apache.thrift.protocol.TMessageType.CALL, 0));
         closeApp_args args = new closeApp_args();
         args.setAppId(appId);
+        args.setDestroy(destroy);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -640,7 +644,7 @@ public class TLuaAppHostManager {
 
       protected closeApp_result getResult(I iface, closeApp_args args) throws org.apache.thrift.TException {
         closeApp_result result = new closeApp_result();
-        result.success = iface.closeApp(args.appId);
+        result.success = iface.closeApp(args.appId, args.destroy);
         result.setSuccessIsSet(true);
         return result;
       }
@@ -2239,6 +2243,7 @@ public class TLuaAppHostManager {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("closeApp_args");
 
     private static final org.apache.thrift.protocol.TField APP_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("appId", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField DESTROY_FIELD_DESC = new org.apache.thrift.protocol.TField("destroy", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2247,10 +2252,12 @@ public class TLuaAppHostManager {
     }
 
     public String appId; // required
+    public boolean destroy; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      APP_ID((short)1, "appId");
+      APP_ID((short)1, "appId"),
+      DESTROY((short)2, "destroy");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2267,6 +2274,8 @@ public class TLuaAppHostManager {
         switch(fieldId) {
           case 1: // APP_ID
             return APP_ID;
+          case 2: // DESTROY
+            return DESTROY;
           default:
             return null;
         }
@@ -2307,11 +2316,15 @@ public class TLuaAppHostManager {
     }
 
     // isset id assignments
+    private static final int __DESTROY_ISSET_ID = 0;
+    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.APP_ID, new org.apache.thrift.meta_data.FieldMetaData("appId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.DESTROY, new org.apache.thrift.meta_data.FieldMetaData("destroy", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(closeApp_args.class, metaDataMap);
     }
@@ -2320,19 +2333,25 @@ public class TLuaAppHostManager {
     }
 
     public closeApp_args(
-      String appId)
+      String appId,
+      boolean destroy)
     {
       this();
       this.appId = appId;
+      this.destroy = destroy;
+      setDestroyIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public closeApp_args(closeApp_args other) {
+      __isset_bit_vector.clear();
+      __isset_bit_vector.or(other.__isset_bit_vector);
       if (other.isSetAppId()) {
         this.appId = other.appId;
       }
+      this.destroy = other.destroy;
     }
 
     public closeApp_args deepCopy() {
@@ -2342,6 +2361,8 @@ public class TLuaAppHostManager {
     @Override
     public void clear() {
       this.appId = null;
+      setDestroyIsSet(false);
+      this.destroy = false;
     }
 
     public String getAppId() {
@@ -2368,6 +2389,29 @@ public class TLuaAppHostManager {
       }
     }
 
+    public boolean isDestroy() {
+      return this.destroy;
+    }
+
+    public closeApp_args setDestroy(boolean destroy) {
+      this.destroy = destroy;
+      setDestroyIsSet(true);
+      return this;
+    }
+
+    public void unsetDestroy() {
+      __isset_bit_vector.clear(__DESTROY_ISSET_ID);
+    }
+
+    /** Returns true if field destroy is set (has been assigned a value) and false otherwise */
+    public boolean isSetDestroy() {
+      return __isset_bit_vector.get(__DESTROY_ISSET_ID);
+    }
+
+    public void setDestroyIsSet(boolean value) {
+      __isset_bit_vector.set(__DESTROY_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case APP_ID:
@@ -2378,6 +2422,14 @@ public class TLuaAppHostManager {
         }
         break;
 
+      case DESTROY:
+        if (value == null) {
+          unsetDestroy();
+        } else {
+          setDestroy((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -2385,6 +2437,9 @@ public class TLuaAppHostManager {
       switch (field) {
       case APP_ID:
         return getAppId();
+
+      case DESTROY:
+        return Boolean.valueOf(isDestroy());
 
       }
       throw new IllegalStateException();
@@ -2399,6 +2454,8 @@ public class TLuaAppHostManager {
       switch (field) {
       case APP_ID:
         return isSetAppId();
+      case DESTROY:
+        return isSetDestroy();
       }
       throw new IllegalStateException();
     }
@@ -2425,6 +2482,15 @@ public class TLuaAppHostManager {
           return false;
       }
 
+      boolean this_present_destroy = true;
+      boolean that_present_destroy = true;
+      if (this_present_destroy || that_present_destroy) {
+        if (!(this_present_destroy && that_present_destroy))
+          return false;
+        if (this.destroy != that.destroy)
+          return false;
+      }
+
       return true;
     }
 
@@ -2447,6 +2513,16 @@ public class TLuaAppHostManager {
       }
       if (isSetAppId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.appId, typedOther.appId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetDestroy()).compareTo(typedOther.isSetDestroy());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetDestroy()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.destroy, typedOther.destroy);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2478,6 +2554,10 @@ public class TLuaAppHostManager {
         sb.append(this.appId);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("destroy:");
+      sb.append(this.destroy);
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2496,6 +2576,8 @@ public class TLuaAppHostManager {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -2528,6 +2610,14 @@ public class TLuaAppHostManager {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // DESTROY
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.destroy = iprot.readBool();
+                struct.setDestroyIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2548,6 +2638,9 @@ public class TLuaAppHostManager {
           oprot.writeString(struct.appId);
           oprot.writeFieldEnd();
         }
+        oprot.writeFieldBegin(DESTROY_FIELD_DESC);
+        oprot.writeBool(struct.destroy);
+        oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2569,19 +2662,29 @@ public class TLuaAppHostManager {
         if (struct.isSetAppId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetDestroy()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetAppId()) {
           oprot.writeString(struct.appId);
+        }
+        if (struct.isSetDestroy()) {
+          oprot.writeBool(struct.destroy);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, closeApp_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.appId = iprot.readString();
           struct.setAppIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.destroy = iprot.readBool();
+          struct.setDestroyIsSet(true);
         }
       }
     }

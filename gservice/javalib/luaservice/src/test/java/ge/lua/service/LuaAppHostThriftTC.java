@@ -36,8 +36,8 @@ public class LuaAppHostThriftTC {
 	private ThriftClient client(boolean shutdown) throws Exception {
 		ThriftClientConfig cfg = new ThriftClientConfig();
 		cfg.setFrameMaxLength(1024 * 1024);
-		cfg.setHostPort("172.19.16.195:9098");
-		// cfg.setHostPort("127.0.0.1:9098");
+		// cfg.setHostPort("172.19.16.195:9098");
+		cfg.setHostPort("127.0.0.1:9098");
 		cfg.setModule(shutdown ? "shutdown" : "lua");
 
 		ThriftClientFactoryCommon fac = new ThriftClientFactoryCommon();
@@ -71,7 +71,7 @@ public class LuaAppHostThriftTC {
 			client.close();
 		}
 	}
-	
+
 	@Test
 	public void client_createApp_app1() throws Exception {
 		ThriftClient client = client(false);
@@ -110,7 +110,7 @@ public class LuaAppHostThriftTC {
 		try {
 			TLuaAppHostManager.Client obj = client
 					.createObject(TLuaAppHostManager.Client.class);
-			Object r = obj.closeApp("app1");
+			Object r = obj.closeApp("app1", true);
 			log.info("closeApp = {}", r);
 		} catch (Exception e) {
 			log.error("error", e);

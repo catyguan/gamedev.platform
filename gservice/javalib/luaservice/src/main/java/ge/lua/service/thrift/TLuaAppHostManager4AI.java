@@ -41,8 +41,8 @@ public class TLuaAppHostManager4AI {
 		public boolean restartApp(AIStack<Boolean> stack, String appId)
 				throws org.apache.thrift.TException;
 
-		public boolean closeApp(AIStack<Boolean> stack, String appId)
-				throws org.apache.thrift.TException;
+		public boolean closeApp(AIStack<Boolean> stack, String appId,
+				boolean destroy) throws org.apache.thrift.TException;
 
 		public boolean getApp(AIStack<TLuaAppInfo> stack, String appId)
 				throws org.apache.thrift.TException;
@@ -141,7 +141,7 @@ public class TLuaAppHostManager4AI {
 					closeApp_args args) throws org.apache.thrift.TException {
 				closeApp_result result = new closeApp_result();
 				return iface.closeApp(new AIBaseStack<Boolean>(stack, result),
-						args.getAppId());
+						args.getAppId(), args.isDestroy());
 			}
 		}
 
@@ -270,10 +270,10 @@ public class TLuaAppHostManager4AI {
 		}
 
 		@Override
-		public boolean closeApp(AIStack<Boolean> stack, String appId)
-				throws TException {
+		public boolean closeApp(AIStack<Boolean> stack, String appId,
+				boolean destroy) throws TException {
 			return super.invoke(stack, new closeApp_result(), "closeApp",
-					new closeApp_args(appId));
+					new closeApp_args(appId, destroy));
 		}
 
 		@Override

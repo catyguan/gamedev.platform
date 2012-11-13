@@ -28,3 +28,4 @@ UpgradeLog.*
 *.opensdf
 libluajni.so
 *.zip
+*.log

@@ -35,7 +35,7 @@ service TLuaAppHostManager {
 
 	bool restartApp(1:string appId),
 
-	bool closeApp(1:string appId),
+	bool closeApp(1:string appId, 2:bool destroy),
 	
 	TLuaAppInfo getApp(1:string appId),
 
