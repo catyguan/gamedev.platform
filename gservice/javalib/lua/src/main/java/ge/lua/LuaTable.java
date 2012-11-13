@@ -177,14 +177,12 @@ public class LuaTable extends LuaProxy {
 				String k = e.getKey();
 				Object o = e.getValue();
 				if (o != null) {
-					if (o instanceof List) {
-						LuaArray la = new LuaArray();
-						la.bind((List) o);
-						o = la;
-					} else if (o instanceof Map) {
-						LuaTable lt = new LuaTable();
-						lt.bind((Map) o);
-						o = lt;
+					if (o instanceof LuaArray) {
+						LuaArray la = (LuaArray) o;
+						o = la.toList();
+					} else if (o instanceof LuaTable) {
+						LuaTable lt = (LuaTable) o;
+						o = lt.toMap();
 					}
 				}
 				r.put(k, o);
@@ -193,4 +191,5 @@ public class LuaTable extends LuaProxy {
 		}
 		return null;
 	}
+
 }
