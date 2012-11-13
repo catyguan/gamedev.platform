@@ -12,21 +12,15 @@ class App {
 	
         $vo = array();
 		
-		$m = \ge\lua\service\Manager::getInstance();
-
-		try {
-			$r = $m->appCall($id, 'appStatus', array(), 5000);
-			if($r)$statusInfo = $r[0];
-		} catch(\Exception $e) {
-			$statusInfo = array(
-				"error"=>$e->getMessage()
-			);
-		}
-		
 		$vo['id'] = $id;
-		$vo['statusInfo'] = $statusInfo;
 		$v = $app->loadView('devui', 'app_ui');
         $v->show($vo);
+    }
+	
+	public function restart($app) {
+        $id = $app->req->request('id');        
+        $r = \ge\lua\service\Manager::getInstance()->restartApp($id);
+        $app->sendRedirect(APP_URL."index.php?m=App&id=$id");
     }
 	
 	public function appCall($app) {
@@ -50,10 +44,27 @@ class App {
 		}
     }
 	
-	public function restart($app) {
-        $id = $app->req->request('id');        
-        $r = \ge\lua\service\Manager::getInstance()->restartApp($id);
-        $app->sendRedirect(APP_URL."index.php?m=App&id=$id");
-    }
+	public function ping($app) {
+		$id = $app->req->request('id');
+		$t = $app->req->request('t', 0);
+		$seq = $app->req->request('s', 0);
+		
+		$m = \ge\lua\service\Manager::getInstance();
+
+		try {
+			$r = $m->appCall($id, 'devuiPing', array($t, $seq));
+			if($r) {
+				$info = $r[0];
+			} else {
+				$info = array("response", json_encode($r));
+			}
+		} catch(\Exception $e) {
+			$info = array(
+				"error"=>$e->getMessage()
+			);
+		}
+		
+		echo json_encode($info);	
+	}
     
 }

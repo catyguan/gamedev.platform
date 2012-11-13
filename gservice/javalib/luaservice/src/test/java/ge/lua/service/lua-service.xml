@@ -53,6 +53,8 @@
 				<property name="bootstrapList">
 					<list>
 						<value>bma.lang.FlushPrint</value>						
+						<value>bma.lang.PrintHistory</value>
+						<value>devui.Commands</value>
 					</list>
 				</property>				
 				<property name="launch" value="bma.app.api.Startup"/>

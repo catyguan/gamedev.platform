@@ -57,7 +57,7 @@ class Manager extends \bma\thrift\ThriftObject {
 	    $cl = $this->getClient();
 	    $r = $cl->appEval($appId, $content);
 	    if($this->logger->isDebug()) {
-            $dmsg = sprintf('appEval(%s) => %s',$appId, $content);
+            $dmsg = sprintf('appEval(%s, %s)',$appId, $content);
 			$this->logger->debug($dmsg);
         }
         return $r;
