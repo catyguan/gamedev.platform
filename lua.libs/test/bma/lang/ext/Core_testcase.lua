@@ -25,7 +25,7 @@ if false then
 	o:test("world")
 end
 
-if false then
+if true then
 	-- serialize
 	local Class1 = class.define("test.Class1")
 	Class1.SERIALIZE = {
@@ -57,7 +57,7 @@ if false then
 
 end
 
-if true then
+if false then
 	local Class1 = class.define("test.Class1")
 	local a = 0
 	function Class1:ctor()

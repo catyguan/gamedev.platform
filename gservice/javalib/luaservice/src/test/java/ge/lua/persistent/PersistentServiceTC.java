@@ -1,5 +1,5 @@
 
-package ge.lua.state;
+package ge.lua.persistent;
 
 import ge.lua.service.thrift.TLuaAppCallResult;
 import ge.lua.service.thrift.TLuaAppHostManager;
@@ -12,10 +12,10 @@ import bma.common.thrift.ThriftClient;
 import bma.common.thrift.ThriftClientConfig;
 import bma.common.thrift.common.ThriftClientFactoryCommon;
 
-public class StateServiceTC {
+public class PersistentServiceTC {
 
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
-			.getLogger(StateServiceTC.class);
+			.getLogger(PersistentServiceTC.class);
 
 	@Before
 	public void setUp() {
@@ -34,14 +34,14 @@ public class StateServiceTC {
 	}
 
 	@Test
-	public void state_testcase() throws Exception {
+	public void persistent_testcase() throws Exception {
 		ThriftClient client = client();
 		try {
 			TLuaAppHostManager.Client obj = client
 					.createObject(TLuaAppHostManager.Client.class);
 
 			if (obj != null) {
-				String params = "[\"bma.state.state_testcase\"]";
+				String params = "[\"bma.persistent.persistent_testcase\"]";
 				TLuaAppCallResult r = obj.appCall("app1", "include", params);
 				log.info("appCall(require) = {}", r.getResult());
 			}			

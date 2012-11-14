@@ -1,3 +1,4 @@
+
 require("bma.lang.Class")
 require("bma.lang.ext.Dump")
 require("bma.matrix.StatefulMatrix")
@@ -20,9 +21,14 @@ function hello:execute()
     print("hello "..V(self.word,"???"))
 end
 
+local OC1 = class.define("test.o1")
+function OC1:id()
+	return "abc"
+end
+
 local SS = class.instance("bma.state.Service")
 
-if false then
+if true then
     -- object & oid
     local cb = function(err, m)
     	if err then
@@ -30,25 +36,19 @@ if false then
     		return
     	end
     	if not m:obj("abc") then    		
-	    	local o = {}
-		    function o:id()
-		        return "abc"
-		    end
-		    function o:matrixChild(oid, idx)
-		        return "hi "..oid[idx]
-		    end    
+	    	local o = OC1.new()		
+	    	o.name = "myname"        
 		    print("create abc")
 	    	m:addObject(o)
 	    end
-    	print(m:obj("abc"))
-    	var_dump(class.saveObject(m:obj("abc")))
+    	var_dump(m:obj("abc"))    	
     end
     
     SS:get(cb,"matrix1","test.Matrix")
     
 end
 
-if true then
+if false then
     -- run
     local cb = function(err, m)
     	if err then

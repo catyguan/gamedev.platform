@@ -1,22 +1,14 @@
--- app/app1/Application.lua
-require("bma.app.Application")
-require("bma.app.AppService")
+-- app/app2/Application.lua
+require("bma.app.StatefulApplication")
 
-local Class = class.define("app.app1.Application",{bma.app.Application})
+local Class = class.define("app.app2.Application",{bma.app.StatefulApplication})
 
-function Class:init()
-	LOG:info("app1", "init")
+function Class:listMainObject()
+	local r = {}	
+	return r
+end
+
+function Class:onLaunch(olist)
+	LOG:info("app2", "onLaunch")	
 	return true
-end
-
-function Class:close()
-	LOG:info("app1", "close")
-end
-
-function Class:serviceTs()
-	local s = bma.app.AppService.new()
-	s.apiTapi = function(w)
-		return "Hello "..w
-	end
-	return s
 end

@@ -4,7 +4,7 @@ require("bma.app.Application")
 local Class = class.define("bma.app.StatefulApplication",{bma.app.Application})
 
 function Class:init()
-	local S = class.instance("bma.state.Service")
+	local S = class.instance("bma.persistent.Service")
 	local list = self:listMainObject()
 	if list then
 		local cf = function(id, o)
@@ -40,7 +40,7 @@ function Class:init()
 end
 
 function Class:close(destroy)
-	local S = class.instance("bma.state.Service")
+	local S = class.instance("bma.persistent.Service")
 	if destroy then
 		S:deleteAll(true)
 	else

@@ -1,19 +1,19 @@
--- bma/state/mysqlhost/Service.lua
+-- bma/persistent/mysqlhost/Service.lua
 require("bma.lang.ext.Core")
-require("bma.state.BaseService")
+require("bma.persistent.BaseService")
 
 local DAL = class.instance("bma.dal.Service")
 local CFG = CONFIG.StateService or {}
-local tableName = CFG.tableName or "lua_stateful_object"
+local tableName = CFG.tableName or "lua_persistent_entity"
 local dispatcher = CFG.dispatcher or function(id) return LUA_APP_ID, LUA_APP_TYPE, id end
 
 -- << class - Service >>
-local Class = class.define("bma.state.mysqlhost.Service",{bma.state.BaseService})
+local Class = class.define("bma.persistent.mysqlhost.Service",{bma.persistent.BaseService})
 local instance;
 
 function Class.install()
 	if not instance then instance = Class.new() end	
-	class.setInstance("bma.state.Service", instance)
+	class.setInstance("bma.persistent.Service", instance)
 end
 
 -- interface

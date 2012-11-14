@@ -104,6 +104,10 @@ end
 
 local StdObject = class.define("bma.lang.StdObject")
 
+function StdObject:id(v)
+	return self:attr("id",v)
+end
+
 function StdObject:tag(v)
 	return self:attr("tag",v)
 end

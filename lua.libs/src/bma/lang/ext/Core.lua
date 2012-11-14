@@ -182,6 +182,58 @@ function enum( tbl )
 	return ret
 end
 
+-- aicall
+aicall = {}
+function aicall.done(cb, err, ...)
+	if cb then
+		if type(cb)=="function" then return cb(err, ...) end
+		if type(cb)=="table" then
+			if cb.done then return cb.done(err, ...) end
+			if err then
+				if cb.failure then return cb.failure(err) end
+			else
+				if cb.success then return cb.success(...) end
+			end
+		end	
+	end	
+end
+function aicall.success(cb, ...)
+	return aicall.done(cb,nil,...)
+end
+function aicall.failure(cb, err)
+	return aicall.done(cb, err)
+end
+function aicall.safeDone(cb, err, ...)
+	local a = arg
+	local done,r = pcall(function()
+		return aicall.done(cb, err, unpack(a))
+	end)	
+	if done then return r end
+end
+function aicall.safeDoneL(cb,f,err, ...)
+	local a = arg
+	local done,r,st = pcall(function()
+		return aicall.done(cb, err, unpack(a))
+	end)	
+	if done then 
+		return r
+	else
+		if f then
+			f(r,st)
+		else
+			if LOG:debugEnabled() then
+				LOG:debug("aicall","callback fail - %s\n%s", tostring(r), tostring(st))
+			end
+		end 
+	end
+end
+function aicall.safeSuccess(cb, ...)
+	return aicall.safeDone(cb,nil,...)
+end
+function aicall.safeFailure(cb, err)
+	return aicall.safeDone(cb,err)
+end
+
 function include(name)
 	package.loaded[name] = nil
 	return require(name)

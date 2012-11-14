@@ -9,7 +9,7 @@ CONFIG.Log = {
 CONFIG.Services = {
 	"bma.host.java.Service",
 	"bma.dal.host.Service",
-	"bma.state.mysqlhost.Service",		
+	"bma.persistent.mysqlhost.Service",		
 }
 
 CONFIG.DAL = {

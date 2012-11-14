@@ -2,7 +2,7 @@ require("bma.test.bootstrap")
 require("bma.lang.Class")
 require("bma.lang.ext.Dump")
 
-testcase.include("bma.matrix.Matrix")
+include("bma.matrix.Matrix")
 
 local M =  bma.matrix.Matrix
 
@@ -36,7 +36,7 @@ if false then
     print(m:obj("abc"))
 end
 
-if false then
+if true then
     local a1 = class.define("test.a1",{bma.matrix.MatrixCommand})    
     function a1:execute()
         print("a1")

@@ -1,12 +1,12 @@
--- bma/state/BaseService.lua
-require("bma.lang.ext.Core")
+-- bma/persistent/BaseService.lua
+require("bma.lang.Entity")
 require("bma.lang.ext.Dump")
 require("bma.lang.ext.Json")
 
 -- << class - BaseService >>
-local Class = class.define("bma.state.BaseService",{})
+local Class = class.define("bma.persistent.BaseService",{})
 local LDEBUG = LOG:debugEnabled()
-local CFG = CONFIG.StateService or {}
+local CFG = CONFIG.PersistentService or {}
 local timerInterval = CFG.timerInterval or 60000
 local queueRunTask = CFG.queueRunTask or 20
 
@@ -53,13 +53,18 @@ function Class:get(callback, id, type, syn)
 	self:load(callback, id, type, syn)
 end
 
-function Class:load(callback, id, type, syn)
+function Class:load(callback, id, param, syn)	
 	local item = self.objects[id]	
 	if item==nil then
 		if type==nil then
 			error("invalid object["..id.."] and type")
 		end
-		local obj = class.new(type)
+		local obj
+		if type(param)=="string" then 
+			obj = class.new(param)
+		else
+			obj = param
+		end
 		item = {o=obj, v=0}
 		self.objects[id] = item
 	end
@@ -79,56 +84,49 @@ function Class:load(callback, id, type, syn)
 		local item = self.objects[id]		
 		if not item then
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "skip load object [%s]", tostring(id))
+				LOG:debug("PersistentService", "skip load object [%s]", tostring(id))
 			end
 			return
 		end
 		
-		local loaded = function()
+		local loaded = function(err)
+			if LDEBUG then
+				LOG:debug("PersistentService", "object [%s] loaded - err(%s)", tostring(id), tostring(err))
+			end
+			item.ld = true
+			item.o:id(id)
 			if item.l then
 				for _, c in ipairs(item.l) do
-					local done,r1,r2 = pcall(function() 
-						c(err, item.o)
-					end)
-					if not done and LDEBUG then
-						LOG:debug("StatefulObjectManager", "load object callback fail - %s\n%s", tostring(r1), tostring(r2))
-					end
+					aicall.safeDone(c, err, item.o)					
 				end
 			end
-			item.l = nil
-			item.ld = true
+			item.l = nil			
 		end
+		
 		if err then
-			LOG:error("StatefulObjectManager", "load object [%s] fail - %s", tostring(id), err)
+			LOG:error("PersistentService", "load object [%s] fail - %s", tostring(id), err)
+			loaded(err)
 		else
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "query object [%s] done - %s", tostring(id), string.dump(data))
+				LOG:debug("PersistentService", "query object [%s] done - %s", tostring(id), string.dump(data))
 			end			
 			if data then
 				local state = string.json(data)
-				local w = item.o:loadState(state, loaded)
-				item.v = version or 0			
-				if w=="loading" then
-					if LDEBUG then
-						LOG:debug("StatefulObjectManager", "waiting object [%s] loading", tostring(id))
-					end
-					return
-				end
-			else				
-				local state = {}
-				item.o:initState(state)				
-				local cb2 = function(err)
+				item.v = version or 0
+				state["id"] = nil				
+				item.o:loadState(loaded, state, syn)
+			else
+				item.o:initObject()
+				local sscb = function(err, state)
 					if err then
-						if LOG:warnEnabled() then
-							LOG:warn("StatefulObjectManager", "init object[%s] data fail - %s", tostring(id), err)
-						end
+						loaded(err)
+					else
+						item.v = self:initObjectData(loaded, id, table.json(state), false)
 					end
 				end
-				item.v = self:initObjectData(cb2, id, table.json(state), false)
+				item.o:saveState(sscb, syn)				
 			end			
 		end
-		loaded()
-		
 	end
 	
 	self:loadObjectData(cb, id, syn)	
@@ -137,7 +135,7 @@ end
 function Class:save(callback, id, syn)
 	local item = self.objects[id]	
 	if item==nil then
-		return false
+		return callback("invalid id["..tostring(id).."]")
 	end
 		
 	local saving = false
@@ -149,54 +147,53 @@ function Class:save(callback, id, syn)
 	table.insert(item.s, callback)
 	
 	if saving and not syn then
-		return true
+		return false
 	end
 	
 	local cb = function(err, done)
 		local item = self.objects[id]		
 		if not item then
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "skip save object [%s]", tostring(id))
+				LOG:debug("PersistentService", "skip save object [%s]", tostring(id))
 			end
 			return
 		end
 				
 		if err then
-			LOG:error("StatefulObjectManager", "save object [%s] fail - %s", tostring(id), err)
+			LOG:error("PersistentService", "save object [%s] fail - %s", tostring(id), err)
 		else
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "save object [%s] done - %s", tostring(id), tostring(done))
+				LOG:debug("PersistentService", "save object [%s] done - %s", tostring(id), tostring(done))
 			end			
 		end
 		
 		if item.s then
 			for _, c in ipairs(item.s) do
-				local done,r1,r2 = pcall(function() 
-					c(err, item.o)
-				end)
-				if not done and LDEBUG then
-					LOG:debug("StatefulObjectManager", "save object callback fail - %s\n%s", tostring(r1), tostring(r2))
-				end
+				aicall.safeDone(c,err,item.o)				
 			end
 		end
 		item.s = nil
 	end
 	
-	local state = {}
-	item.o:saveState(state)
-	item.o:stateModify(false)
-	item.v = self:saveObjectData(cb, id, table.json(state), item.v, syn)
-	return true	
+	local sscb = function(err, state)
+		if err then
+			cb(err)
+		else
+			item.v = self:saveObjectData(cb, id, table.json(state), item.v, syn)		
+		end
+	end	
+	
+	return item.o:saveState(sscb, syn)	
 end
 
 function Class:saveAll(syn)
 	local fn = function()end
 	for k,item in pairs(self.objects) do
 		if item.o:isStateModify() then
-			self:save(fn,k,syn)
+			self:save(fn,k, syn)
 		else
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "skip save object[%s]", tostring(k))
+				LOG:debug("PersistentService", "skip save object[%s]", tostring(k))
 			end
 		end
 	end
@@ -210,10 +207,10 @@ function Class:delete(id, syn)
 			
 	local cb = function(err, done)
 		if err then
-			LOG:error("StatefulObjectManager", "delete object [%s] fail - %s", tostring(id), err)
+			LOG:error("PersistentService", "delete object [%s] fail - %s", tostring(id), err)
 		else
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "delete object [%s] done - %s", tostring(id), tostring(done))
+				LOG:debug("PersistentService", "delete object [%s] done - %s", tostring(id), tostring(done))
 			end
 		end
 	end
@@ -226,10 +223,10 @@ end
 function Class:deleteAll(syn)
 	local cb = function(err, done)
 		if err then
-			LOG:error("StatefulObjectManager", "delete all object [%s] fail - %s", tostring(id), err)
+			LOG:error("PersistentService", "delete all object [%s] fail - %s", tostring(id), err)
 		else
 			if LDEBUG then
-				LOG:debug("StatefulObjectManager", "delete all object [%s] done - %s", tostring(id), tostring(done))
+				LOG:debug("PersistentService", "delete all object [%s] done - %s", tostring(id), tostring(done))
 			end
 		end
 	end
@@ -270,7 +267,7 @@ end
 
 function Class:onTimer()
 	if LDEBUG then
-		LOG:debug("StatefulObjectManager", "timer active")
+		LOG:debug("PersistentService", "timer active")
 	end
 	self.timerId = 0
 	
@@ -283,12 +280,12 @@ function Class:onTimer()
 		if self.objects[id] then			
 			if self.objects[id].o:isStateModify() then
 				if LDEBUG then
-					LOG:debug("StatefulObjectManager", "timer save - %s", tostring(id))
+					LOG:debug("PersistentService", "timer save - %s", tostring(id))
 				end
 				self:save(function()end, id)
 			else
 				if LDEBUG then
-					LOG:debug("StatefulObjectManager", "timer skip - %s", tostring(id))
+					LOG:debug("PersistentService", "timer skip - %s", tostring(id))
 				end
 			end
 			i = i + 1

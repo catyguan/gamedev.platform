@@ -41,6 +41,7 @@ local LCMDDEBUG = CFG.CommandDebug or LDEBUG
 local LTAG = "Matrix"
 
 -- << class - MatrixObject >>
+-- event & parent
 local MatrixObject = class.define("bma.matrix.MatrixObject",{})
 
 MatrixObject.EVENT = {}
@@ -241,7 +242,7 @@ local handleCommand = function(self, a)
         if type(a.c)=="function" then
             a.c()
         else
-            a.c:doExecute()
+            a.c:executeCommand()
         end
     end)
     if not done then        
@@ -435,7 +436,7 @@ function MatrixCommand:handleExecute()
     self:execute()    
 end
 
-function MatrixCommand:doExecute()
+function MatrixCommand:executeCommand()
     if self:isCancel() then return end
     self:handleExecute()
 end
