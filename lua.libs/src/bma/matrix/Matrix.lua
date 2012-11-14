@@ -1,6 +1,6 @@
 -- bma/maxtrix/Matrix.lua
 
-require("bma.lang.Class")
+require("bma.persistent.PersistentEntity")
 require("bma.lang.ext.Dump")
 require("bma.lang.ext.Table")
 require("bma.lang.Events")
@@ -16,23 +16,15 @@ MT = function(m)
 end
 
 NOW = function()
-    return _statis.cur.time
+    return _statis.cur:prop("time")
 end
 
 DELAY = function(t)
-    return _statis.cur.time + t
+    return _statis.cur:prop("time") + t
 end
 
 OBJ = function(oid)
     return _statis.cur:obj(oid)
-end
-
-table.filter.BY_ID = function(id)
-    return function(k,v)
-        if v==nil then return false end
-        if v.id==nil then return false end
-        return v:id()==id
-    end
 end
 
 local CFG = CONFIG.Matrix or {}
@@ -40,88 +32,8 @@ local LDEBUG = LOG:debugEnabled()
 local LCMDDEBUG = CFG.CommandDebug or LDEBUG
 local LTAG = "Matrix"
 
--- << class - MatrixObject >>
--- event & parent
-local MatrixObject = class.define("bma.matrix.MatrixObject",{})
-
-MatrixObject.EVENT = {}
-
-MatrixObject.defEvent = function(k,v)
-    if MatrixObject.EVENT[k] ~= nil then
-        error("event["..k.."] exists")
-    end
-    MatrixObject.EVENT[k] = v
-end
-
-function MatrixObject:id(v)
-    if v~=nil then self._id = v end
-    return self._id
-end
-
-function MatrixObject:parent(v)
-    if v~=nil then 
-        if type(v)=="table" then
-            self._parent = v
-        else
-            self._parent = nil
-        end
-    end
-    return self._parent
-end
-
-function MatrixObject:events(s)
-    if self._events==nil and s then 
-        self._events = bma.lang.Events.new()
-    end
-    return self._events
-end
-
--- abstract
-function MatrixObject:onMatrixStart(reload)
-end
-
--- abtract
-function MatrixObject:onMatrixKill(del)
-    local e = self:events()
-    if e~=nil then
-        e:clear()
-    end
-end
-
-function MatrixObject:childId()
-    if self._childId==nil then 
-        self._childId = 1
-    else
-        self._childId = self._childId + 1        
-    end
-    return self._childId
-end
-
-function MatrixObject:listen(lis, id) 
-    local e = self:events(true)
-    e:listen(lis, id)
-end
-
-function MatrixObject:fireEvent(ev)    
-    if ev==nil then return end
-    if ev.source==nil then ev.source = self end
-    local e = self:events()
-    if e~=nil then
-        e:fire(ev)
-    end
-    local p = self:parent()
-    if p~=nil then
-        p:fireEvent(ev)
-    else
-        local mt = MT()
-        if mt~=nil and mt~=self then
-            mt:fireEvent(ev)
-        end
-    end
-end
-
 -- class: Matrix
-local Matrix = class.define("bma.matrix.Matrix", {bma.matrix.MatrixObject})
+local Matrix = class.define("bma.matrix.Matrix", {bma.persistent.PersistentEntity})
 
 Matrix.TLF_SECOND = function(t,st)
     return string.format("%.3fs",(t-st)/1000)
@@ -131,12 +43,9 @@ function Matrix:ctor()
     self.timeLabelFun = function(t,st)
         return (t-st) .. "t"
     end
-    self.hasBegin = false
-    self.startTime = 0
-    self.time = 0
+    self._p = {}
     self.commands = {}
-    self.hasNewCommand = false
-    self.objects = {}
+    self.hasNewCommand = false    
     self.config = {}
     setmetatable(self.config,{__index=
 			function(t,k)
@@ -145,12 +54,27 @@ function Matrix:ctor()
 		})
 end
 
+function Matrix:initObject()
+	self:prop("startTime", 0)
+    self:prop("time", 0)
+    self:prop("begin", false)
+    self:prop("objects", {})
+end
+
+function Matrix:isObjectValid()
+	return self._p.objects ~= nil
+end
+
+function Matrix:isBegin()
+	return self._p.begin
+end
+
 function Matrix:dumpTime()
-    return self.timeLabelFun(self.time,self.startTime)
+    return self.timeLabelFun(self._p.time, self._p.startTime)
 end
 
 function Matrix:clock()
-    return self.time + self.startTime
+    return self._p.time + self._p.startTime
 end
 
 function Matrix:random(m,n)
@@ -163,17 +87,10 @@ function Matrix:randomseed(x)
     return math.randomseed(x)
 end
 
-NEWCID = function(o)
-    if o~=nil and o.id~=nil and o.childId~=nil then 
-        return o:id().."-"..o:childId()    
-    end
-    return MT():childId()
-end
-
 -- <<objects>>
 function Matrix:obj(oid)    
     if oid==nil then return nil end
-    return self.objects[oid]
+    return self._p.objects[oid]
 end
 
 function Matrix:addObject(o)    
@@ -182,29 +99,47 @@ function Matrix:addObject(o)
     if oid==nil then
         error(string.format("object(%s) id is nil",tostring(o)))
     end
-    if self.objects[oid]~=nil then
+    if self._p.objects[oid]~=nil then
         error(string.format("oid[%s] exists",tostring(oid)))
     end
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> object[%s] enter",self:dumpTime(), self.time, oid)
+        LOG:debug(LTAG,"%s(%d) >> object[%s] enter",self:dumpTime(), self._p.time, oid)
     end
-    self.objects[oid] = o
-    if V(self.hasBegin,false) and o.onMatrixStart then    
+    self._p.objects[oid] = o
+    self:stateModify(true)
+    if V(self:isBegin(), false) and o.onMatrixStart then    
         o:onMatrixStart(false)
     end
     return o
 end
 
+function Matrix:loadObject(cb, id, param, syn)
+	local m = class.instance("bma.persistent.Service")
+	local cb1 = function(err, o)
+		if not err then
+			if o and o:isObjectValid() then
+				self:addObject(o)
+				return aicall.done(cb, nil, self)
+			end
+			cb("loadObject("..tostring(id)..") invalid object")
+		else
+			cb(err)
+		end
+	end
+	m:get(cb1, id, param, syn)
+end
+
 function Matrix:removeObject(oid)
-    local o = self.objects[oid]
+    local o = self._p.objects[oid]
     if o~=nil then
         if LDEBUG then
-            LOG:debug(LTAG,"%s(%d) >> object(%s) leave",self:dumpTime(), self.time, oid)
+            LOG:debug(LTAG,"%s(%d) >> object(%s) leave",self:dumpTime(), self._p.time, oid)
         end
         if o.onMatrixKill ~= nil then
             o:onMatrixKill(true)
         end
-        self.objects[oid] = nil    
+        self._p.objects[oid] = nil 
+        self:stateModify(true)   
         return true
     end
     return false
@@ -223,20 +158,20 @@ function Matrix:dumpCommand()
     local r = ""
     for _,v in ipairs(self.commands) do 
         if #r > 0 then r = r .. "\n" end
-        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self.startTime),cmdstr(v.c))
+        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self._p.startTime),cmdstr(v.c))
     end
     return r
 end
 
 local handleCommand = function(self, a)
     
-    self.time = a.t        
+    self:prop("time", a.t)        
     if a.c == nil then
         return
     end
             
     if LDEBUG and LCMDDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self.time,cmdstr(a))
+        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self._p.time,cmdstr(a))
     end                                
     local done,r,stt = pcall(function()
         if type(a.c)=="function" then
@@ -254,11 +189,11 @@ end
 function Matrix:process(step)
     if step==nil then step = 0 end
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> process(%d)",self:dumpTime(), self.time, step)
+        LOG:debug(LTAG,"%s(%d) >> process(%d)",self:dumpTime(), self._p.time, step)
     end
     _statis.cur = self
     
-    local et = self.time + step
+    local et = self._p.time + step
     while #self.commands>0 do
         if self.hasNewCommand then            
             table.sort(self.commands, function(e1,e0)
@@ -274,28 +209,28 @@ function Matrix:process(step)
             break            
         end
     end    
-    self.time = et
-    return self.time
+    self:prop("time", et)
+    return self._p.time
 
 end
 
 function Matrix:delayCommand(time,cmd)    
-    self:runCommand(self.time+time,cmd)
+    self:runCommand(self._p.time+time,cmd)
 end
 
 function Matrix:nowCommand(cmd)    
-    self:runCommand(self.time,cmd)
+    self:runCommand(self._p.time,cmd)
 end
 
 function Matrix:runCommand(time,cmd)    
     if cmd==nil then
         return false
     end    
-    if time < self.time then
+    if time < self._p.time then
         if LOG:warnEnabled() then
-            LOG:warn(LTAG,"%d >> runCommand(%d,_,%s) invalid time",self.time,time,cmdstr(cmd))
+            LOG:warn(LTAG,"%d >> runCommand(%d,_,%s) invalid time",self._p.time,time,cmdstr(cmd))
         end
-        error(string.format("runCommand(%d) invalid time at %d", time, self.time))
+        error(string.format("runCommand(%d) invalid time at %d", time, self._p.time))
     end
     table.insert(self.commands, {t=time,c=cmd})
     self.hasNewCommand = true    
@@ -324,8 +259,8 @@ end
 
 -- <<setup & begin & save/load>>
 function Matrix:setup(startTime, time, init, creator)
-    self.startTime = startTime
-    self.time = time
+    self:prop("startTime", startTime)
+    self:prop("time", time)
     _statis.cur = self
     
     if init ~= nil then
@@ -337,74 +272,16 @@ function Matrix:setup(startTime, time, init, creator)
 end
 
 function Matrix:begin()
-    self.hasBegin = true
+    self:prop("begin",true)
     _statis.cur = self
     
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> begin",self:dumpTime(), self.time)    
+        LOG:debug(LTAG,"%s(%d) >> begin",self:dumpTime(), self._p.time)    
     end
     
-    for k,o in pairs(self.objects) do
+    for k,o in pairs(self._p.objects) do
         if o.onMatrixStart~= nil then
             o:onMatrixStart(false)
-        end
-    end
-end
-
-function Matrix:save()
-    local r = {}
-    -- save status    
-    r.startTime = self.startTime
-    r.time = self.time
-
-    -- save objects
-    local olist = {}
-    for k,v in pairs(self.objects) do        
-        local data = class.saveObject(v)
-        if data ~= nil then
-            olist[k] = data
-        end
-    end
-    r.objects = olist
-end
-
-function Matrix:loadFromData(k, sdata)
-	local o = nil
-    if sdata ~= nil then
-        local done,r,stt = pcall(function(th,data)
-            return class.loadObject(data)
-        end,self,sdata)                
-        if not done then
-            LOG:warn(LTAG,"newInstance[%s -- %s] fail\n%s\n%s", k, tostring(sdata.class), r, stt)                    
-        else 
-            o = r
-        end
-    end
-    if o ~= nil then
-        self.objects[k] = o
-    else
-        LOG:warn(LTAG,"load objcet[%s] fail",tostring(k))
-    end
-end
-
-function Matrix:load(data,init)
-    if init~=nil then
-        init(self)
-    end
-    
-    -- load status
-    self.startTime = data.startTime
-    self.time = data.time
-    
-    if LDEBUG then
-        LOG:debug(LTAG,"load at [%s]", self:dumpTime())
-    end
-    
-    -- load objects
-    local olist = data.objects
-    if olist ~= nil then
-        for k,sdata in pairs(olist) do
-            self:loadFromData(k, sdata)
         end
     end
 end

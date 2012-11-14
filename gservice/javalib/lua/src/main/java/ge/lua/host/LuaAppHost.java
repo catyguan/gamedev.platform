@@ -87,6 +87,20 @@ public class LuaAppHost {
 		this.calls.put(name, call);
 	}
 
+	public void addCallGroup(LuaCallGroup group) {
+		group.buildLuaCall(this);
+	}
+
+	public void setCallGroup(LuaCallGroup group) {
+		group.buildLuaCall(this);
+	}
+
+	public void setCallGroups(List<LuaCallGroup> groups) {
+		for (LuaCallGroup g : groups) {
+			g.buildLuaCall(this);
+		}
+	}
+
 	public LuaAppFactory getFactory() {
 		return factory;
 	}

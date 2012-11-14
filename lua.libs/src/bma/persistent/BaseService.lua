@@ -49,8 +49,11 @@ end
 
 function Class:get(callback, id, type, syn)
 	local item = self.objects[id]
-	if item and item.ld then return callback(nil, item.o) end
-	self:load(callback, id, type, syn)
+	if item and item.ld then 
+		aicall.done(callback, nil, item.o)
+		return true
+	end
+	return self:load(callback, id, type, syn)
 end
 
 function Class:load(callback, id, param, syn)	
@@ -77,7 +80,7 @@ function Class:load(callback, id, param, syn)
 	table.insert(item.l, callback)
 	
 	if loading and not syn then
-		return
+		return false
 	end
 	
 	local cb = function(err, data, version)
@@ -129,7 +132,7 @@ function Class:load(callback, id, param, syn)
 		end
 	end
 	
-	self:loadObjectData(cb, id, syn)	
+	return self:loadObjectData(cb, id, syn)	
 end
 
 function Class:save(callback, id, syn)

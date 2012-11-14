@@ -7,8 +7,15 @@ local PersistentEntity = class.define("bma.persistent.PersistentEntity", {Entity
 local NF = function()end
 local EM = bma.lang.EntityManager
 
+function PersistentEntity.entityFactory(cb, cls, data)
+	print("entityFactory", cls.className, string.dump(data))
+	local m = class.instance("bma.persistent.Service")
+	return m:get(cb, data.id, cls.className, EM.syn)
+end
+
 -- abstract
 function PersistentEntity:initObject()	
+	
 end 
 
 -- abstract
@@ -34,7 +41,7 @@ function PersistentEntity:loadProp(cb,n,id,param,syn)
 			cb(err)
 		end
 	end
-	m:load(cb1, id, param,syn)
+	m:get(cb1, id, param,syn)
 end
 
 function PersistentEntity:save()

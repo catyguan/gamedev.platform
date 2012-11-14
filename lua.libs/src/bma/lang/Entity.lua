@@ -127,12 +127,21 @@ function EM.restoreObject(cb, data)
 		aicall.done(cb,nil,nil)
 		return true
 	end	
-	local o = class.new(data._class)
-	if o.restoreObject ~= nil then
-		return o:restoreObject(cb, data)
+	local cls = class.forName(data._class)
+	if cls == nil then
+		cb("class["+tostring(data._class)+"] not exists")
+		return true
+	end	
+	if cls.entityFactory and type(cls.entityFactory)=="function" then
+		return cls.entityFactory(cb, cls, data)
 	else
-		return EM.deserializeObject(cb, o, data)
-	end
+		local o = class.new(data._class)
+		if o.restoreObject ~= nil then
+			return o:restoreObject(cb, data)
+		else
+			return EM.deserializeObject(cb, o, data)
+		end
+	end	
 end
 
 local Entity = class.define("bma.lang.Entity")

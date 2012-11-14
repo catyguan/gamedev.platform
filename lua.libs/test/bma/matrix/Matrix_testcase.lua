@@ -17,6 +17,7 @@ function hello:execute()
 end
 
 local m  = M.new()
+m:initObject()
 m.timeLabelFun = M.TLF_SECOND
 m:setup(0,0)    
 
@@ -27,9 +28,6 @@ if false then
     local o = {}
     function o:id()
         return "abc"
-    end
-    function o:matrixChild(oid, idx)
-        return "hi "..oid[idx]
     end
     
     m:addObject(o)

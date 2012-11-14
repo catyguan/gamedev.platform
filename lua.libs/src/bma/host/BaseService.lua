@@ -81,3 +81,19 @@ function Class:aiResponse(callId, ...)
 	end
 	self:call(fn, "airesponse", callId, ...)
 end
+
+function Class:createApp(cb, appId, appType)	
+    return self:call(cb, "host.createApp", appId, appType)
+end
+
+function Class:restartApp(cb, appId)	
+    return self:call(cb, "host.restartApp", appId)
+end
+
+function Class:closeApp(cb, appId, destroy)	
+    return self:call(cb, "host.closeApp", appId, destroy)
+end
+
+function Class:appCall(cb, appId, name, ...)	
+    return self:call(cb, "host.appCall", appId, name, ...)
+end

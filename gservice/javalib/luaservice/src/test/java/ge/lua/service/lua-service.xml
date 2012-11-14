@@ -61,6 +61,11 @@
 				<property name="shutdown" value="appShutdown"/>
 			</bean>
 		</property>
+		<property name="callGroups">
+			<list>
+				<bean class="ge.lua.host.mcall.LuaCallGroup4Manager"/>
+			</list>
+		</property>
 		<property name="namedCalls">
 			<list>
 				<bean class="ge.lua.host.ai.LuaAICall" destroy-method="close"/>

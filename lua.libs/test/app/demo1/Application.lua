@@ -17,7 +17,7 @@ function Class:onLaunch(olist)
 	local o1 = olist.counter
 	o1:start()
 	
-	local SS = class.instance("bma.state.Service")
+	local SS = class.instance("bma.persistent.Service")
 	SS:schedule("counter")	
 	-- SS:schedule("c1")
 	-- SS:schedule("c2")
