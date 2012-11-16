@@ -92,7 +92,7 @@ function Class:load(callback, id, param, syn)
 			return
 		end
 		
-		local loaded = function(err)
+		local loadedF = function(err)
 			if LDEBUG then
 				LOG:debug("PersistentService", "object [%s] loaded - err(%s)", tostring(id), tostring(err))
 			end
@@ -108,7 +108,7 @@ function Class:load(callback, id, param, syn)
 		
 		if err then
 			LOG:error("PersistentService", "load object [%s] fail - %s", tostring(id), err)
-			loaded(err)
+			loadedF(err)
 		else
 			if LDEBUG then
 				LOG:debug("PersistentService", "query object [%s] done - %s", tostring(id), string.dump(data))
@@ -117,14 +117,14 @@ function Class:load(callback, id, param, syn)
 				local state = string.json(data)
 				item.v = version or 0
 				state["id"] = nil				
-				item.o:loadState(loaded, state, syn)
+				item.o:loadState(loadedF, state, syn)
 			else
 				item.o:initObject()
 				local sscb = function(err, state)
 					if err then
-						loaded(err)
+						loadedF(err)
 					else
-						item.v = self:initObjectData(loaded, id, table.json(state), false)
+						item.v = self:initObjectData(loadedF, id, table.json(state), false)
 					end
 				end
 				item.o:saveState(sscb, syn)				
@@ -180,7 +180,7 @@ function Class:save(callback, id, syn)
 	
 	local sscb = function(err, state)
 		if err then
-			cb(err)
+			aicall.done(cb, err)
 		else
 			item.v = self:saveObjectData(cb, id, table.json(state), item.v, syn)		
 		end

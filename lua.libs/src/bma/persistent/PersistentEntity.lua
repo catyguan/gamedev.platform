@@ -8,7 +8,7 @@ local NF = function()end
 local EM = bma.lang.EntityManager
 
 function PersistentEntity.entityFactory(cb, cls, data)
-	print("entityFactory", cls.className, string.dump(data))
+	-- print("entityFactory", cls.className, string.dump(data))
 	local m = class.instance("bma.persistent.Service")
 	return m:get(cb, data.id, cls.className, EM.syn)
 end
@@ -34,11 +34,11 @@ function PersistentEntity:loadProp(cb,n,id,param,syn)
 		if not err then
 			if o and o:isObjectValid() then
 				self:prop(n , o)
-				return aicall.done(cb, nil, self)
+				return aicall.done(cb, nil, o)
 			end
-			cb("loadProp("..tostring(n)..","..tostring(id)..") invalid object")
+			aicall.done(cb, "loadProp("..tostring(n)..","..tostring(id)..") invalid object")
 		else
-			cb(err)
+			aicall.done(cb, err)
 		end
 	end
 	m:get(cb1, id, param,syn)
@@ -52,7 +52,7 @@ end
 function PersistentEntity:storeObject(cb)
 	local m = class.instance("bma.persistent.Service")
 	local cb1 = function(err, done)
-		cb(nil, {id=self:id()})
+		aicall.done(cb, nil, {id=self:id()})
 	end
 	return m:save(cb1, self:id(),EM.syn)	
 end
@@ -63,7 +63,7 @@ function PersistentEntity:restoreObject(cb, data)
 		if LOG:debugEnabled() then
 			LOG:debug("PersistentEntity","[%s,%s] restore from load",self.className, tostring(data.id))
 		end
-		cb(nil, self)
+		aicall.done(cb, nil, self)
 	end	
 	return m:load(cb1, data.id, self, EM.syn)	
 end
@@ -73,7 +73,10 @@ function PersistentEntity:saveState(cb, syn)
 		if not err then
 			self:stateModify(false)
 		end
-		cb(err, data)
+		if data==nil then
+			data = EMPTY_TABLE
+		end
+		aicall.done(cb, err, data)
 	end	
 	local tmp = EM.syn
 	EM.syn = syn

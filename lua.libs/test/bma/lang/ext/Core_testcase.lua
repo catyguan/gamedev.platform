@@ -25,7 +25,7 @@ if false then
 	o:test("world")
 end
 
-if true then
+if false then
 	-- serialize
 	local Class1 = class.define("test.Class1")
 	Class1.SERIALIZE = {
@@ -76,6 +76,35 @@ if false then
 	var_dump(class.instance("test.Class3"))
 	
 	var_dump(class.instance("bma.lang.Events"))
+end
+
+-- test class extends
+if true then
+	local C1 = class.define("test.c1")
+	function C1:hello(w)		
+		print("C1 hello ", w)
+		class.superCall(self,C1,"hello", w)
+	end 
+	local C15 = class.define("test.c15")
+	function C15:hello(w)		
+		print("C1.5 hello ", w)
+		class.superCall(self,C15,"hello", w)
+	end
+	local C2 = class.define("test.c2",{C15})
+	function C2:hello(w)
+		print("C2 hello ", w)
+		class.superCall(self,C2,"hello", w)
+	end
+	
+	local C3 = class.define("test.c3", {C2,C1})
+	function C3:hello(w)
+		print("C3 hello ", w)
+		class.superCall(self,C3, "hello", w)
+	end
+	
+	local o = C3.new()
+	o:hello("world")
+	
 end
 
 if false then

@@ -50,7 +50,28 @@ table.inArray = function(t,v)
 	return false
 end
 
+table.removeArrayValue = function(t,v,one)
+	if t==nil then return false end
+	local r = false
+	local i = 1
+	while i<=#t do
+		local tv = t[i]	
+		if tv==v then
+			table.remove(t,i)
+			if one then 
+				return true
+			else
+				r = true
+				i = i - 1
+			end
+		end
+		i = i + 1
+	end
+	return r
+end
+
 table.pairs = function(t)
+	assert(t)
 	local a = table.isArray(t)
 	if a then
 		return ipairs(t)

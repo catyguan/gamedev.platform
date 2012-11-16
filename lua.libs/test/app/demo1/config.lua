@@ -10,6 +10,7 @@ CONFIG.Services = {
 	"bma.host.java.Service",
 	"bma.dal.host.Service",
 	"bma.persistent.mysqlhost.Service",		
+	"bma.session.local.Service",
 }
 
 CONFIG.DAL = {

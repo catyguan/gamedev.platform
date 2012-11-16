@@ -162,6 +162,31 @@ class.walk = function(cls,f)
 	return false
 end
 
+class.superCall = function(o,cls,name, ...)
+	local m = false
+	local f = function(c)
+		if m then
+			local fun = c[name]
+			if fun and type(fun)=="function" then
+				return true, fun 
+			else
+				return false
+			end
+		else
+			m = cls==c
+		end
+		return false
+	end
+	
+	local ocls = class.forName(o.className)
+	if not ocls then return end
+	
+	local done, callFunction = class.walk(ocls, f)
+	if done then
+		return callFunction(o, ...)
+	end	
+end
+
 -- enum
 function enum( tbl )
 	local ret = {}

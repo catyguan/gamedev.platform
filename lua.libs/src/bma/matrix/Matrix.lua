@@ -1,15 +1,13 @@
 -- bma/maxtrix/Matrix.lua
-
 require("bma.persistent.PersistentEntity")
 require("bma.lang.ext.Dump")
 require("bma.lang.ext.Table")
-require("bma.lang.Events")
 
 -- macro
 local _statis = {}
 
 MT = function(m)
-    if m==nil then
+    if not m then
         return _statis.cur
     end
     return m
@@ -27,9 +25,9 @@ OBJ = function(oid)
     return _statis.cur:obj(oid)
 end
 
-local CFG = CONFIG.Matrix or {}
+local CFG = CONFIG.Matrix or EMPTY_TABLE
 local LDEBUG = LOG:debugEnabled()
-local LCMDDEBUG = CFG.CommandDebug or LDEBUG
+local LACTDEBUG = CFG.ActionDebug or false
 local LTAG = "Matrix"
 
 -- class: Matrix
@@ -44,8 +42,8 @@ function Matrix:ctor()
         return (t-st) .. "t"
     end
     self._p = {}
-    self.commands = {}
-    self.hasNewCommand = false    
+    self.actions = {}
+    self.hasNewAction = false    
     self.config = {}
     setmetatable(self.config,{__index=
 			function(t,k)
@@ -145,43 +143,45 @@ function Matrix:removeObject(oid)
     return false
 end
 
--- <<time & commands>>
-local cmdstr = function(c)
+-- <<time & actions>>
+local actstr = function(a)
     local s = ""
-    if type(c)=="table" and c.className~=nil then
-        s = c.className.." - "
+    if type(a)=="table" and a.className~=nil then
+        s = a.className.." - "
     end
-    s = s .. string.dump(c)
+    s = s .. string.dump(a)
     return s
 end
-function Matrix:dumpCommand()
+function Matrix:dumpAction()
     local r = ""
-    for _,v in ipairs(self.commands) do 
+    for _,v in ipairs(self.actions) do 
         if #r > 0 then r = r .. "\n" end
-        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self._p.startTime),cmdstr(v.c))
+        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self._p.startTime),actstr(v.a))
     end
     return r
 end
 
-local handleCommand = function(self, a)
+local handleAction = function(self, a)
     
     self:prop("time", a.t)        
-    if a.c == nil then
+    if a.a == nil then
         return
     end
             
-    if LDEBUG and LCMDDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self._p.time,cmdstr(a))
+    if LDEBUG and LACTDEBUG then
+        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self._p.time,actstr(a))
     end                                
     local done,r,stt = pcall(function()
-        if type(a.c)=="function" then
-            a.c()
+        if type(a.a)=="function" then
+            a.a()
+        elseif a.a.executeAction then
+            a.a:executeAction()
         else
-            a.c:executeCommand()
+        	LOG:warn(LTAG,"unable to execute action '%s'", tostring(a.a))
         end
     end)
     if not done then        
-        LOG:warn(LTAG,"process command fail\n%s\n%s", r,stt)
+        LOG:warn(LTAG,"execute action fail\n%s\n%s", r,stt)
     end
     
 end
@@ -194,19 +194,19 @@ function Matrix:process(step)
     _statis.cur = self
     
     local et = self._p.time + step
-    while #self.commands>0 do
-        if self.hasNewCommand then            
-            table.sort(self.commands, function(e1,e0)
+    while #self.actions>0 do
+        if self.hasNewAction then            
+            table.sort(self.actions, function(e1,e0)
                 return e1.t < e0.t
             end)
-            self.hasNewCommand = false
+            self.hasNewAction = false
         end
-        local a = self.commands[1]
+        local a = self.actions[1]
         if a.t <= et then
-            table.remove(self.commands,1)
-            handleCommand(self, a)            
+            table.remove(self.actions,1)
+            handleAction(self, a)            
         else
-            break            
+            break     
         end
     end    
     self:prop("time", et)
@@ -214,61 +214,54 @@ function Matrix:process(step)
 
 end
 
-function Matrix:delayCommand(time,cmd)    
-    self:runCommand(self._p.time+time,cmd)
+function Matrix:delayAction(time,act)    
+    self:runAction(self._p.time+time,act)
 end
 
-function Matrix:nowCommand(cmd)    
-    self:runCommand(self._p.time,cmd)
+function Matrix:nowAction(act)    
+    self:runAction(self._p.time,act)
 end
 
-function Matrix:runCommand(time,cmd)    
-    if cmd==nil then
+function Matrix:runAction(time, act)    
+    if act==nil then
         return false
     end    
     if time < self._p.time then
         if LOG:warnEnabled() then
-            LOG:warn(LTAG,"%d >> runCommand(%d,_,%s) invalid time",self._p.time,time,cmdstr(cmd))
+            LOG:warn(LTAG,"%d >> runAction(%d,_,%s) invalid time",self._p.time,time,actstr(act))
         end
-        error(string.format("runCommand(%d) invalid time at %d", time, self._p.time))
+        error(string.format("runAction(%d) invalid time at %d", time, self._p.time))
     end
-    table.insert(self.commands, {t=time,c=cmd})
-    self.hasNewCommand = true    
+    table.insert(self.actions, {t=time,a=act})
+    self.hasNewAction = true    
     return true
 end
 
-function Matrix:getCommand(f)
-    return table.select(self.commands, function(k,v)
-            return f(k,v.c)
+function Matrix:getAction(f)
+    return table.select(self.actions, function(k,v)
+            return f(k,v.a)
         end)
 end
 
-function Matrix:getCommandOne(f)
-    return table.selectOne(self.commands, function(k,v)
-            return f(k,v.c)
+function Matrix:getActionOne(f)
+    return table.selectOne(self.actions, function(k,v)
+            return f(k,v.a)
         end)
 end
 
-function Matrix:removeCommand(f)
-    for i,v in ipairs(self.commands) do
-        if f(k,v.c) then
-            table.remove(self.commands,i)            
+function Matrix:removeAction(f)
+    for i,v in ipairs(self.actions) do
+        if f(k,v.a) then
+            table.remove(self.actions,i)            
         end
     end
 end
 
--- <<setup & begin & save/load>>
-function Matrix:setup(startTime, time, init, creator)
+-- <<setup & begin>>
+function Matrix:setup(startTime, time)
     self:prop("startTime", startTime)
     self:prop("time", time)
-    _statis.cur = self
-    
-    if init ~= nil then
-        init(self)
-    end
-    if creator ~= nil then
-        creator(self)
-    end
+    _statis.cur = self    
 end
 
 function Matrix:begin()
@@ -284,48 +277,4 @@ function Matrix:begin()
             o:onMatrixStart(false)
         end
     end
-end
-
--- <<class - Command>>
-local MatrixCommand = class.define("bma.matrix.MatrixCommand", {bma.lang.StdObject})
-
-function MatrixCommand:id(v)
-    return self:attr("id",v)
-end
-
-function MatrixCommand:value(p1,p2)    
-    return self:runv(p1,p2)
-end
-
-function MatrixCommand:isCancel()
-    return V(self:value("hasCancel"),false)
-end
-
-function MatrixCommand:cancel()
-    self:value("hasCancel",true)
-end
-
-function MatrixCommand:execute()
-    return false, 0
-end
-
-function MatrixCommand:handleExecute()
-    self:execute()    
-end
-
-function MatrixCommand:executeCommand()
-    if self:isCancel() then return end
-    self:handleExecute()
-end
-
-function MatrixCommand:runNow()
-    MT():nowCommand(self)
-end
-
-function MatrixCommand:runAt(tm)
-    MT():runCommand(tm, self)
-end
-
-function MatrixCommand:runDelay(tm)
-    MT():delayCommand(tm, self)
 end

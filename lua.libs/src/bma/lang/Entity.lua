@@ -210,21 +210,45 @@ function Entity:allRunv()
 	return self._r or EMPTY_TABLE
 end
 
-function Entity:storeObject(cb)	
-	if self._p~=nil then
-		return EM.serializeValue(cb, self._p)
+function Entity:storeObject(cb)
+	if self.beforeStoreObject then
+		pcall(function()
+			self:beforeStoreObject()
+		end)
 	end
-	aicall.done(cb, nil, nil)
+	local tcb = cb
+	if self.afterStoreObject then
+		tcb = function(err, v)
+			pcall(function()
+				self:afterStoreObject()
+			end)
+			aicall.done(cb, err, v)
+		end
+	end	
+	if self._p~=nil then
+		return EM.serializeValue(tcb, self._p)
+	end	
+	aicall.done(tcb, nil, nil)
 	return true
 end
 
 function Entity:restoreObject(cb, data)
+	if self.beforeRestoreObject then
+		pcall(function()
+			self:beforeStoreObject()
+		end)
+	end
 	local cb1 = function(err, state)		
 		if state then
 			self._p = state
 		end
 		self:stateModify(false)
-		cb(nil, self)
+		if self.afterRestoreObject then
+			pcall(function()
+				self:afterRestoreObject()
+			end)
+		end	
+		aicall.done(cb, err, self)
 	end
 	return EM.deserializeValue(cb1, data)
 end

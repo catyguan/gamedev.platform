@@ -5,6 +5,7 @@ require("bma.host.BaseService")
 local super = bma.host.BaseService
 local Class = class.define("bma.host.java.Service",{super})
 local LDEBUG = LOG:debugEnabled()
+local CFG = CONFIG.JavaHost or EMPTY_TABLE
 local instance;
 
 function Class.install()
@@ -77,7 +78,9 @@ function luaCallResponse(callId, err, ...)
 			instance:response(opts,nil,{...})
 		end
 	else
-		LOG:debug("JavaHost","discard response "..callId)
+		if LDEBUG then
+			LOG:debug("JavaHost","discard response "..callId)
+		end
 	end
 end
 
@@ -123,7 +126,9 @@ end
 function luaTimerResponse(timerId, fix)	
 	local fun = instance.timers[timerId]
 	if fun then
-		LOG:debug("JavaHost","timer "..timerId.." active")
+		if LDEBUG and CFG.LogTimer then
+			LOG:debug("JavaHost","timer "..timerId.." active")
+		end
 		if fix then
 			return fun()
 		else
@@ -132,7 +137,9 @@ function luaTimerResponse(timerId, fix)
 			return true;
 		end
 	else
-		LOG:debug("JavaHost","timer "..timerId.." discard")
+		if LDEBUG and CFG.LogTimer then
+			LOG:debug("JavaHost","timer "..timerId.." discard")
+		end
 		return false
 	end
 end
