@@ -93,7 +93,25 @@ class.saveObject = function(v)
 end
 
 class.loadObject = function(data)
-	local o = class.new(data._class)
+	local cls = class.forName(data._class)
+	if cls == nil then
+		error(string.format("class[%s] not exists", name))
+	end	
+	
+	local o
+	if cls.instanceFactory and type(cls.instanceFactory)=="function" then
+		local fo, inited = cls.instanceFactory(cls, data)
+		if fo then			
+			if inited then
+				return fo
+			end
+			o = fo
+		end		
+	end
+	
+	if not o then
+		o = class.new(data._class)
+	end
 	if o.loadObject ~= nil then
 		o:loadObject(data)
 	else
@@ -104,6 +122,11 @@ end
 
 local StdObject = class.define("bma.lang.StdObject")
 
+-- sub class use
+function StdObject:_access(t,n,v)
+	t[n] = v
+end
+
 function StdObject:id(v)
 	return self:attr("id",v)
 end
@@ -112,113 +135,151 @@ function StdObject:tag(v)
 	return self:attr("tag",v)
 end
 
+function StdObject:hasThiv(n)	
+	return self[n]~=nil
+end
+
 function StdObject:removeThisv(n)
-	self[n] = nil
+	self:_access(self,n,nil)
 end
 
 function StdObject:thisv(p1,p2)
 	if p2==nil then
 		return self[p1]
 	else
-		self[p1] = p2
+		self:_access(self,p1,p2)
 		return p2
 	end
 end
 
+function StdObject:hasProp(n)
+	if self._prop == nil then return false end
+	return self._prop[n]~=nil
+end
+
 function StdObject:removeProp(n)
-	if self.properties==nil then return end
-	self.properties[n] = nil
+	if self._prop==nil then return end
+	self:_access(self._prop,n,nil)
 end
 
 function StdObject:prop(p1,p2)
 	if p2==nil then
-		if self.properties == nil then return nil end
-		return self.properties[p1]
+		if self._prop == nil then return nil end
+		return self._prop[p1]
 	else
-		if self.properties == nil then self.properties = {} end
-		self.properties[p1] = p2
+		if self._prop == nil then self._prop = {} end
+		self:_access(self._prop,p1,p2)
 		return p2
 	end
 end
 
+function StdObject:allProp()
+	if self._prop then return READONLY(self._prop) end
+	return EMPTY_TABLE
+end
+
+function StdObject:hasAttr(n)
+	if self._attr == nil then return false end
+	return self._attr[n]~=nil
+end
+
 function StdObject:removeAttr(n)
-	if self.attributes==nil then return end
-	self.attributes[n] = nil
+	if self._attr == nil then return end
+	self:_access(self._attr,n,nil)
 end
 
 function StdObject:attr(p1,p2)
 	if p2==nil then
-		if self.attributes == nil then return nil end
-		return self.attributes[p1]
+		if self._attr == nil then return nil end
+		return self._attr[p1]
 	else
-		if self.attributes == nil then self.attributes = {} end
-		self.attributes[p1] = p2
+		if self._attr == nil then self._attr = {} end
+		self:_access(self._attr,p1,p2)
 		return p2
 	end
 end
 
+function StdObject:allAttr()
+	if self._attr then return READONLY(self._attr) end
+	return EMPTY_TABLE
+end
+
+function StdObject:hasRunv(n)
+	if self._runv == nil then return false end
+	return self._runv[n]~=nil
+end
+
 function StdObject:removeRunv(n)
-	if self.runtime==nil then return end
-	self.runtime[n] = nil
+	if self._runv==nil then return end
+	self:_access(self._runv,n,nil)
 end
 
 function StdObject:runv(p1,p2)
 	if p2==nil then
-		if self.runtime == nil then return nil end
-		return self.runtime[p1]
+		if self._runv == nil then return nil end
+		return self._runv[p1]
 	else
-		if self.runtime == nil then self.runtime = {} end
-		self.runtime[p1] = p2
+		if self._runv == nil then self._runv = {} end
+		self:_access(self._runv, p1, p2)
 		return p2
 	end
 end
 
+function StdObject:allRunv()
+	if self._runv then return READONLY(self._runv) end
+	return EMPTY_TABLE
+end
+
+function StdObject:hasTempv(n)
+	if self._tempv == nil then return false end
+	return self._tempv[n]~=nil
+end
+
 function StdObject:removeTempv(n)
-	if self.temp==nil then return end
-	self.temp[n] = nil
+	if self._tempv==nil then return end
+	self:_access(self._tempv,n,nil)
 end
 
 function StdObject:tempv(p1,p2)
 	if p2==nil then
-		if self.temp == nil then return nil end
-		return self.temp[p1]
+		if self._tempv == nil then return nil end
+		return self._tempv[p1]
 	else
-		if self.temp == nil then self.temp = {} end
-		self.temp[p1] = p2
+		if self._tempv == nil then self._tempv = {} end
+		self:_access(self._tempv,p1,p2)
 		return p2
 	end
 end
 
+function StdObject:allTempv()
+	if self._tempv then return READONLY(self._tempv) end
+	return EMPTY_TABLE
+end
+
 function StdObject:saveObject()
 	local r = {}
-	if self.attributes~=nil then
-		r.attributes = class.serializeValue(self.attributes)
+	if self._attr ~=nil then
+		r.attr = class.serializeValue(self._attr)
 	end
-	if self.properties~=nil then
-		r.properties = class.serializeValue(self.properties)
-	end
-	if self.runtime~=nil then
-		r.runtime = class.serializeValue(self.runtime)
-	end
+	if self._prop ~=nil then
+		r.prop = class.serializeValue(self._prop)
+	end	
 	return r
 end
 
 function StdObject:loadObject(data)
-	if data.attributes~=nil then
-		self.attributes = class.deserializeValue(data.attributes)
+	if data.attr~=nil then
+		self._attr = class.deserializeValue(data.attr)
 	end
-	if data.properties~=nil then
-		self.properties = class.deserializeValue(data.properties)
-	end
-	if data.runtime~=nil then
-		self.runtime = class.serializeValue(data.runtime)
+	if data.prop~=nil then
+		self._prop = class.deserializeValue(data.prop)
 	end
 end
 
 if table.filter==nil then table.filter = {} end
 table.filter.BY_ATTR = function(n,v)
 	return function(k,o)
-		if type(o)=="table" and o.attr~=nil then
+		if type(o)=="table" and o._attr~=nil then
 			return o:attr(n)==v
 		end
 		return false
@@ -226,7 +287,7 @@ table.filter.BY_ATTR = function(n,v)
 end
 table.filter.BY_PROP = function(n,v)
 	return function(k,o)
-		if type(o)=="table" and o.prop~=nil then
+		if type(o)=="table" and o._prop~=nil then
 			return o:prop(n)==v
 		end
 		return false
@@ -234,7 +295,7 @@ table.filter.BY_PROP = function(n,v)
 end
 table.filter.BY_RUNV = function(n,v)
 	return function(k,o)
-		if type(o)=="table" and o.runv~=nil then
+		if type(o)=="table" and o._runv~=nil then
 			return o:runv(n)==v
 		end
 		return false
@@ -242,9 +303,27 @@ table.filter.BY_RUNV = function(n,v)
 end
 table.filter.BY_TEMPV = function(n,v)
 	return function(k,o)
-		if type(o)=="table" and o.tempv~=nil then
+		if type(o)=="table" and o._tempv~=nil then
 			return o:tempv(n)==v
 		end
 		return false
 	end
+end
+
+-- <<class part - Singleton>>
+local Singleton = class.define("bma.lang.Singleton")
+
+function Singleton.instanceFactory(cls, data)
+	return class.instance(cls.className)
+end
+
+-- <<class part - RuntimeObject>>
+local RuntimeObject = class.define("bma.lang.RuntimeObject")
+
+function RuntimeObject:saveObject()
+	return EMPTY_TABLE
+end
+
+function RuntimeObject:loadObject(data)
+	
 end

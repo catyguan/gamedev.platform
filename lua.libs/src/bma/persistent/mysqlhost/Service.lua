@@ -19,12 +19,8 @@ end
 -- interface
 function Class:initObjectData(callback, objId, data, syn)
 		
-	local cb = function(err, r)		
-		if err then			
-			callback(err)
-		else			
-			callback(nil,true)				
-		end
+	local cb = function(err, r)
+		aicall.done(callback, err, true)		
 	end
 	
 	local appId,appType,oid = dispatcher(objId)
@@ -39,13 +35,13 @@ function Class:loadObjectData(callback, objId, syn)
 		
 	local cb = function(err, r)		
 		if err then			
-			callback(err)
+			aicall.done(callback, err)
 		else			
 			if r and r[1] then
 				r = r[1]
-				callback(nil, r.data, r.version)
+				aicall.done(callback, nil, r.data, r.version)
 			else
-				callback(nil,nil,nil)
+				aicall.done(callback, nil,nil,nil)
 			end	
 		end
 	end
@@ -60,12 +56,8 @@ end
 -- interface
 function Class:saveObjectData(callback, objId, data, version, syn)
 		
-	local cb = function(err, r)		
-		if err then			
-			callback(err)
-		else			
-			callback(nil,r==1)				
-		end
+	local cb = function(err, r)	
+		aicall.done(callback, err ,r==1)				
 	end
 	
 	local appId,appType,oid = dispatcher(objId)
@@ -81,11 +73,7 @@ end
 function Class:deleteObjectData(callback, objId, syn)
 		
 	local cb = function(err, r)		
-		if err then			
-			callback(err)
-		else			
-			callback(nil,r==1)				
-		end
+		aicall.done(callback, err, r==1)
 	end
 	
 	local appId,appType,oid = dispatcher(objId)
@@ -98,11 +86,7 @@ end
 function Class:deleteAllObjectData(callback, syn)
 		
 	local cb = function(err, r)		
-		if err then			
-			callback(err)
-		else			
-			callback(nil,r)				
-		end
+		aicall.done(callback, err, r)
 	end
 	
 	local sql = "DELETE FROM "..tableName.." WHERE app_id=? AND app_type=?"	

@@ -463,6 +463,22 @@ static int luaB_tostring (lua_State *L) {
   return 1;
 }
 
+static int luaB_topointer(lua_State *L) {
+  luaL_checkany(L, 1);
+  switch (lua_type(L, 1)) {
+    case LUA_TNUMBER:
+    case LUA_TSTRING:
+    case LUA_TBOOLEAN:
+    case LUA_TNIL:
+      lua_pushliteral(L, "");
+      break;
+    default:
+      lua_pushfstring(L, "%p", lua_topointer(L, 1));
+      break;
+  }
+  return 1;
+}
+
 
 static int luaB_newproxy (lua_State *L) {
   lua_settop(L, 1);
@@ -512,6 +528,7 @@ static const luaL_Reg base_funcs[] = {
   {"setmetatable", luaB_setmetatable},
   {"tonumber", luaB_tonumber},
   {"tostring", luaB_tostring},
+  {"topointer", luaB_topointer},
   {"type", luaB_type},
   {"unpack", luaB_unpack},
   {"xpcall", luaB_xpcall},

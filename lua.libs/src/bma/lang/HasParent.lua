@@ -36,7 +36,7 @@ end
 -- used only by Parent
 function Class:_parentSet(v)
 	if v then
-		if self:runv("iocParent") then
+		if self:prop("iocParent") then
 			self:prop("parent", v)
 		else
 			self:runv("parent", v)
@@ -50,9 +50,9 @@ function Class:_parentSet(v)
 end
 
 function Class:iocParent(v)
-	if v~=nil then
+	if v~=nil then		
 		if v then
-			self:prop("iocParent",v )
+			self:prop("iocParent",v)
 		else
 			self:removeProp("iocParent")
 		end

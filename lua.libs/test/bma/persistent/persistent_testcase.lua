@@ -12,41 +12,45 @@ local C1 = class.define("test.o1",{bma.persistent.PersistentEntity})
 function C1:initObject()
 	self:prop("word", "start")
 end
-function C1:isObjectValid()
-	return true
-end	
 
 local C2 = class.define("test.o2",{C1})
 
 -- load/save
 if false then
-	local fun = function(err, o)
-		print("callback",err, string.dump(o))
-    	o:prop("word" ,"next")
-	end
-	            
-    print("load")
-    S:load(fun, "id1", "test.o1", false)
+    print("get")
+    local o = S:get("id1", "test.o1")
+    var_dump(o)
     
-    print("save")
-   	S:save(fun, "id1", false)    
+    local fun = function(err, v)
+		print("callback",err, v,string.dump(o))
+		
+		print("save")
+		o:prop("word", "second")
+		local fun2 = function(err,v)
+			print("callback2",err, v)
+		end
+   		S:save(fun2, "id1", false)
+	end
+    o:restoreObject(fun)    
 end
 
 -- subload
-if false then
-    local fun = function(err, o)
-        print("callback",err, string.dump(o))
+if true then
+	 print("get")
+    local o = S:get("id1", "test.o1")
+    var_dump(o)
+    
+    local fun = function(err, v)
+        print("callback",err, v, string.dump(o))
         if o.className=="test.o1" then
         	if not o:hasProp("o2") then
-        		o:loadProp(print,"o2", "id2", "test.o2")
+        		o:prop("o2", S:get("id2", "test.o2"))
         	else
         		print("already has o2")
         	end 
         end        
     end
-            
-    print("load")
-    S:load(fun, "id1", "test.o1", false)
+	o:restoreObject(fun)     
     
 end
 
@@ -73,23 +77,29 @@ if false then
 end
 
 -- Parent/Children
-if true then
+if false then
 	require("bma.lang.HasParent")
 	require("bma.lang.HasChildren")
 	
 	local TreeNode = class.define("test.TreeNode",{bma.lang.HasParent, bma.lang.HasChildrenStateful, bma.persistent.PersistentEntity})
+	function TreeNode:ctor()
+		self.iocChildren = true
+	end
 	function TreeNode:isObjectValid()
 		return true
 	end
 	
-	local NF = function()end
+	local fun2 = function(_, co)
+	    var_dump(co)
+	end
     local fun = function(err, o)    	
-		print("callback",err, string.dump(o))
+		print("callback",err, string.dump(o))		
 	    local ch = o:children()
-	    if #ch == 0 then	    	
-	       	o:loadChild(NF,o:id().."-1","test.TreeNode")
-	       	o:loadChild(NF,o:id().."-2","test.TreeNode")
-	       	o:loadChild(NF,o:id().."-3","test.TreeNode")
+	    if #ch == 0 then	 
+	    	print("create children")
+	       	o:loadChild(fun2,o:id().."-1","test.TreeNode")
+	       	o:loadChild(fun2,o:id().."-2","test.TreeNode")
+	       	o:loadChild(fun2,o:id().."-3","test.TreeNode")
 	    end
     end
             

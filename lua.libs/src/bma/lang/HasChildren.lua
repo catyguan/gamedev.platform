@@ -25,13 +25,13 @@ function Class:addChild(o)
 	table.insert(ch, o)
 	if o.iocParent then
 		if self.iocChildren then
-			o.icoParent(true)
+			o:iocParent(true)
 		else
-			o.iocParent(false)
-		end		
+			o:iocParent(false)
+		end
 	end
 	if o._parentSet then
-		o._parentSet(self)	
+		o:_parentSet(self)	
 	end		
 end
 

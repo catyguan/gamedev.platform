@@ -47,30 +47,28 @@ function Class:unregister(id)
 	end	
 end
 
-function Class:get(callback, id, type, syn)
+function Class:get(id, type)
 	local item = self.objects[id]
-	if item and item.ld then 
-		aicall.done(callback, nil, item.o)
-		return true
-	end
-	return self:load(callback, id, type, syn)
-end
-
-function Class:load(callback, id, param, syn)	
-	local item = self.objects[id]	
-	if item==nil then
-		if type==nil then
-			error("invalid object["..id.."] and type")
-		end
-		local obj
-		if type(param)=="string" then 
-			obj = class.new(param)
-		else
-			obj = param
-		end
-		item = {o=obj, v=0}
+	if not item then
+		item = {} 
 		self.objects[id] = item
 	end
+	if not item.o then
+		item.o = class.new(type)
+		item.v = 0
+		item.o:id(id)
+		item.o:restoreObject(function()end, id, false)
+		-- self:load(callback, id, false)
+	end
+	return item.o
+end
+
+function Class:load(callback, id, syn)	
+	local item = self.objects[id]
+	if item==nil then
+		error("object["..id.."] not exists")
+	end
+	
 	local loading = false
 	if item.l then
 		loading = true
@@ -94,51 +92,53 @@ function Class:load(callback, id, param, syn)
 		
 		local loadedF = function(err)
 			if LDEBUG then
-				LOG:debug("PersistentService", "object [%s] loaded - err(%s)", tostring(id), tostring(err))
+				if err then
+					LOG:debug("PersistentService", "object [%s] fail - %s", tostring(id), tostring(err))
+				else
+					LOG:debug("PersistentService", "object [%s] loaded", tostring(id))					
+				end
 			end
-			item.ld = true
-			item.o:id(id)
 			if item.l then
-				for _, c in ipairs(item.l) do
-					aicall.safeDone(c, err, item.o)					
+				for _, c in ipairs(item.l) do					
+					aicall.safeDoneL(c, nil, err, true)					
 				end
 			end
 			item.l = nil			
 		end
 		
 		if err then
-			LOG:error("PersistentService", "load object [%s] fail - %s", tostring(id), err)
 			loadedF(err)
 		else
 			if LDEBUG then
 				LOG:debug("PersistentService", "query object [%s] done - %s", tostring(id), string.dump(data))
 			end			
-			if data then
-				local state = string.json(data)
-				item.v = version or 0
-				state["id"] = nil				
-				item.o:loadState(loadedF, state, syn)
-			else
-				item.o:initObject()
-				local sscb = function(err, state)
-					if err then
-						loadedF(err)
-					else
-						item.v = self:initObjectData(loadedF, id, table.json(state), false)
-					end
-				end
-				item.o:saveState(sscb, syn)				
-			end			
+			local pdone,perr, pst = pcall(function()
+				if data then
+					local state = string.json(data)
+					item.v = version or 0
+					item.o:loadState(state)
+					loadedF(nil, true)
+				else
+					item.o:initObject()
+					local state = item.o:saveState()
+					item.v = self:initObjectData(loadedF, id, table.json(state), syn)				
+				end			
+			end)
+			if not pdone then
+				if LDEBUG then
+					LOG:debug("PersistentService", "%s\n%s", perr, pst)
+				end	
+			end
 		end
 	end
 	
 	return self:loadObjectData(cb, id, syn)	
 end
 
-function Class:save(callback, id, syn)
+function Class:save(cb, id, syn)
 	local item = self.objects[id]	
 	if item==nil then
-		return callback("invalid id["..tostring(id).."]")
+		return aicall.done(cb, "object["..tostring(id).."] not exists")
 	end
 		
 	local saving = false
@@ -147,13 +147,13 @@ function Class:save(callback, id, syn)
 	else
 		item.s = {}	
 	end
-	table.insert(item.s, callback)
+	table.insert(item.s, cb)
 	
 	if saving and not syn then
 		return false
 	end
 	
-	local cb = function(err, done)
+	local cb1 = function(err, done)
 		local item = self.objects[id]		
 		if not item then
 			if LDEBUG then
@@ -172,21 +172,14 @@ function Class:save(callback, id, syn)
 		
 		if item.s then
 			for _, c in ipairs(item.s) do
-				aicall.safeDone(c,err,item.o)				
+				aicall.safeDoneL(c,nil,err,done)				
 			end
 		end
 		item.s = nil
 	end
 	
-	local sscb = function(err, state)
-		if err then
-			aicall.done(cb, err)
-		else
-			item.v = self:saveObjectData(cb, id, table.json(state), item.v, syn)		
-		end
-	end	
-	
-	return item.o:saveState(sscb, syn)	
+	local state = item.o:saveState()
+	item.v = self:saveObjectData(cb1, id, table.json(state), item.v, syn)
 end
 
 function Class:saveAll(syn)

@@ -6,6 +6,19 @@ function V(v,d)
 	return v
 end
 
+READONLY = function(t)
+	local r = {}
+	setmetatable(r, {
+		__newindex=
+			function(_,_) end,
+		__index=
+			function(_,k)
+				return t[k]
+			end
+	})
+	return r
+end
+
 EMPTY_TABLE = {}
 setmetatable(EMPTY_TABLE,{__newindex=
 	function(t,k) end
