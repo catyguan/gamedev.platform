@@ -86,6 +86,13 @@ public class LuaArray extends LuaProxy {
 		l.addAll(t);
 	}
 
+	public void addAll(LuaArray t) {
+		if (t == null)
+			return;
+		List<Object> l = sureData();
+		l.addAll(t.data);
+	}
+
 	public void addAll(int idx, List<?> t) {
 		if (t == null || t.isEmpty())
 			return;
@@ -129,7 +136,7 @@ public class LuaArray extends LuaProxy {
 			return data.remove(idx);
 		return null;
 	}
-	
+
 	public int getInt(int idx) {
 		Object v = getAt(idx);
 		if (v == null)
@@ -310,10 +317,14 @@ public class LuaArray extends LuaProxy {
 
 	public void copyFrom(LuaArray result) {
 		reset();
-		if(result!=null && result.data!=null) {
-			for(Object o : result.data) {
+		if (result != null && result.data != null) {
+			for (Object o : result.data) {
 				pushValue(o);
 			}
 		}
+	}
+
+	public int size() {
+		return data == null ? 0 : data.size();
 	}
 }

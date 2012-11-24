@@ -30,7 +30,7 @@ function Class:parent(v)
 end
 
 function Class:_parentGet()
-	return self._r.parent or self._p.parent
+	return self._tempv.parent or self._prop.parent
 end
 
 -- used only by Parent
@@ -39,11 +39,11 @@ function Class:_parentSet(v)
 		if self:prop("iocParent") then
 			self:prop("parent", v)
 		else
-			self:runv("parent", v)
+			self:weak("parent", v)
 		end
 	else
 		self:removeProp("parent")
-		self:removeRunv("parent")
+		self:removeWeak("parent")
 		self:removeProp("iocParent")
 	end
 	

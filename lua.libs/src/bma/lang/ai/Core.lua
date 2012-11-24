@@ -2,6 +2,8 @@
 require("bma.lang.Class")
 
 local LDEBUG = LOG:debugEnabled()
+
+--<< class - Group >>
 local Group = class.define("bma.lang.ai.Group")
 
 function Group.logError(tag, msg)
@@ -119,4 +121,37 @@ function Group:toTable(returnError)
 		end
 	end
 	return r
+end
+
+--<< class - Latch >>
+local Latch = class.define("bma.lang.ai.Latch")
+
+function Latch:add(cb)
+	if self.calls==nil then self.calls = {} end
+	if cb~=nil then
+		table.insert(self.calls, cb)
+	end	
+end
+
+function Latch:call(...)
+	for _, c in ipairs(self.calls) do					
+		aicall.safeDone(c, ...)					
+	end
+	self.calls = nil
+end
+
+function Latch:callL(...)
+	for _, c in ipairs(self.calls) do					
+		aicall.safeDoneL(c, nil, ...)					
+	end
+	self.calls = nil
+end
+
+function Latch:discard(err)
+	if err then
+		for _, c in ipairs(self.calls) do					
+			aicall.safeDoneL(c, nil, err)					
+		end	
+	end
+	self.calls = nil
 end

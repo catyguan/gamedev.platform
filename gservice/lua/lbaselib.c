@@ -473,7 +473,7 @@ static int luaB_topointer(lua_State *L) {
       lua_pushliteral(L, "");
       break;
     default:
-      lua_pushfstring(L, "%p", lua_topointer(L, 1));
+      lua_pushfstring(L, "P%p", lua_topointer(L, 1));
       break;
   }
   return 1;

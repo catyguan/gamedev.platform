@@ -57,7 +57,7 @@ function Class:get(id, type)
 		item.o = class.new(type)
 		item.v = 0
 		item.o:id(id)
-		item.o:restoreObject(function()end, id, false)
+		item.o:restoreObject(function()end, false)
 		-- self:load(callback, id, false)
 	end
 	return item.o

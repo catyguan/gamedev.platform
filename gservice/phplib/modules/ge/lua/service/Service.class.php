@@ -21,10 +21,25 @@ class Service extends \bma\thrift\ThriftObject {
 		$this->logger = \bma\log\AppLog::wrap(__CLASS__);		
 	}
 	
-	public function getClient() {
-	    $name = 'luaAppHost';  
-        $cm = \bma\thrift\Manager::getInstance();
-	    return $cm->create($name,'\\ge\\lua\\service\\thrift\\TLuaAppHostManagerClient');
+	public function getClient($name, $host, $port, $module) {		
+		$conf = array(
+			'type' => 'socket',
+			'host' => $host,
+			'port' => $port,
+			'module' => $module,
+			'persist' => true,
+			'frame'	=>	true,
+		);
+		return $this->createClient($name, $conf);
 	}	
+	
+	public function createClient($name, $conf) {	    
+	    $client = \bma\objpool\Manager::getObject('thrift',$name);
+		if(!$client) {		
+		    $cm = \bma\thrift\Manager::getInstance();
+		    $client = $cm->open($name,$conf);
+		}
+		return $client->create("\\ge\\lua\\service\\thrift\\TLuaAppHostManagerClient");
+	}
 	
 }

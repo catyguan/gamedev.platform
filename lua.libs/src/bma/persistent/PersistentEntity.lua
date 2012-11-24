@@ -52,8 +52,9 @@ end
 function PersistentEntity:_restoreObject(cb, syn)
 	local m = class.instance("bma.persistent.Service")
 	local cb1 = function(err, done)
-		if LOG:debugEnabled() then
-			LOG:debug("PersistentEntity","[%s,%s] restored",self.className, tostring(self:id()))
+		if err then
+			aicall.done(cb, err)
+			return
 		end
 		Entity._restoreObject(self, cb, syn)	
 	end	
@@ -68,3 +69,15 @@ function PersistentEntity:loadState(state)
 	Entity.loadObject(self, state)
 end
 
+function PersistentEntity:unregister(save)
+	local S = class.instance("bma.persistent.Service")
+	local fn = function(err, done)
+		S:unregister(self:id())
+	end
+	
+	if save then
+		self:storeObjeect(fn, false)
+	else
+		fn(nil, true)
+	end	
+end

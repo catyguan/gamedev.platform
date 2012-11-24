@@ -120,6 +120,7 @@ class.loadObject = function(data)
 	return o
 end
 
+-- << class, StdObject >>
 local StdObject = class.define("bma.lang.StdObject")
 
 -- sub class use
@@ -152,6 +153,13 @@ function StdObject:thisv(p1,p2)
 	end
 end
 
+function StdObject:thisArray(p1)
+	if self[p1]==nil then
+		return self:thisv(p1, {})
+	end
+	return self:thisv(p1)
+end
+
 function StdObject:hasProp(n)
 	if self._prop == nil then return false end
 	return self._prop[n]~=nil
@@ -176,6 +184,13 @@ end
 function StdObject:allProp()
 	if self._prop then return READONLY(self._prop) end
 	return EMPTY_TABLE
+end
+
+function StdObject:propArray(p1)
+	if self._prop[p1]==nil then
+		return self:prop(p1, {})
+	end
+	return self:prop(p1)
 end
 
 function StdObject:hasAttr(n)
@@ -204,6 +219,13 @@ function StdObject:allAttr()
 	return EMPTY_TABLE
 end
 
+function StdObject:attrArray(p1)
+	if self._attr[p1]==nil then
+		return self:attr(p1, {})
+	end
+	return self:attr(p1)
+end
+
 function StdObject:hasRunv(n)
 	if self._runv == nil then return false end
 	return self._runv[n]~=nil
@@ -230,30 +252,47 @@ function StdObject:allRunv()
 	return EMPTY_TABLE
 end
 
-function StdObject:hasTempv(n)
-	if self._tempv == nil then return false end
-	return self._tempv[n]~=nil
+function StdObject:runvArray(p1)
+	if self._runv[p1]==nil then
+		return self:runv(p1, {})
+	end
+	return self:runv(p1)
 end
 
-function StdObject:removeTempv(n)
-	if self._tempv==nil then return end
-	self:_access(self._tempv,n,nil)
+function StdObject:hasWeak(n)
+	if self._weak == nil then return false end
+	return self._weak[n]~=nil
 end
 
-function StdObject:tempv(p1,p2)
+function StdObject:removeWeak(n)
+	if self._weak==nil then return end
+	self:_access(self._weak,n,nil)
+end
+
+function StdObject:weak(p1,p2)
 	if p2==nil then
-		if self._tempv == nil then return nil end
-		return self._tempv[p1]
+		if self._weak == nil then return nil end
+		return self._weak[p1]
 	else
-		if self._tempv == nil then self._tempv = {} end
-		self:_access(self._tempv,p1,p2)
+		if self._weak == nil then 
+			self._weak = {}
+			setmetatable(self._weak, {__mode = "v"})
+		end
+		self:_access(self._weak,p1,p2)
 		return p2
 	end
 end
 
-function StdObject:allTempv()
-	if self._tempv then return READONLY(self._tempv) end
+function StdObject:allWeak()
+	if self._weak then return READONLY(self._weak) end
 	return EMPTY_TABLE
+end
+
+function StdObject:weakArray(p1)
+	if self._weak[p1]==nil then
+		return self:weak(p1, {})
+	end
+	return self:weak(p1)
 end
 
 function StdObject:saveObject()
@@ -297,14 +336,6 @@ table.filter.BY_RUNV = function(n,v)
 	return function(k,o)
 		if type(o)=="table" and o._runv~=nil then
 			return o:runv(n)==v
-		end
-		return false
-	end
-end
-table.filter.BY_TEMPV = function(n,v)
-	return function(k,o)
-		if type(o)=="table" and o._tempv~=nil then
-			return o:tempv(n)==v
 		end
 		return false
 	end

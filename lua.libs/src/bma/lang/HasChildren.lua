@@ -74,19 +74,3 @@ function HasChildrenStateful:afterRestoreObject()
 	end
 	class.superCall(self, Class, "afterRestoreObject")
 end
-
-function HasChildrenStateful:loadChild(cb, id, param, syn)
-	local cb1 = function(err, o)
-		if not err then
-			if o and o:isObjectValid() then
-				self:addChild(o)
-				return aicall.done(cb, nil, o)
-			end
-			aicall.done(cb, "loadChild("..tostring(n)..","..tostring(id)..") invalid object")
-		else
-			aicall.done(cb, err)
-		end
-	end
-	local m = class.instance("bma.persistent.Service")
-	m:get(cb1, id, param, syn)
-end

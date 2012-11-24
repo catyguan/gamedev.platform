@@ -36,7 +36,7 @@
 		var pbutton = $('#pingButton')[0];		
 		var request = $.ajax({
 			url: "index.php",			
-			data: {id : "<?php echo $id?>", m: "App", "do": "ping", t : phTime, s : phSeq},
+			data: {aid: "<?php echo $aid?>", m: "App", "do": "ping", t : phTime, s : phSeq},
 			dataType: "json"
 		});
 		request.done(function(msg) {			
@@ -57,8 +57,8 @@
 <body>
 	<div>
 		功能:
-		<a href="?m=App&do=restart&id=<?php echo $id?>">重启</a>
-		<a href="?m=Home&do=listApp">返回</a>
+		<a href="?m=App&do=restart&aid=<?php echo $aid?>">重启</a>
+		<a href="?m=Home&do=listApp&aaid=<?php echo $aid?>">返回</a>
 		<hr/>		
 APP状态 <span id="appStatus"></span>
 <script>
@@ -130,7 +130,11 @@ function inputCommand(f) {
 	}
 	var cmd = $('#cmd').val();
 	$('<div>command:'+cmd+' => <span id="cmdrep'+cmdId+'"></span></div>').insertAfter(cc.children[cc.children.length-1]);
-	$('#cmdrep'+cmdId).load('index.php',{"m":"App","do":"appCall","cmd":cmd,"id":"<?php echo $id?>"}, function(){scrollIt('#cmdConsole',400);});	
+	$('#cmdrep'+cmdId).load(
+		'index.php',
+		{"m":"App", "do":"appCall", "cmd":cmd, "aid":"<?php echo $aid?>"}, 
+		function(){scrollIt('#cmdConsole',400);}
+	);	
 	scrollIt('#cmdConsole',400);
 	$("#cmd").select();
 	return false;
@@ -147,7 +151,7 @@ function printConsole(s) {
 <form onsubmit="return inputCommand(this);">
 <input id="cmd" type="text"	value="" size="60"/>
 <input id="m" type="hidden" value="App"/>
-<input id="id" type="hidden" value="<?php echo $id?>"/>
+<input id="aid" type="hidden" value="<?php echo $aid?>"/>
 <input type="submit" value="Send"/>
 <input type="button" value="refresh" onclick="window.location.reload()"/>
 <input type="button" value="ping" id="pingButton" onclick="onPingClick()"/>

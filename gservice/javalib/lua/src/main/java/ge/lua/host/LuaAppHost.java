@@ -389,7 +389,10 @@ public class LuaAppHost {
 	}
 
 	public LuaApp queryApp(String id) {
-		LuaApp app = this.apps.get(id);
+		LuaApp app = null;
+		if(id!=null) {
+			app = this.apps.get(id);
+		}
 		if (log.isDebugEnabled()) {
 			log.debug("queryApp({}) => {}", id, app);
 		}

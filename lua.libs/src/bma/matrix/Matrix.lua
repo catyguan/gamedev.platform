@@ -41,7 +41,7 @@ function Matrix:ctor()
     self.timeLabelFun = function(t,st)
         return (t-st) .. "t"
     end
-    self._p = {}
+    self._prop = {}
     self.actions = {}
     self.hasNewAction = false    
     self.config = {}
@@ -57,10 +57,6 @@ function Matrix:initObject()
     self:prop("time", 0)
     self:prop("begin", false)
     self:prop("objects", {})
-end
-
-function Matrix:isObjectValid()
-	return self._p.objects ~= nil
 end
 
 function Matrix:isBegin()

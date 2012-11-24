@@ -1,42 +1,34 @@
 -- bma/app/StatefulApplication.lua
 require("bma.app.Application")
+require("bma.lang.ai.Core")
 
 local Class = class.define("bma.app.StatefulApplication",{bma.app.Application})
 
-function Class:init()
+function Class:restore(cb,list)
 	local S = class.instance("bma.persistent.Service")
-	local list = self:listMainObject()
 	if list then
-		local cf = function(id, o)
-			if id then
-				list[id].done = true
-				list[id].object = o
-				o:id(id)
+		local cb1 = function(err, g)
+			local r
+			if g~=nil then
+				r = g:toTable()
 			end
-			for _,item in pairs(list) do
-				if not item.done then return end
-			end
-			local rep = {}
-			for k,item in pairs(list) do
-				rep[k] = item.object
-			end
-			self:onLaunch(rep)
-		end
+			aicall.done(cb, err, r)
+		end		
+		
+		local g = bma.lang.ai.Group.new(cb1)		
 		for k,item in pairs(list) do
 			if type(item)=="string" then 
 				item = {type=item}
 				list[k] = item 
 			end
-			local fn = function(err,o)
-				cf(k,o)
+			
+			local o = S:get(k, item.type, item.syn)
+			if o then
+				o:restoreObject(g:call(k))
 			end
-			S:load(fn, k, item.type, item.syn)
 		end
-		cf()
-		return true		
+		g:finishAll()		
 	end
-	self:onLaunch({})
-	return true
 end
 
 function Class:close(destroy)

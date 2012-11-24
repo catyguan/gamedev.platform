@@ -7,30 +7,31 @@ namespace ge\lua\service;
  */
 class Manager extends \bma\thrift\ThriftObject {
 
-	public static function getInstance() {
-		if ( ! isset(self::$_instance)) {
-			self::$_instance = new self();
-		}
-		return self::$_instance;
-	}
-	private static $_instance;
-    
 	protected $logger;
 	protected $client;
 	
-	public function __construct() {
+	public function __construct($cl) {
 		$this->logger = \bma\log\AppLog::wrap(__CLASS__);		
+		$this->client = $cl;
 	}
 	
-	public function getClient() {
-	    if($this->client)return $this->client;
-	    $this->client = Service::getInstance()->getClient();
+	public static function create($accessId) {
+		list($name, $host, $port, $module) = explode("-", $accessId);
+		$cl = Service::getInstance()->getClient($name, $host, $port, $module);
+		return new Manager($cl);
+	}
+	
+	public function getClient() {	    
 	    return $this->client;
 	}
 	
 	public function listApp() {
         $cl = $this->getClient();
 	    return \bma\thrift\Manager::objArr2Array($cl->listApp());
+	}
+	
+	public function appObject($appId) {
+		return new App($his->getClient(), $appId);
 	}
 	
 	public function createApp($appId,$appType) {
@@ -51,30 +52,6 @@ class Manager extends \bma\thrift\ThriftObject {
 			$this->logger->debug($dmsg);
         }
         return $r;
-	}
-	
-	public function appEval($appId, $content) {	    
-	    $cl = $this->getClient();
-	    $r = $cl->appEval($appId, $content);
-	    if($this->logger->isDebug()) {
-            $dmsg = sprintf('appEval(%s, %s)',$appId, $content);
-			$this->logger->debug($dmsg);
-        }
-        return $r;
-	}
-	
-	public function appCall($appId, $methodName, $params) {	    
-	    $cl = $this->getClient();
-	    $r = $cl->appCall($appId, $methodName, json_encode($params));		
-	    if($this->logger->isDebug()) {
-            $dmsg = sprintf('appCall(%s) => %s',$appId, $r->result);
-			$this->logger->debug($dmsg);
-        }
-		if($r->result && $r->done) {
-			$ret = json_decode($r->result, true);
-			return $ret;
-		}
-        return null;
 	}
 	
 	public function closeApp($appId, $destroy) {

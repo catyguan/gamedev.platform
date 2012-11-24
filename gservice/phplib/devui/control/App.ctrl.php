@@ -8,23 +8,26 @@ class App {
     }
 
     public function appUI($app) {
+		$aid = $app->req->request('aid');
 		$id = $app->req->request('id');
 	
         $vo = array();
 		
+		$vo['aid'] = $aid;
 		$vo['id'] = $id;
 		$v = $app->loadView('devui', 'app_ui');
         $v->show($vo);
     }
 	
 	public function restart($app) {
-        $id = $app->req->request('id');        
-        $r = \ge\lua\service\Manager::getInstance()->restartApp($id);
-        $app->sendRedirect(APP_URL."index.php?m=App&id=$id");
+        $aid = $app->req->request('aid');
+		$apo = \ge\lua\service\App::create($aid);
+        $r = $apo->managerObject()->restartApp($apo->appId);
+        $app->sendRedirect(APP_URL."index.php?m=App&aid=$aid");
     }
 	
 	public function appCall($app) {
-        $id = $app->req->request('id');
+        $aid = $app->req->request('aid');
 		$cmd = $app->req->request('cmd');
 		$clist = explode(" ", $cmd,2 );
 		$name = $clist[0];		
@@ -36,7 +39,7 @@ class App {
 		$params = '['.$p.']';
         
 		try {
-			$r = \ge\lua\service\Manager::getInstance()->appCall($id, $name, json_decode($params,true));
+			$r = \ge\lua\service\App::create($aid)->appCall($name, json_decode($params,true));
 			$ret = $r ? json_encode($r) : "#void#";
 			echo $ret;
         } catch(\Exception $e) {
@@ -45,14 +48,14 @@ class App {
     }
 	
 	public function ping($app) {
-		$id = $app->req->request('id');
+		$aid = $app->req->request('aid');
 		$t = $app->req->request('t', 0);
 		$seq = $app->req->request('s', 0);
 		
-		$m = \ge\lua\service\Manager::getInstance();
+		$apo = \ge\lua\service\App::create($aid);
 
 		try {
-			$r = $m->appCall($id, 'devuiPing', array($t, $seq));
+			$r = $apo->appCall('devuiPing', array($t, $seq));
 			if($r) {
 				$info = $r[0];
 			} else {

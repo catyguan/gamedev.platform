@@ -35,8 +35,8 @@ if false then
 end
 
 -- subload
-if true then
-	 print("get")
+if false then
+	print("get")
     local o = S:get("id1", "test.o1")
     var_dump(o)
     
@@ -56,24 +56,59 @@ end
 
 -- cross load
 if false then
-    local fun = function(err, o)
-        print("callback",err, string.dump(o))
-        if o.className=="test.o1" then
-        	if not o:hasProp("o2") then
-        		local cb1 = function()
-        			print("o2", o:prop("o2"))
-        		end
-        		o:loadProp(cb1,"o2", "id2", "test.o2")
-        	else
-        		print("already has o2",o:prop("o2"))
-        	end 
-        end        
-    end
+	
+	print("get")
+    local o1 = S:get("id1", "test.o1")
+    local o3 = S:get("id3", "test.o1")
+    var_dump(o1)
+    var_dump(o3)
+
+	local fun = function(o)
+	    return function(err, v)
+	        print("callback",err, v, string.dump(o))
+	        if o.className=="test.o1" then
+	        	if not o:hasProp("o2") then
+	        		o:prop("o2", S:get("id2", "test.o2"))
+	        	else
+	        		print("already has o2")
+	        	end
+	        end    
+	        print("o2",topointer(o:prop("o2")))    
+	    end
+	end
             
-    print("load")
-    S:load(fun, "id1", "test.o1", false)
-    S:load(fun, "id3", "test.o1", false)
+    print("restore")
+    o1:restoreObject(fun(o1))     
+    o3:restoreObject(fun(o3))     
     
+end
+
+-- ref each other
+if false then
+	
+	require("bma.lang.ai.Core")
+	
+	print("get")
+    local o1 = S:get("id1", "test.o1")
+    local o3 = S:get("id3", "test.o1")
+    var_dump(o1)
+    var_dump(o3)
+
+	local fun = function()
+		print("callback")
+		o1:prop("o3", o3)
+		o3:prop("o1", o1)
+		
+		print("after restore")
+		var_dump(o1)
+    	var_dump(o3)
+	end
+            
+    print("restore")
+    local g = bma.lang.ai.Group.new(fun)    
+    o1:restoreObject(g:call("1"))     
+    o3:restoreObject(g:call("3"))     
+    g:finishAll()
 end
 
 -- Parent/Children
@@ -89,21 +124,23 @@ if false then
 		return true
 	end
 	
-	local fun2 = function(_, co)
-	    var_dump(co)
-	end
-    local fun = function(err, o)    	
-		print("callback",err, string.dump(o))		
-	    local ch = o:children()
+	print("get")
+    local t1 = S:get("t1", "test.TreeNode")
+	
+    local fun = function(err, v)    	
+		print("callback", err, v)		
+	    local ch = t1:children()
 	    if #ch == 0 then	 
 	    	print("create children")
-	       	o:loadChild(fun2,o:id().."-1","test.TreeNode")
-	       	o:loadChild(fun2,o:id().."-2","test.TreeNode")
-	       	o:loadChild(fun2,o:id().."-3","test.TreeNode")
+	       	t1:addChild(S:get(t1:id().."-1","test.TreeNode"))
+	       	t1:addChild(S:get(t1:id().."-2","test.TreeNode"))
+	       	t1:addChild(S:get(t1:id().."-3","test.TreeNode"))
 	    end
+	    
+	    var_dump(t1)
     end
             
-    print("load")
-    S:load(fun, "t1", "test.TreeNode", false)
+    print("restore")
+    t1:restoreObject(fun())
     
 end

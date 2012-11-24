@@ -1,0 +1,2 @@
+-- bma/lang/FSM.lua
+-- http://lua-users.org/wiki/FiniteStateMachine

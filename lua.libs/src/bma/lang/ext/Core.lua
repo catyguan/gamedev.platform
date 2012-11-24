@@ -46,6 +46,10 @@ class.extendClass = function(cls,super)
 	end
 	local csuper = rawget(cls,"super")
 	for _,v in ipairs(super) do
+		if type(v)=="string" then v = class.forName(v) end
+		if v==nil then
+			error("[%s] invalid super class", cls.className)
+		end
 		table.insert(csuper,v)
 	end
 end
@@ -272,9 +276,17 @@ function aicall.safeFailure(cb, err)
 	return aicall.safeDone(cb,err)
 end
 
+-- others
 function include(name)
 	package.loaded[name] = nil
 	return require(name)
+end
+
+if not topointer then
+	topointer = function(t)
+		if t==nil then return "" end
+		return tostring(t)
+	end
 end
 
 return true
