@@ -1,4 +1,4 @@
-package ge.lua.dal;
+package ge.lua.hostservice.gcommand;
 
 import ge.lua.LuaArray;
 import ge.lua.LuaTable;
@@ -32,7 +32,7 @@ public class ServiceLuaCall implements LuaCallWithName {
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
 			.getLogger(ServiceLuaCall.class);
 
-	public static final String METHOD_NAME = "dal.execute";
+	public static final String METHOD_NAME = "gcommand.execute";
 
 	@Override
 	public String getName() {

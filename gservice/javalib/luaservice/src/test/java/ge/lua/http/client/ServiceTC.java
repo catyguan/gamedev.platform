@@ -1,6 +1,7 @@
 package ge.lua.http.client;
 
 import ge.lua.LuaArray;
+import ge.lua.hostservice.httpclient.ServiceLuaCall;
 
 import org.junit.After;
 import org.junit.Before;

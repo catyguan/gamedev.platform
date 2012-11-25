@@ -1,4 +1,4 @@
-package ge.lua.http.client;
+package ge.lua.hostservice.httpclient;
 
 import ge.lua.LuaArray;
 import ge.lua.LuaTable;

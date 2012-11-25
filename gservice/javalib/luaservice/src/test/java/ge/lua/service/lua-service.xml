@@ -69,10 +69,10 @@
 		<property name="namedCalls">
 			<list>
 				<bean class="ge.lua.host.ai.LuaAICall" destroy-method="close"/>
-				<bean class="ge.lua.http.client.ServiceLuaCall">
+				<bean class="ge.lua.hostservice.httpclient.ServiceLuaCall">
 					<property name="pool" ref="nettyPool"/>
 				</bean>
-				<bean class="ge.lua.dal.ServiceLuaCall">
+				<bean class="ge.lua.hostservice.dal.ServiceLuaCall">
 					<property name="jdbcTemplates">
 						<map>
 							<entry key="test" value-ref="jdbcTemplate"/>

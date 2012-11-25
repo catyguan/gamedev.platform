@@ -5,7 +5,8 @@ include("bma.lang.LruCache")
 
 local LruCache = bma.lang.LruCache
 
-if true then
+-- base
+if false then
 	local c = LruCache.new(10, 1000)
 	
 	for i=1,11 do
@@ -26,4 +27,28 @@ if true then
 	for i=1,11 do
 		print(i, c:get(i))
 	end
+end
+
+-- event - onEntryRemove
+if true then
+	local c = LruCache.new(10,1000)
+	local obj = {}
+	obj.onEntryRemove = function(key)
+		print("remove",key)
+	end
+	
+	print("no event")
+	c:set("test", obj)
+	c:touch("test")
+	
+	print("event")
+	c:set("test", nil)
+	
+	print("event2")
+	c:set("test2", obj)
+	c:deleteLastEntry()
+	
+	print("event3")
+	c:set("test3", obj)
+	c:clear()
 end

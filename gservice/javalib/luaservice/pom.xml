@@ -50,7 +50,6 @@
 			<groupId>ge</groupId>
 			<artifactId>lua</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
-			<optional>true</optional>			
 		</dependency>
 		<dependency>
 			<groupId>bma.java.common</groupId>

@@ -2,6 +2,7 @@ package ge.lua.dal;
 
 import ge.lua.LuaArray;
 import ge.lua.LuaTable;
+import ge.lua.hostservice.dal.ServiceLuaCall;
 
 import java.util.Date;
 import java.util.concurrent.Executors;
