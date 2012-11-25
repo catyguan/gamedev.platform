@@ -1,4 +1,4 @@
-package ge.lua.dal;
+package ge.lua.hostservice.dal;
 
 import ge.lua.LuaArray;
 import ge.lua.LuaTable;

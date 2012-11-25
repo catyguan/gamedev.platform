@@ -7,6 +7,6 @@ function Class.mistake(code, msg)
 	return {mistake=true, code=code, message=msg}
 end
 
-function Class.forward(appId, sceneName, params)
-	return {forward=true, app=appId, scene=sceneName, params=params}
+function Class.forward(gname, sceneName, cmdName, ...)
+	return {forward=true, name=gname, scene=sceneName, command=cmdName, params={...}}
 end

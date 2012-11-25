@@ -12,6 +12,10 @@ function Class:init()
 		print("say",tostring(word))
 		aicall.done(cb,nil,"hello "..tostring(word))
 	end
+	s.forwardCommand = function(self, cb, word)
+		local r = s.forward("local", "hello", "say", word)
+		aicall.done(cb, nil, r)
+	end
 	
 	self.scenes["hello"] = s
 	return bma.app.Application.init(self)

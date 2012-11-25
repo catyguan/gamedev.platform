@@ -53,7 +53,7 @@ public class AppCommandClientTC {
 			LuaArray params = new LuaArray();
 			params.addString("world");
 			AIStackSimple<String> stack = new AIStackSimple<String>(null);
-			cl.execute(stack, "test-127.0.0.1-9098-lua-app1", "hello", "say",
+			cl.execute(stack, null,"test-127.0.0.1-9098-lua-app1", "hello", "say",
 					params, 0);
 			log.info("result => {}", stack.get());
 

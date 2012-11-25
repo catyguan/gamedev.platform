@@ -73,14 +73,15 @@ public class AppCommandClient {
 		this.dispatcher = dispatcher;
 	}
 
-	public boolean execute(AIStack<String> stack, final String accessId,
+	public boolean execute(AIStack<String> stack, final Dispatcher disp, final String accessId,
 			final String sceneName, final String commandName,
 			final LuaArray params, final int tm) {
 		if (accessId == null)
 			throw new NullPointerException("accessId");
 		final AccessId aid = new AccessId(accessId);
 		if (aid.isGlobalName()) {
-			if (dispatcher != null) {
+			Dispatcher dis = disp==null?dispatcher:disp;
+			if (dis != null) {
 				AIStackStep<String, String> step = new AIStackStep<String, String>(
 						stack) {
 
@@ -94,11 +95,11 @@ public class AppCommandClient {
 							return AIUtil.safeFailure(delegate(),
 									new IllegalArgumentException(msg));
 						}
-						return execute(delegate(), result, sceneName,
+						return execute(delegate(),disp, result, sceneName,
 								commandName, params, tm);
 					}
 				};
-				return dispatcher.find(step, aid.getName());
+				return dis.find(step, aid.getName());
 			}
 		}
 		if (!aid.isValidId()) {
@@ -148,10 +149,12 @@ public class AppCommandClient {
 					TLuaAppHostManager4AI.Client obj = client
 							.createAIObject(TLuaAppHostManager4AI.Client.class);
 
-					List cparams = new ArrayList(2 + params.size());
+					List cparams = new ArrayList(2 + (params==null?0:params.size()));
 					cparams.add(sceneName);
 					cparams.add(commandName);
-					cparams.addAll(params.toList());
+					if(params!=null) {
+						cparams.addAll(params.toList());
+					}
 
 					return obj.appAICall(
 							step2,

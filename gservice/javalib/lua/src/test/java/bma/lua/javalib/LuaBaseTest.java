@@ -16,6 +16,14 @@ import bma.common.langutil.core.SizeUtil.Unit;
 import bma.common.langutil.io.IOUtil;
 
 public class LuaBaseTest {
+	
+	@Test
+	public void test()
+	{
+		System.out.println(System.getProperty("java.library.path"));
+		System.loadLibrary("luajni");
+		System.out.println("test");
+	}
 
 	@Test
 	public void base_OpenClose() {

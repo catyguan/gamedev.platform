@@ -1,8 +1,9 @@
 -- bma/app/AppScene.lua
 require("bma.lang.ext.Core")
 require("bma.lang.ext.String")
+require("bma.app.protocol.Common")
 
-local Class = class.define("bma.app.AppScene")
+local Class = class.define("bma.app.AppScene",{bma.app.protocol.Common})
 
 function Class:ctor()
 	self.commands = {}

@@ -36,6 +36,17 @@
 			</bean>
 		</property>
 	</bean>
+	
+	<!-- AIThriftClientFactoryNettyPool -->
+	<bean id="thriftClientFactoryPool" class="bma.siteone.netty.thrift.client.AIThriftClientFactoryNettyPool">
+		<property name="pool" ref="nettyPool"/>
+	</bean>
+	
+	<!-- AppCommandClient -->
+	<bean id="appCommandClient" class="ge.lua.appcommand.AppCommandClient">
+		<property name="factory" ref="thriftClientFactoryPool"/>
+		<property name="frameSize" value="10m"/>
+	</bean>
 
 	<!-- LuaAppHost -->
 	<bean id="luaAppHost" class="ge.lua.host.LuaAppHost"
@@ -79,6 +90,9 @@
 						</map>
 					</property>
 					<property name="executor" ref="syncExecutor"/>
+				</bean>
+				<bean class="ge.lua.hostservice.gcommand.ServiceLuaCall">
+					<property name="client" ref="appCommandClient"/>
 				</bean>
 			</list>
 		</property>

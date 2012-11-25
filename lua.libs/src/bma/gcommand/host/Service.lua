@@ -14,6 +14,6 @@ function Class:ctor()
 end
 
 function Class:processGlobalCommandCall(cb, accessId, sceneName, commandName, ...)
-	aicall.done(cb, "not implements")
-	return true
+	local HS = class.instance("bma.host.Service")
+    return HS:call(cb, "gcommand.execute", accessId, sceneName, commandName, {...})
 end

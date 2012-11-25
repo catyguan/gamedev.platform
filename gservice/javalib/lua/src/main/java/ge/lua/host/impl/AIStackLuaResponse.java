@@ -43,7 +43,11 @@ public class AIStackLuaResponse extends AIStackROOT<LuaArray> {
 			return true;
 		} else {
 			if (log.isDebugEnabled()) {
-				log.debug("app is null, skip [{},{}]", result, t);
+				if(t!=null) {
+					log.debug("app is null, skip error", t);
+				} else {
+					log.debug("app is null, skip result [{}]", result);
+				}
 			}
 			return true;
 		}
