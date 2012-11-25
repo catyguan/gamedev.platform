@@ -13,7 +13,8 @@ function Class:init()
 		aicall.done(cb,nil,"hello "..tostring(word))
 	end
 	s.forwardCommand = function(self, cb, word)
-		local r = s.forward("local", "hello", "say", word)
+		print("forward", tostring(word))
+		local r = s.forward("test", "hello", "say", word)
 		aicall.done(cb, nil, r)
 	end
 	

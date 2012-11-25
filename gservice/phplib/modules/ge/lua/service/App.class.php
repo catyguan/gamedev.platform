@@ -57,8 +57,12 @@ class App extends \bma\thrift\ThriftObject {
 	
 	public function appCommand($sceneName, $commandName, $params, $timeoutInSeconds) {	    
 	    $cl = $this->getClient();
-		$callParams = array($sceneName,$commandName,$params);
-	    $r = $cl->appAICall($this->appId, "appCommand", json_encode($params), $timeoutInSeconds*1000);
+		$callParams = array($sceneName, $commandName);
+		if($params) {
+			if(!is_array($params))throw new \Exception("params not a Array");
+			$callParams = array_merge($callParams, $params);
+		}
+	    $r = $cl->appAICall($this->appId, "appCommand", json_encode($callParams), $timeoutInSeconds*1000);
 	    if($this->logger->isDebug()) {
             $dmsg = sprintf('appCall(%s) => %s',$this->appId, $r->result);
 			$this->logger->debug($dmsg);
