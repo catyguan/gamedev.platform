@@ -38,7 +38,7 @@
 	</bean>
 	
 	<!-- AIThriftClientFactoryNettyPool -->
-	<bean id="thriftClientFactoryPool" class="bma.siteone.netty.thrift.client.AIThriftClientFactoryNettyPool">
+	<bean id="thriftClientFactoryPool" class="bma.common.netty.thrift.client.AIThriftClientFactoryNettyPool">
 		<property name="pool" ref="nettyPool"/>
 	</bean>
 	
@@ -111,8 +111,8 @@
 	</bean>	
 	
 	<!-- shutdown -->	
-	<bean id="ifaceShutdown" class="bma.siteone.netty.thrift.common.TShutdownImpl"/>
-	<bean id="tpShutdown" class="bma.siteone.netty.thrift.common.TShutdown.Processor">		
+	<bean id="ifaceShutdown" class="bma.common.netty.thrift.common.TShutdownImpl"/>
+	<bean id="tpShutdown" class="bma.common.netty.thrift.common.TShutdown.Processor">		
 		<constructor-arg ref="ifaceShutdown" />
 	</bean>
 	<bean id="tbeanShutdown" class="bma.common.thrift.servicehub.ThriftServiceBean">

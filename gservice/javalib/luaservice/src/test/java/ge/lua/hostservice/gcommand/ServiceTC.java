@@ -11,7 +11,7 @@ import bma.common.langutil.core.ObjectUtil;
 import bma.common.netty.client.NettyClientBootstrap;
 import bma.common.netty.pool.NettyChannelPool;
 import bma.common.netty.pool.SimpleNettyChannelPoolFactory;
-import bma.siteone.netty.thrift.client.AIThriftClientFactoryNettyPool;
+import bma.common.netty.thrift.client.AIThriftClientFactoryNettyPool;
 
 public class ServiceTC {
 

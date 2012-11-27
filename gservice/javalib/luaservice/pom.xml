@@ -74,9 +74,9 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>bma.java.siteone</groupId>
+			<groupId>bma.java.common</groupId>
 			<artifactId>netty-thrift</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>

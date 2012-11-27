@@ -9,10 +9,10 @@ import org.junit.Test;
 import bma.common.jdbctemplate.JdbcTemplateUtil;
 import bma.common.langutil.ai.boot.AIServerBoot;
 import bma.common.langutil.log.LogbackUtil;
+import bma.common.netty.thrift.common.TShutdown;
 import bma.common.thrift.ThriftClient;
 import bma.common.thrift.ThriftClientConfig;
 import bma.common.thrift.common.ThriftClientFactoryCommon;
-import bma.siteone.netty.thrift.common.TShutdown;
 
 public class LuaAppHostThriftTC {
 

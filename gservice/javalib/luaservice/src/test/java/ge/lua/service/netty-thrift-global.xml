@@ -37,20 +37,20 @@
 		init-method="init">
 		<property name="worker" value="3" />
 	</bean>
-	<bean id="aiThriftClientFactory" class="bma.siteone.netty.thrift.client.AIThriftClientFactoryNetty">
+	<bean id="aiThriftClientFactory" class="bma.common.netty.thrift.client.AIThriftClientFactoryNetty">
 		<property name="bootstrap" ref="nettyClientBootstrap" />
 		<property name="traceBufferSize" value="0" />
 	</bean>
 
 	<!-- ip limit -->
-	<bean id="secureFilter" class="bma.siteone.netty.thrift.common.ThriftIpLimit"
+	<bean id="secureFilter" class="bma.common.netty.thrift.common.ThriftIpLimit"
 		init-method="init">
 		<property name="whiteAddress">
 			<value></value>
 		</property>
 	</bean>
 
-	<bean id="thriftServiceServer" class="bma.siteone.netty.thrift.core.NettyThriftServer"
+	<bean id="thriftServiceServer" class="bma.common.netty.thrift.core.NettyThriftServer"
 		destroy-method="close">
 		<property name="name" value="thriftService" />
 		<property name="worker" value="5" />
