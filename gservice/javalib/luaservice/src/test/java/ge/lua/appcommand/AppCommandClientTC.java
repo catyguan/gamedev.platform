@@ -1,8 +1,5 @@
 package ge.lua.appcommand;
 
-import ge.lua.LuaArray;
-import ge.lua.appcommand.AppCommandClient;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,11 +47,11 @@ public class AppCommandClientTC {
 			cl.setFactory(fac);
 			cl.setFrameSize("10M");
 
-			LuaArray params = new LuaArray();
-			params.addString("world");
+			String params = "[\"world\"]";
+
 			AIStackSimple<String> stack = new AIStackSimple<String>(null);
-			cl.execute(stack, null,"test-127.0.0.1-9098-lua-app1", "hello", "say",
-					params, 0);
+			cl.execute(stack, null, "test-127.0.0.1-9098-lua-app1", "hello",
+					"say", null, params, 0);
 			log.info("result => {}", stack.get());
 
 		} catch (Exception e) {

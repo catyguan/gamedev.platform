@@ -1,0 +1,25 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>Core Testcase</title>
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>	
+	<script type="text/javascript" src="../gasdk/core-1.0.js"></script>	
+	<script type="text/javascript">
+	$(document).ready(function() {    
+		$.gasdk.init({
+			'url' : '../stub/case1.php',
+		});
+		
+		$( "#t1" ).click(function() {
+			var f = function(err, result) {
+				
+			}
+			$.gasdk.api("user").queryInfo(f, "scene");
+		});
+	});
+    </script>
+</head>
+<body>
+	<button id="t1">Test Command</button>
+</body>
+</html>

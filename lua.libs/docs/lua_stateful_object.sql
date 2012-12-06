@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS `test`.`lua_stateful_object`;
-CREATE TABLE  `test`.`lua_stateful_object.sql` (
+CREATE TABLE  `lua_stateful_object` (
   `app_id` varchar(32) NOT NULL,
   `app_type` varchar(32) NOT NULL,
   `object_id` varchar(128) NOT NULL,

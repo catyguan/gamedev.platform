@@ -45,5 +45,7 @@ service TLuaAppHostManager {
 	
 	TLuaAppCallResult appAICall(1:string appId, 2:string name, 3:string params, 4:i32 timeout),
 	
+	TLuaAppCallResult appCommand(1:string appId, 2:string caseName,3:string methodName, 4:string session, 5:string params, 6:i32 timeout),
+	
 	bool appEval(1:string appId, 2:string content),
 }

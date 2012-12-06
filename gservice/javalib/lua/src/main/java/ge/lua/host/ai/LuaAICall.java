@@ -13,9 +13,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeoutException;
 
 import bma.common.langutil.ai.AIUtil;
-import bma.common.langutil.ai.executor.AIExecutor;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackOne;
+import bma.common.langutil.ai.vm.AIVM;
 import bma.common.langutil.concurrent.ProcessTimerTask;
 import bma.common.langutil.concurrent.TimerManager;
 import bma.common.langutil.core.RoundRobinInteger;
@@ -50,7 +50,7 @@ public class LuaAICall implements LuaCallWithName {
 				}
 			}
 		}, timeout);
-		AIExecutor.getTimerManager(tm).postTimerTask(task);
+		AIVM.checkMainTimer(tm).postTimerTask(task);
 		return callId;
 	}
 

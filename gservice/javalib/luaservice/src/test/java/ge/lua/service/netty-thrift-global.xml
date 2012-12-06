@@ -5,31 +5,22 @@
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- timer -->
-	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager" />
-	<!-- main thread -->
-	<bean id="mainThread" class="bma.common.langutil.ai.common.AIExecutorMain" />
+	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager" 
+		init-method="startManager" />
+		
 	<!-- sync thread pool -->
-	<bean id="syncExecutor" class="bma.common.langutil.ai.common.AIExecutorJava">
-		<property name="executor">
-			<bean
-				class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
-				<property name="threadNamePrefix" value="threadPool-" />
-				<property name="corePoolSize" value="5" />
-				<property name="maxPoolSize" value="100" />
-				<property name="keepAliveSeconds" value="60" />
-			</bean>
-		</property>
+	<bean id="threadPool" class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+		<property name="threadNamePrefix" value="threadPool-" />
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="100" />
+		<property name="keepAliveSeconds" value="60" />
 	</bean>
-	<!-- ai thread -->
-	<bean id="aiExecutor" class="bma.common.langutil.ai.common.AIExecutorJava">
-		<property name="executor">
-			<bean
-				class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
-				<property name="threadNamePrefix" value="aithread-" />
-				<property name="corePoolSize" value="1" />
-				<property name="maxPoolSize" value="1" />
-			</bean>
-		</property>
+	
+	<!-- aivm -->
+	<bean id="aivmMain" class="bma.common.langutil.ai.vm.AIVM" 
+		init-method="initMain" destroy-method="close" lazy-init="false">
+		<property name="threadSize" value="3"/>
+		<property name="timer" ref="aitimer"/>
 	</bean>
 
 	<!-- netty client support -->
@@ -61,7 +52,7 @@
 			</list>
 		</property>
 		<property name="node" ref="thriftServiceNode" />
-		<property name="processExecutor" ref="syncExecutor" />
+		<property name="processExecutor" ref="threadPool" />
 	</bean>
 	
 </beans>

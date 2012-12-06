@@ -275,6 +275,27 @@ end
 function aicall.safeFailure(cb, err)
 	return aicall.safeDone(cb,err)
 end
+function aicall.pcall(cb, fn)
+	local r1,r2,r3 = pcall(fn)
+	if not r1 then
+		if LOG:debugEnabled() then
+			LOG:debug(self.className, "%s\n%s", tostring(r2), tostring(r3))
+		end
+		aicall.done(cb,r2)
+	end
+end
+
+function tryCache(f,n)
+	local done,r,st = pcall(f)
+	if done then 
+		return r
+	else
+		if LOG:debugEnabled() then
+			if not n then n = "<Unknow>" end
+			LOG:debug("tryCache","%s - %s\n%s",tostring(n),tostring(r), tostring(st))
+		end
+	end
+end
 
 -- others
 function include(name)

@@ -1,0 +1,18 @@
+/* console */
+.jconsole1 { font-size: 14px; margin-top:1em }
+.jconsole1 div.jquery-console-inner { width:900px; height:400px; background:#efefef; padding:0.5em; overflow:auto }
+.jconsole1 div.jquery-console-prompt-box { color:#444; font-family:monospace; }
+.jconsole1 div.jquery-console-focus span.jquery-console-cursor { background:#333; color:#eee; font-weight:bold }
+.jconsole1 div.jquery-console-message-error { color:#ef0505; font-family:sans-serif; font-weight:bold; padding:0.1em; }
+.jconsole1 div.jquery-console-message-success  { color:#187718; font-family:monospace; padding:0.1em; }
+.jconsole1 span.jquery-console-prompt-label { font-weight:bold }
+
+.jconsole2 { word-wrap: break-word; }
+.jconsole2{ font-size: 14px }
+.jconsole2 div.jquery-console-inner { width:900px; height:400px; background:#333; padding:0.5em; overflow:auto }
+.jconsole2 div.jquery-console-prompt-box { color:#fff; font-family:monospace; }
+.jconsole2 div.jquery-console-focus span.jquery-console-cursor { background:#fefefe; color:#333; font-weight:bold }
+.jconsole2 div.jquery-console-message-error { color:#ef0505; font-family:sans-serif; font-weight:bold; padding:0.1em; }
+.jconsole2 div.jquery-console-message-value { color:#1ad027; font-family:monospace; padding:0.1em; }
+.jconsole2 div.jquery-console-message-type { color:#52666f; font-family:monospace; padding:0.1em; }
+.jconsole2 span.jquery-console-prompt-label { font-weight:bold }

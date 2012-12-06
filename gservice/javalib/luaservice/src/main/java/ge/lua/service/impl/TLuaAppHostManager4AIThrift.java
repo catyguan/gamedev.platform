@@ -1,6 +1,7 @@
 package ge.lua.service.impl;
 
 import ge.lua.LuaArray;
+import ge.lua.LuaTable;
 import ge.lua.host.LuaApp;
 import ge.lua.host.LuaApp.Command;
 import ge.lua.host.LuaAppHost;
@@ -13,6 +14,7 @@ import ge.lua.service.thrift.TLuaAppInfo;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.thrift.TException;
 
@@ -178,6 +180,64 @@ public class TLuaAppHostManager4AIThrift implements Iface {
 			}
 			LuaAICall call = (LuaAICall) lcall;
 			call.aicall(step, app, name, data, timeout, null);
+			return false;
+		} catch (Exception e) {
+			throw new TException(e);
+		}
+	}
+
+	@Override
+	public boolean appCommand(AIStack<TLuaAppCallResult> stack, String appId,
+			String caseName, String methodName, String params, String session,
+			int timeout) throws TException {
+		LuaApp app = host.queryApp(appId);
+		if (app == null) {
+			return stack.failure(new IllegalArgumentException("app[" + appId
+					+ "] not exists"));
+		}
+
+		try {
+			LuaArray data = new LuaArray();
+			if (params != null) {
+				List ps = JsonUtil.getDefaultMapper().readValue(params,
+						List.class);
+				data.bind(ps);
+			}
+
+			LuaTable sdata = new LuaTable();
+			if (session != null) {
+				Map ps = JsonUtil.getDefaultMapper().readValue(session,
+						Map.class);
+				sdata.bind(ps);
+			}
+
+			data.addString(0, caseName);
+			data.addString(1, methodName);
+			data.addTable(2, sdata);
+
+			AIStackStep<LuaArray, TLuaAppCallResult> step = new AIStackStep<LuaArray, TLuaAppCallResult>(
+					stack) {
+
+				@Override
+				protected boolean next(LuaArray result) {
+					try {
+						List list = result.toList();
+						String str = JsonUtil.getDefaultMapper()
+								.writeValueAsString(list);
+						TLuaAppCallResult r = new TLuaAppCallResult(true, str);
+						return successForward(r);
+					} catch (Exception e) {
+						return failure(e);
+					}
+				}
+			};
+			LuaCall lcall = app.getHost().getCall(LuaAICall.METHOD_NAME);
+			if (lcall == null || !(lcall instanceof LuaAICall)) {
+				return stack.failure(new IllegalStateException("app[" + appId
+						+ "] not support AICall"));
+			}
+			LuaAICall call = (LuaAICall) lcall;
+			call.aicall(step, app, "appCommand", data, timeout, null);
 			return false;
 		} catch (Exception e) {
 			throw new TException(e);

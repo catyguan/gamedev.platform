@@ -7,17 +7,14 @@ import ge.lua.host.impl.LuaAppFactorySimple;
 import ge.lua.host.loader.LuaLoader;
 
 import java.io.File;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import bma.common.langutil.ai.common.AIExecutorJava;
-import bma.common.langutil.ai.common.AIExecutorPassive;
-import bma.common.langutil.ai.executor.AIExecutor;
 import bma.common.langutil.ai.stack.AIStackSimple;
+import bma.common.langutil.ai.vm.AIVM;
 import bma.common.langutil.concurrent.Event;
 import bma.common.langutil.concurrent.TimerManager;
 import bma.common.langutil.core.ObjectUtil;
@@ -28,27 +25,21 @@ public class AppHostTC {
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
 			.getLogger(AppHostTC.class);
 
-	AIExecutorPassive main;
-	AIExecutor executor;
+	AIVM main;
 	TimerManager timer;
 
 	@Before
-	public void setupMain() {
-		main = new AIExecutorPassive("main");
-		main.setUp();
-		main.makeShutdownHook();
+	public void setupMain() throws Exception {
+		main = new AIVM();
+		main.setThreadSize(3);
+		main.initMain();
 
-		executor = new AIExecutorJava(Executors.newFixedThreadPool(3));
-		timer = new TimerManager();
-		timer.startManager();
-
-		AIExecutor.setTimerManager(timer);
+		timer = main.sureTimer();
 	}
 
 	@After
 	public void closeMain() {
-		timer.stopManager();
-		main.close(1, TimeUnit.SECONDS);
+		main.close();
 	}
 
 	public LuaAppHost host1() {
@@ -79,7 +70,7 @@ public class AppHostTC {
 				log.info("LuaCall asyn => {}/{}", data,
 						System.identityHashCode(data));
 				final LuaArray rdata = data.copy();
-				executor.execute(new Runnable() {
+				main.execute(null, new Runnable() {
 
 					@Override
 					public void run() {
@@ -91,7 +82,7 @@ public class AppHostTC {
 				return false;
 			}
 		});
-		r.setExecutor(executor);
+		r.setVm(main);
 
 		r.init();
 		return r;
@@ -101,7 +92,7 @@ public class AppHostTC {
 	public void startstop() {
 		LuaAppHost m = host1();
 		log.info("run");
-		main.run(1000);
+		ObjectUtil.waitFor(this, 1000);
 		m.close();
 		log.info("end");
 	}

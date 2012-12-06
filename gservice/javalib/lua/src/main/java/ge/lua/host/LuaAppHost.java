@@ -15,9 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import bma.common.json.JsonUtil;
-import bma.common.langutil.ai.executor.AIExecutor;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackNone;
+import bma.common.langutil.ai.vm.AIThreadId;
+import bma.common.langutil.ai.vm.AIVM;
 import bma.common.langutil.concurrent.ProcessTimerTaskAbstract;
 import bma.common.langutil.concurrent.TimerManager;
 import bma.common.langutil.core.ObjectUtil;
@@ -29,7 +30,7 @@ public class LuaAppHost {
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
 			.getLogger(LuaAppHost.class);
 
-	protected AIExecutor executor;
+	protected AIVM vm;
 	protected TimerManager timer;
 	protected ObjectMapper mapper;
 	protected int mapSize = 100;
@@ -117,12 +118,16 @@ public class LuaAppHost {
 		this.mapper = mapper;
 	}
 
-	public AIExecutor getExecutor() {
-		return executor;
+	public AIVM getVm() {
+		return vm;
 	}
 
-	public void setExecutor(AIExecutor executor) {
-		this.executor = executor;
+	public void setVm(AIVM vm) {
+		this.vm = vm;
+	}
+
+	public AIVM sureVm() {
+		return this.vm == null ? AIVM.main() : this.vm;
 	}
 
 	public Map<String, LuaApp> getApps() {
@@ -146,7 +151,10 @@ public class LuaAppHost {
 	}
 
 	public TimerManager sureTmer() {
-		return AIExecutor.getTimerManager(timer);
+		if (timer != null) {
+			return timer;
+		}
+		return sureVm().sureTimer();
 	}
 
 	public void setTimer(TimerManager timer) {
@@ -292,40 +300,23 @@ public class LuaAppHost {
 	private class RUN implements Runnable {
 
 		public LuaApp app;
+		public Command command;
 
-		public RUN(LuaApp app) {
+		public RUN(LuaApp app, Command cmd) {
 			super();
 			this.app = app;
+			this.command = cmd;
 		}
 
 		@Override
 		public void run() {
-			Command cmd;
-			synchronized (app) {
-				cmd = app.getQueue().poll();
-				if (cmd == null) {
-					app.setRun(false);
-					return;
-				}
-			}
 			try {
-				cmd.process(app);
+				command.process(app);
 			} catch (Exception e) {
 				log.error("app execute fail", e);
+			} finally {
+				app.afterRun();
 			}
-			synchronized (app) {
-				if (app.getQueue().isEmpty()) {
-					if (log.isDebugEnabled()) {
-						log.debug("{} stop run", app);
-					}
-					app.setRun(false);
-					return;
-				}
-			}
-			if (log.isDebugEnabled()) {
-				log.debug("{} keep run", app);
-			}
-			executor.execute(this);
 		}
 
 	}
@@ -379,18 +370,18 @@ public class LuaAppHost {
 	}
 
 	public void runAppCommand(LuaApp app, Command command) {
-		synchronized (app) {
-			app.getQueue().add(command);
-			if (!app.isRun()) {
-				app.setRun(true);
-				executor.execute(new RUN(app));
-			}
+		AIVM cvm = sureVm();
+		int tid = app.getRunId();
+		if (tid == 0) {
+			tid = cvm.loadPicker();
 		}
+		tid = app.bind(tid);
+		cvm.execute(new AIThreadId(tid), new RUN(app, command));
 	}
 
 	public LuaApp queryApp(String id) {
 		LuaApp app = null;
-		if(id!=null) {
+		if (id != null) {
 			app = this.apps.get(id);
 		}
 		if (log.isDebugEnabled()) {

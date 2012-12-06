@@ -4,6 +4,8 @@ import ge.lua.service.thrift.TLuaAppHostManager.appAICall_args;
 import ge.lua.service.thrift.TLuaAppHostManager.appAICall_result;
 import ge.lua.service.thrift.TLuaAppHostManager.appCall_args;
 import ge.lua.service.thrift.TLuaAppHostManager.appCall_result;
+import ge.lua.service.thrift.TLuaAppHostManager.appCommand_args;
+import ge.lua.service.thrift.TLuaAppHostManager.appCommand_result;
 import ge.lua.service.thrift.TLuaAppHostManager.appEval_args;
 import ge.lua.service.thrift.TLuaAppHostManager.appEval_result;
 import ge.lua.service.thrift.TLuaAppHostManager.closeApp_args;
@@ -57,6 +59,11 @@ public class TLuaAppHostManager4AI {
 				String appId, String name, String params, int timeout)
 				throws org.apache.thrift.TException;
 
+		public boolean appCommand(AIStack<TLuaAppCallResult> stack,
+				String appId, String caseName, String methodName,
+				String session, String params, int timeout)
+				throws org.apache.thrift.TException;
+
 		public boolean appEval(AIStack<Boolean> stack, String appId,
 				String content) throws org.apache.thrift.TException;
 
@@ -80,6 +87,7 @@ public class TLuaAppHostManager4AI {
 			processMap.put("listApp", new listApp());
 			processMap.put("appCall", new appCall());
 			processMap.put("appAICall", new appAICall());
+			processMap.put("appCommand", new appCommand());
 			processMap.put("appEval", new appEval());
 			return processMap;
 		}
@@ -207,6 +215,28 @@ public class TLuaAppHostManager4AI {
 			}
 		}
 
+		private static class appCommand<I extends Iface> extends
+				TAIProcessFunction<I, appCommand_args> {
+			public appCommand() {
+				super("appCommand");
+			}
+
+			@Override
+			protected appCommand_args getEmptyArgsInstance() {
+				return new appCommand_args();
+			}
+
+			@Override
+			protected boolean getResult(AIStack<TBase> stack, I iface,
+					appCommand_args args) throws org.apache.thrift.TException {
+				appCommand_result result = new appCommand_result();
+				return iface.appCommand(new AIBaseStack<TLuaAppCallResult>(
+						stack, result), args.getAppId(), args.getCaseName(),
+						args.getMethodName(), args.getSession(), args
+								.getParams(), args.getTimeout());
+			}
+		}
+
 		private static class appCall<I extends Iface> extends
 				TAIProcessFunction<I, appCall_args> {
 			public appCall() {
@@ -303,6 +333,15 @@ public class TLuaAppHostManager4AI {
 				throws TException {
 			return super.invoke(stack, new appAICall_result(), "appAICall",
 					new appAICall_args(appId, name, params, timeout));
+		}
+
+		@Override
+		public boolean appCommand(AIStack<TLuaAppCallResult> stack,
+				String appId, String caseName, String methodName,
+				String params, String session, int timeout) throws TException {
+			return super.invoke(stack, new appCommand_result(), "appCommand",
+					new appCommand_args(appId, caseName, methodName, session,
+							params, timeout));
 		}
 
 		@Override

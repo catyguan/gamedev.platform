@@ -45,6 +45,8 @@ public class TLuaAppHostManager {
 
     public TLuaAppCallResult appAICall(String appId, String name, String params, int timeout) throws org.apache.thrift.TException;
 
+    public TLuaAppCallResult appCommand(String appId, String caseName, String methodName, String session, String params, int timeout) throws org.apache.thrift.TException;
+
     public boolean appEval(String appId, String content) throws org.apache.thrift.TException;
 
   }
@@ -64,6 +66,8 @@ public class TLuaAppHostManager {
     public void appCall(String appId, String name, String params, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.appCall_call> resultHandler) throws org.apache.thrift.TException;
 
     public void appAICall(String appId, String name, String params, int timeout, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.appAICall_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void appCommand(String appId, String caseName, String methodName, String session, String params, int timeout, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.appCommand_call> resultHandler) throws org.apache.thrift.TException;
 
     public void appEval(String appId, String content, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.appEval_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -254,6 +258,34 @@ public class TLuaAppHostManager {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "appAICall failed: unknown result");
+    }
+
+    public TLuaAppCallResult appCommand(String appId, String caseName, String methodName, String session, String params, int timeout) throws org.apache.thrift.TException
+    {
+      send_appCommand(appId, caseName, methodName, session, params, timeout);
+      return recv_appCommand();
+    }
+
+    public void send_appCommand(String appId, String caseName, String methodName, String session, String params, int timeout) throws org.apache.thrift.TException
+    {
+      appCommand_args args = new appCommand_args();
+      args.setAppId(appId);
+      args.setCaseName(caseName);
+      args.setMethodName(methodName);
+      args.setSession(session);
+      args.setParams(params);
+      args.setTimeout(timeout);
+      sendBase("appCommand", args);
+    }
+
+    public TLuaAppCallResult recv_appCommand() throws org.apache.thrift.TException
+    {
+      appCommand_result result = new appCommand_result();
+      receiveBase(result, "appCommand");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "appCommand failed: unknown result");
     }
 
     public boolean appEval(String appId, String content) throws org.apache.thrift.TException
@@ -540,6 +572,53 @@ public class TLuaAppHostManager {
       }
     }
 
+    public void appCommand(String appId, String caseName, String methodName, String session, String params, int timeout, org.apache.thrift.async.AsyncMethodCallback<appCommand_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      appCommand_call method_call = new appCommand_call(appId, caseName, methodName, session, params, timeout, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class appCommand_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String appId;
+      private String caseName;
+      private String methodName;
+      private String session;
+      private String params;
+      private int timeout;
+      public appCommand_call(String appId, String caseName, String methodName, String session, String params, int timeout, org.apache.thrift.async.AsyncMethodCallback<appCommand_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.appId = appId;
+        this.caseName = caseName;
+        this.methodName = methodName;
+        this.session = session;
+        this.params = params;
+        this.timeout = timeout;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("appCommand", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        appCommand_args args = new appCommand_args();
+        args.setAppId(appId);
+        args.setCaseName(caseName);
+        args.setMethodName(methodName);
+        args.setSession(session);
+        args.setParams(params);
+        args.setTimeout(timeout);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public TLuaAppCallResult getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_appCommand();
+      }
+    }
+
     public void appEval(String appId, String content, org.apache.thrift.async.AsyncMethodCallback<appEval_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
       appEval_call method_call = new appEval_call(appId, content, resultHandler, this, ___protocolFactory, ___transport);
@@ -595,6 +674,7 @@ public class TLuaAppHostManager {
       processMap.put("listApp", new listApp());
       processMap.put("appCall", new appCall());
       processMap.put("appAICall", new appAICall());
+      processMap.put("appCommand", new appCommand());
       processMap.put("appEval", new appEval());
       return processMap;
     }
@@ -710,6 +790,22 @@ public class TLuaAppHostManager {
       protected appAICall_result getResult(I iface, appAICall_args args) throws org.apache.thrift.TException {
         appAICall_result result = new appAICall_result();
         result.success = iface.appAICall(args.appId, args.name, args.params, args.timeout);
+        return result;
+      }
+    }
+
+    private static class appCommand<I extends Iface> extends org.apache.thrift.ProcessFunction<I, appCommand_args> {
+      public appCommand() {
+        super("appCommand");
+      }
+
+      protected appCommand_args getEmptyArgsInstance() {
+        return new appCommand_args();
+      }
+
+      protected appCommand_result getResult(I iface, appCommand_args args) throws org.apache.thrift.TException {
+        appCommand_result result = new appCommand_result();
+        result.success = iface.appCommand(args.appId, args.caseName, args.methodName, args.session, args.params, args.timeout);
         return result;
       }
     }
@@ -6304,6 +6400,1213 @@ public class TLuaAppHostManager {
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, appAICall_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.success = new TLuaAppCallResult();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class appCommand_args implements org.apache.thrift.TBase<appCommand_args, appCommand_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("appCommand_args");
+
+    private static final org.apache.thrift.protocol.TField APP_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("appId", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField CASE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("caseName", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField METHOD_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("methodName", org.apache.thrift.protocol.TType.STRING, (short)3);
+    private static final org.apache.thrift.protocol.TField SESSION_FIELD_DESC = new org.apache.thrift.protocol.TField("session", org.apache.thrift.protocol.TType.STRING, (short)4);
+    private static final org.apache.thrift.protocol.TField PARAMS_FIELD_DESC = new org.apache.thrift.protocol.TField("params", org.apache.thrift.protocol.TType.STRING, (short)5);
+    private static final org.apache.thrift.protocol.TField TIMEOUT_FIELD_DESC = new org.apache.thrift.protocol.TField("timeout", org.apache.thrift.protocol.TType.I32, (short)6);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new appCommand_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new appCommand_argsTupleSchemeFactory());
+    }
+
+    public String appId; // required
+    public String caseName; // required
+    public String methodName; // required
+    public String session; // required
+    public String params; // required
+    public int timeout; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      APP_ID((short)1, "appId"),
+      CASE_NAME((short)2, "caseName"),
+      METHOD_NAME((short)3, "methodName"),
+      SESSION((short)4, "session"),
+      PARAMS((short)5, "params"),
+      TIMEOUT((short)6, "timeout");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // APP_ID
+            return APP_ID;
+          case 2: // CASE_NAME
+            return CASE_NAME;
+          case 3: // METHOD_NAME
+            return METHOD_NAME;
+          case 4: // SESSION
+            return SESSION;
+          case 5: // PARAMS
+            return PARAMS;
+          case 6: // TIMEOUT
+            return TIMEOUT;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __TIMEOUT_ISSET_ID = 0;
+    private BitSet __isset_bit_vector = new BitSet(1);
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.APP_ID, new org.apache.thrift.meta_data.FieldMetaData("appId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.CASE_NAME, new org.apache.thrift.meta_data.FieldMetaData("caseName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.METHOD_NAME, new org.apache.thrift.meta_data.FieldMetaData("methodName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.SESSION, new org.apache.thrift.meta_data.FieldMetaData("session", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.PARAMS, new org.apache.thrift.meta_data.FieldMetaData("params", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TIMEOUT, new org.apache.thrift.meta_data.FieldMetaData("timeout", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(appCommand_args.class, metaDataMap);
+    }
+
+    public appCommand_args() {
+    }
+
+    public appCommand_args(
+      String appId,
+      String caseName,
+      String methodName,
+      String session,
+      String params,
+      int timeout)
+    {
+      this();
+      this.appId = appId;
+      this.caseName = caseName;
+      this.methodName = methodName;
+      this.session = session;
+      this.params = params;
+      this.timeout = timeout;
+      setTimeoutIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public appCommand_args(appCommand_args other) {
+      __isset_bit_vector.clear();
+      __isset_bit_vector.or(other.__isset_bit_vector);
+      if (other.isSetAppId()) {
+        this.appId = other.appId;
+      }
+      if (other.isSetCaseName()) {
+        this.caseName = other.caseName;
+      }
+      if (other.isSetMethodName()) {
+        this.methodName = other.methodName;
+      }
+      if (other.isSetSession()) {
+        this.session = other.session;
+      }
+      if (other.isSetParams()) {
+        this.params = other.params;
+      }
+      this.timeout = other.timeout;
+    }
+
+    public appCommand_args deepCopy() {
+      return new appCommand_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.appId = null;
+      this.caseName = null;
+      this.methodName = null;
+      this.session = null;
+      this.params = null;
+      setTimeoutIsSet(false);
+      this.timeout = 0;
+    }
+
+    public String getAppId() {
+      return this.appId;
+    }
+
+    public appCommand_args setAppId(String appId) {
+      this.appId = appId;
+      return this;
+    }
+
+    public void unsetAppId() {
+      this.appId = null;
+    }
+
+    /** Returns true if field appId is set (has been assigned a value) and false otherwise */
+    public boolean isSetAppId() {
+      return this.appId != null;
+    }
+
+    public void setAppIdIsSet(boolean value) {
+      if (!value) {
+        this.appId = null;
+      }
+    }
+
+    public String getCaseName() {
+      return this.caseName;
+    }
+
+    public appCommand_args setCaseName(String caseName) {
+      this.caseName = caseName;
+      return this;
+    }
+
+    public void unsetCaseName() {
+      this.caseName = null;
+    }
+
+    /** Returns true if field caseName is set (has been assigned a value) and false otherwise */
+    public boolean isSetCaseName() {
+      return this.caseName != null;
+    }
+
+    public void setCaseNameIsSet(boolean value) {
+      if (!value) {
+        this.caseName = null;
+      }
+    }
+
+    public String getMethodName() {
+      return this.methodName;
+    }
+
+    public appCommand_args setMethodName(String methodName) {
+      this.methodName = methodName;
+      return this;
+    }
+
+    public void unsetMethodName() {
+      this.methodName = null;
+    }
+
+    /** Returns true if field methodName is set (has been assigned a value) and false otherwise */
+    public boolean isSetMethodName() {
+      return this.methodName != null;
+    }
+
+    public void setMethodNameIsSet(boolean value) {
+      if (!value) {
+        this.methodName = null;
+      }
+    }
+
+    public String getSession() {
+      return this.session;
+    }
+
+    public appCommand_args setSession(String session) {
+      this.session = session;
+      return this;
+    }
+
+    public void unsetSession() {
+      this.session = null;
+    }
+
+    /** Returns true if field session is set (has been assigned a value) and false otherwise */
+    public boolean isSetSession() {
+      return this.session != null;
+    }
+
+    public void setSessionIsSet(boolean value) {
+      if (!value) {
+        this.session = null;
+      }
+    }
+
+    public String getParams() {
+      return this.params;
+    }
+
+    public appCommand_args setParams(String params) {
+      this.params = params;
+      return this;
+    }
+
+    public void unsetParams() {
+      this.params = null;
+    }
+
+    /** Returns true if field params is set (has been assigned a value) and false otherwise */
+    public boolean isSetParams() {
+      return this.params != null;
+    }
+
+    public void setParamsIsSet(boolean value) {
+      if (!value) {
+        this.params = null;
+      }
+    }
+
+    public int getTimeout() {
+      return this.timeout;
+    }
+
+    public appCommand_args setTimeout(int timeout) {
+      this.timeout = timeout;
+      setTimeoutIsSet(true);
+      return this;
+    }
+
+    public void unsetTimeout() {
+      __isset_bit_vector.clear(__TIMEOUT_ISSET_ID);
+    }
+
+    /** Returns true if field timeout is set (has been assigned a value) and false otherwise */
+    public boolean isSetTimeout() {
+      return __isset_bit_vector.get(__TIMEOUT_ISSET_ID);
+    }
+
+    public void setTimeoutIsSet(boolean value) {
+      __isset_bit_vector.set(__TIMEOUT_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case APP_ID:
+        if (value == null) {
+          unsetAppId();
+        } else {
+          setAppId((String)value);
+        }
+        break;
+
+      case CASE_NAME:
+        if (value == null) {
+          unsetCaseName();
+        } else {
+          setCaseName((String)value);
+        }
+        break;
+
+      case METHOD_NAME:
+        if (value == null) {
+          unsetMethodName();
+        } else {
+          setMethodName((String)value);
+        }
+        break;
+
+      case SESSION:
+        if (value == null) {
+          unsetSession();
+        } else {
+          setSession((String)value);
+        }
+        break;
+
+      case PARAMS:
+        if (value == null) {
+          unsetParams();
+        } else {
+          setParams((String)value);
+        }
+        break;
+
+      case TIMEOUT:
+        if (value == null) {
+          unsetTimeout();
+        } else {
+          setTimeout((Integer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case APP_ID:
+        return getAppId();
+
+      case CASE_NAME:
+        return getCaseName();
+
+      case METHOD_NAME:
+        return getMethodName();
+
+      case SESSION:
+        return getSession();
+
+      case PARAMS:
+        return getParams();
+
+      case TIMEOUT:
+        return Integer.valueOf(getTimeout());
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case APP_ID:
+        return isSetAppId();
+      case CASE_NAME:
+        return isSetCaseName();
+      case METHOD_NAME:
+        return isSetMethodName();
+      case SESSION:
+        return isSetSession();
+      case PARAMS:
+        return isSetParams();
+      case TIMEOUT:
+        return isSetTimeout();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof appCommand_args)
+        return this.equals((appCommand_args)that);
+      return false;
+    }
+
+    public boolean equals(appCommand_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_appId = true && this.isSetAppId();
+      boolean that_present_appId = true && that.isSetAppId();
+      if (this_present_appId || that_present_appId) {
+        if (!(this_present_appId && that_present_appId))
+          return false;
+        if (!this.appId.equals(that.appId))
+          return false;
+      }
+
+      boolean this_present_caseName = true && this.isSetCaseName();
+      boolean that_present_caseName = true && that.isSetCaseName();
+      if (this_present_caseName || that_present_caseName) {
+        if (!(this_present_caseName && that_present_caseName))
+          return false;
+        if (!this.caseName.equals(that.caseName))
+          return false;
+      }
+
+      boolean this_present_methodName = true && this.isSetMethodName();
+      boolean that_present_methodName = true && that.isSetMethodName();
+      if (this_present_methodName || that_present_methodName) {
+        if (!(this_present_methodName && that_present_methodName))
+          return false;
+        if (!this.methodName.equals(that.methodName))
+          return false;
+      }
+
+      boolean this_present_session = true && this.isSetSession();
+      boolean that_present_session = true && that.isSetSession();
+      if (this_present_session || that_present_session) {
+        if (!(this_present_session && that_present_session))
+          return false;
+        if (!this.session.equals(that.session))
+          return false;
+      }
+
+      boolean this_present_params = true && this.isSetParams();
+      boolean that_present_params = true && that.isSetParams();
+      if (this_present_params || that_present_params) {
+        if (!(this_present_params && that_present_params))
+          return false;
+        if (!this.params.equals(that.params))
+          return false;
+      }
+
+      boolean this_present_timeout = true;
+      boolean that_present_timeout = true;
+      if (this_present_timeout || that_present_timeout) {
+        if (!(this_present_timeout && that_present_timeout))
+          return false;
+        if (this.timeout != that.timeout)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(appCommand_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      appCommand_args typedOther = (appCommand_args)other;
+
+      lastComparison = Boolean.valueOf(isSetAppId()).compareTo(typedOther.isSetAppId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetAppId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.appId, typedOther.appId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetCaseName()).compareTo(typedOther.isSetCaseName());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetCaseName()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.caseName, typedOther.caseName);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetMethodName()).compareTo(typedOther.isSetMethodName());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMethodName()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.methodName, typedOther.methodName);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetSession()).compareTo(typedOther.isSetSession());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSession()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.session, typedOther.session);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetParams()).compareTo(typedOther.isSetParams());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetParams()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.params, typedOther.params);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTimeout()).compareTo(typedOther.isSetTimeout());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTimeout()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.timeout, typedOther.timeout);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("appCommand_args(");
+      boolean first = true;
+
+      sb.append("appId:");
+      if (this.appId == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.appId);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("caseName:");
+      if (this.caseName == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.caseName);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("methodName:");
+      if (this.methodName == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.methodName);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("session:");
+      if (this.session == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.session);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("params:");
+      if (this.params == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.params);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("timeout:");
+      sb.append(this.timeout);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class appCommand_argsStandardSchemeFactory implements SchemeFactory {
+      public appCommand_argsStandardScheme getScheme() {
+        return new appCommand_argsStandardScheme();
+      }
+    }
+
+    private static class appCommand_argsStandardScheme extends StandardScheme<appCommand_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, appCommand_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // APP_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.appId = iprot.readString();
+                struct.setAppIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // CASE_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.caseName = iprot.readString();
+                struct.setCaseNameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // METHOD_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.methodName = iprot.readString();
+                struct.setMethodNameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // SESSION
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.session = iprot.readString();
+                struct.setSessionIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // PARAMS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.params = iprot.readString();
+                struct.setParamsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 6: // TIMEOUT
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.timeout = iprot.readI32();
+                struct.setTimeoutIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, appCommand_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.appId != null) {
+          oprot.writeFieldBegin(APP_ID_FIELD_DESC);
+          oprot.writeString(struct.appId);
+          oprot.writeFieldEnd();
+        }
+        if (struct.caseName != null) {
+          oprot.writeFieldBegin(CASE_NAME_FIELD_DESC);
+          oprot.writeString(struct.caseName);
+          oprot.writeFieldEnd();
+        }
+        if (struct.methodName != null) {
+          oprot.writeFieldBegin(METHOD_NAME_FIELD_DESC);
+          oprot.writeString(struct.methodName);
+          oprot.writeFieldEnd();
+        }
+        if (struct.session != null) {
+          oprot.writeFieldBegin(SESSION_FIELD_DESC);
+          oprot.writeString(struct.session);
+          oprot.writeFieldEnd();
+        }
+        if (struct.params != null) {
+          oprot.writeFieldBegin(PARAMS_FIELD_DESC);
+          oprot.writeString(struct.params);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldBegin(TIMEOUT_FIELD_DESC);
+        oprot.writeI32(struct.timeout);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class appCommand_argsTupleSchemeFactory implements SchemeFactory {
+      public appCommand_argsTupleScheme getScheme() {
+        return new appCommand_argsTupleScheme();
+      }
+    }
+
+    private static class appCommand_argsTupleScheme extends TupleScheme<appCommand_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, appCommand_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetAppId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetCaseName()) {
+          optionals.set(1);
+        }
+        if (struct.isSetMethodName()) {
+          optionals.set(2);
+        }
+        if (struct.isSetSession()) {
+          optionals.set(3);
+        }
+        if (struct.isSetParams()) {
+          optionals.set(4);
+        }
+        if (struct.isSetTimeout()) {
+          optionals.set(5);
+        }
+        oprot.writeBitSet(optionals, 6);
+        if (struct.isSetAppId()) {
+          oprot.writeString(struct.appId);
+        }
+        if (struct.isSetCaseName()) {
+          oprot.writeString(struct.caseName);
+        }
+        if (struct.isSetMethodName()) {
+          oprot.writeString(struct.methodName);
+        }
+        if (struct.isSetSession()) {
+          oprot.writeString(struct.session);
+        }
+        if (struct.isSetParams()) {
+          oprot.writeString(struct.params);
+        }
+        if (struct.isSetTimeout()) {
+          oprot.writeI32(struct.timeout);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, appCommand_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(6);
+        if (incoming.get(0)) {
+          struct.appId = iprot.readString();
+          struct.setAppIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.caseName = iprot.readString();
+          struct.setCaseNameIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.methodName = iprot.readString();
+          struct.setMethodNameIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.session = iprot.readString();
+          struct.setSessionIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.params = iprot.readString();
+          struct.setParamsIsSet(true);
+        }
+        if (incoming.get(5)) {
+          struct.timeout = iprot.readI32();
+          struct.setTimeoutIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class appCommand_result implements org.apache.thrift.TBase<appCommand_result, appCommand_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("appCommand_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new appCommand_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new appCommand_resultTupleSchemeFactory());
+    }
+
+    public TLuaAppCallResult success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TLuaAppCallResult.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(appCommand_result.class, metaDataMap);
+    }
+
+    public appCommand_result() {
+    }
+
+    public appCommand_result(
+      TLuaAppCallResult success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public appCommand_result(appCommand_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new TLuaAppCallResult(other.success);
+      }
+    }
+
+    public appCommand_result deepCopy() {
+      return new appCommand_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public TLuaAppCallResult getSuccess() {
+      return this.success;
+    }
+
+    public appCommand_result setSuccess(TLuaAppCallResult success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((TLuaAppCallResult)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof appCommand_result)
+        return this.equals((appCommand_result)that);
+      return false;
+    }
+
+    public boolean equals(appCommand_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(appCommand_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      appCommand_result typedOther = (appCommand_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("appCommand_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class appCommand_resultStandardSchemeFactory implements SchemeFactory {
+      public appCommand_resultStandardScheme getScheme() {
+        return new appCommand_resultStandardScheme();
+      }
+    }
+
+    private static class appCommand_resultStandardScheme extends StandardScheme<appCommand_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, appCommand_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new TLuaAppCallResult();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, appCommand_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class appCommand_resultTupleSchemeFactory implements SchemeFactory {
+      public appCommand_resultTupleScheme getScheme() {
+        return new appCommand_resultTupleScheme();
+      }
+    }
+
+    private static class appCommand_resultTupleScheme extends TupleScheme<appCommand_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, appCommand_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, appCommand_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

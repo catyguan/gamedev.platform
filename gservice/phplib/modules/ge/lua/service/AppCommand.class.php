@@ -19,10 +19,10 @@ class AppCommand {
 		if(!$accessId)throw new \Exception('invalid gname "'.$name.'"');
 		$app = App::create($accessId);
 		$result = $app->appCommand($sceneName, $commandName, $params, $timeoutInSeconds);
-		if($result && isset($result[0])) {
+		if($result && is_array($result) && isset($result[0])) {
 			$r = $result[0];
 			// var_dump($r);
-			if(isset($r['forward']) && $r['forward']) {
+			if(is_array($r) && isset($r['forward']) && $r['forward']) {
 				return $this->command($r['name'],$r['scene'],$r['command'],isset($r['params'])?$r['params']:null,$timeoutInSeconds);
 			}
 		}

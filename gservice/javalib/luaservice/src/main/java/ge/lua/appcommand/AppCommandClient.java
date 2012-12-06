@@ -1,16 +1,11 @@
 package ge.lua.appcommand;
 
-import ge.lua.LuaArray;
 import ge.lua.service.impl.AccessId;
 import ge.lua.service.thrift.TLuaAppCallResult;
 import ge.lua.service.thrift.TLuaAppHostManager4AI;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.thrift.TException;
 
-import bma.common.json.JsonUtil;
 import bma.common.langutil.ai.AIUtil;
 import bma.common.langutil.ai.stack.AIStack;
 import bma.common.langutil.ai.stack.AIStackStep;
@@ -73,14 +68,15 @@ public class AppCommandClient {
 		this.dispatcher = dispatcher;
 	}
 
-	public boolean execute(AIStack<String> stack, final Dispatcher disp, final String accessId,
-			final String sceneName, final String commandName,
-			final LuaArray params, final int tm) {
+	public boolean execute(AIStack<String> stack, final Dispatcher disp,
+			final String accessId, final String caseName,
+			final String methodName, final String session, final String params,
+			final int tm) {
 		if (accessId == null)
 			throw new NullPointerException("accessId");
 		final AccessId aid = new AccessId(accessId);
 		if (aid.isGlobalName()) {
-			Dispatcher dis = disp==null?dispatcher:disp;
+			Dispatcher dis = disp == null ? dispatcher : disp;
 			if (dis != null) {
 				AIStackStep<String, String> step = new AIStackStep<String, String>(
 						stack) {
@@ -95,8 +91,8 @@ public class AppCommandClient {
 							return AIUtil.safeFailure(delegate(),
 									new IllegalArgumentException(msg));
 						}
-						return execute(delegate(),disp, result, sceneName,
-								commandName, params, tm);
+						return execute(delegate(), disp, result, caseName,
+								methodName, session, params, tm);
 					}
 				};
 				return dis.find(step, aid.getName());
@@ -131,7 +127,7 @@ public class AppCommandClient {
 						closeClient();
 						if (log.isDebugEnabled()) {
 							log.debug("AppCommand.execute({},{},{},{}) => {}",
-									new Object[] { aid, sceneName, commandName,
+									new Object[] { aid, caseName, methodName,
 											params, result.getResult() });
 						}
 						return successForward(result.getResult());
@@ -148,20 +144,10 @@ public class AppCommandClient {
 				try {
 					TLuaAppHostManager4AI.Client obj = client
 							.createAIObject(TLuaAppHostManager4AI.Client.class);
-
-					List cparams = new ArrayList(2 + (params==null?0:params.size()));
-					cparams.add(sceneName);
-					cparams.add(commandName);
-					if(params!=null) {
-						cparams.addAll(params.toList());
-					}
-
-					return obj.appAICall(
-							step2,
-							aid.getAppId(),
-							"appCommand",
-							JsonUtil.getDefaultMapper().writeValueAsString(
-									cparams), tm <= 0 ? timeout : tm);
+					return obj
+							.appCommand(step2, aid.getAppId(), caseName,
+									methodName, session, params,
+									tm <= 0 ? timeout : tm);
 
 				} catch (Exception e) {
 					return AIUtil.safeFailure(step2, e);

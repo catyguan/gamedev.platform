@@ -4,8 +4,7 @@ import ge.lua.LuaArray;
 import ge.lua.LuaState;
 
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import bma.common.langutil.ai.stack.AIStack;
 
@@ -30,8 +29,7 @@ public class LuaApp {
 	// runtime
 	protected LuaState state;
 	protected LuaAppHost host;
-	protected volatile boolean run = false;
-	protected Queue<Command> queue = new ConcurrentLinkedQueue<Command>();
+	protected final AtomicInteger threadId = new AtomicInteger();
 
 	public LuaApp() {
 		super();
@@ -93,7 +91,7 @@ public class LuaApp {
 	public void setLaunchList(List<String> launchList) {
 		this.launchList = launchList;
 	}
-	
+
 	public String getShutdown() {
 		return shutdown;
 	}
@@ -110,16 +108,19 @@ public class LuaApp {
 		this.state = state;
 	}
 
-	public Queue<Command> getQueue() {
-		return queue;
+	public int getRunId() {
+		return threadId.get();
 	}
 
-	public boolean isRun() {
-		return run;
+	public int bind(int tid) {
+		if (threadId.compareAndSet(0, tid)) {
+			return tid;
+		}
+		return threadId.get();
 	}
 
-	public void setRun(boolean run) {
-		this.run = run;
+	public void afterRun() {
+		threadId.set(0);
 	}
 
 	public void runCommand(Command command) {

@@ -50,8 +50,7 @@
 
 	<!-- LuaAppHost -->
 	<bean id="luaAppHost" class="ge.lua.host.LuaAppHost"
-		init-method="init" destroy-method="close">
-		<property name="executor" ref="syncExecutor"/>
+		init-method="init" destroy-method="close">		
 		<property name="factory">
 			<bean class="ge.lua.host.impl.LuaAppFactorySimple">
 				<property name="pathList">
@@ -89,7 +88,7 @@
 							<entry key="test" value-ref="jdbcTemplate"/>
 						</map>
 					</property>
-					<property name="executor" ref="syncExecutor"/>
+					<property name="executor" ref="threadPool"/>
 				</bean>
 				<bean class="ge.lua.hostservice.gcommand.ServiceLuaCall">
 					<property name="client" ref="appCommandClient"/>

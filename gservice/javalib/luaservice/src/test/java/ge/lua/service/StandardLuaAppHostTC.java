@@ -4,17 +4,14 @@ import ge.lua.host.LuaAppHost;
 import ge.lua.host.impl.LuaAppFactorySimple;
 
 import java.io.File;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import bma.common.langutil.ai.common.AIExecutorJava;
-import bma.common.langutil.ai.common.AIExecutorPassive;
-import bma.common.langutil.ai.executor.AIExecutor;
+import bma.common.langutil.ai.vm.AIVM;
 import bma.common.langutil.concurrent.TimerManager;
+import bma.common.langutil.core.ObjectUtil;
 import bma.common.langutil.io.IOUtil;
 
 public class StandardLuaAppHostTC {
@@ -22,27 +19,21 @@ public class StandardLuaAppHostTC {
 	final org.slf4j.Logger log = org.slf4j.LoggerFactory
 			.getLogger(StandardLuaAppHostTC.class);
 
-	AIExecutorPassive main;
-	AIExecutor executor;
+	AIVM main;
 	TimerManager timer;
 
 	@Before
-	public void setupMain() {
-		main = new AIExecutorPassive("main");
-		main.setUp();
-		main.makeShutdownHook();
+	public void setupMain() throws Exception {
+		main = new AIVM();
+		main.setThreadSize(3);
+		main.initMain();
 
-		executor = new AIExecutorJava(Executors.newFixedThreadPool(3));
-		timer = new TimerManager();
-		timer.startManager();
-
-		AIExecutor.setTimerManager(timer);
+		timer = main.sureTimer();
 	}
 
 	@After
 	public void closeMain() {
-		timer.stopManager();
-		main.close(1, TimeUnit.SECONDS);
+		main.close();
 	}
 
 	public LuaAppHost host() {
@@ -58,7 +49,7 @@ public class StandardLuaAppHostTC {
 		fac.setShutdown("bma.app.Application.shutdown");
 
 		r.setFactory(fac);
-		r.setExecutor(executor);
+		r.setVm(main);
 
 		r.init();
 		return r;
@@ -68,7 +59,7 @@ public class StandardLuaAppHostTC {
 	public void startstop() {
 		LuaAppHost m = host();
 		log.info("run");
-		main.run(1000);
+		ObjectUtil.waitFor(this, 1000);
 		m.close();
 		log.info("end");
 	}

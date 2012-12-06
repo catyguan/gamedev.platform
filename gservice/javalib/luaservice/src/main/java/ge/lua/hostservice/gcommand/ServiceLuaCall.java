@@ -1,6 +1,7 @@
 package ge.lua.hostservice.gcommand;
 
 import ge.lua.LuaArray;
+import ge.lua.LuaTable;
 import ge.lua.appcommand.AppCommandClient;
 import ge.lua.appcommand.Dispatcher;
 import ge.lua.host.LuaApp;
@@ -46,20 +47,21 @@ public class ServiceLuaCall implements LuaCallWithName {
 			throws Exception {
 
 		String accessId = data.getString(0);
-		String sceneName = data.getString(1);
-		String commandName = data.getString(2);
-		LuaArray params = data.getArray(3);
+		String caseName = data.getString(1);
+		String methodName = data.getString(2);
+		LuaTable session = data.getTable(3);
+		LuaArray params = data.getArray(4);
 		int tm = data.getInt(4);
 		data.reset();
 
 		if (ValueUtil.empty(accessId)) {
 			throw new IllegalArgumentException("accessId invalid");
 		}
-		if (ValueUtil.empty(sceneName)) {
-			throw new IllegalArgumentException("secne name invalid");
+		if (ValueUtil.empty(caseName)) {
+			throw new IllegalArgumentException("case name invalid");
 		}
-		if (ValueUtil.empty(commandName)) {
-			throw new IllegalArgumentException("command name invalid");
+		if (ValueUtil.empty(methodName)) {
+			throw new IllegalArgumentException("method name invalid");
 		}
 		AIStack<LuaArray> root = new AIStackLuaResponse(app, callId);
 		AIStackStep<String, LuaArray> stack = new AIStackStep<String, LuaArray>(
@@ -100,8 +102,20 @@ public class ServiceLuaCall implements LuaCallWithName {
 				}
 			};
 		}
-		return client.execute(stack, disp, accessId, sceneName, commandName,
-				params, tm);
+
+		String strSession = null;
+		String strParams = null;
+		if (session != null) {
+			strSession = JsonUtil.getDefaultMapper().writeValueAsString(
+					session.toMap());
+		}
+		if (params != null) {
+			strParams = JsonUtil.getDefaultMapper().writeValueAsString(
+					params.toList());
+		}
+
+		return client.execute(stack, disp, accessId, caseName, methodName,
+				strSession, strParams, tm);
 	}
 
 }

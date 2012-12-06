@@ -1,24 +1,24 @@
 -- app/app1/Application.lua
 require("bma.app.Application")
-require("bma.app.AppScene")
+require("bma.app.AppCase")
 
 local Class = class.define("app.app1.Application",{bma.app.Application})
 
 function Class:init()
 	LOG:info("app1", "init")
 	
-	local s = bma.app.AppScene.new()
-	s.sayCommand = function(self, cb, word)
+	local s = bma.app.AppCase.new()
+	s.sayMethod = function(self, cb, _, word)
 		print("say",tostring(word))
 		aicall.done(cb,nil,"hello "..tostring(word))
 	end
-	s.forwardCommand = function(self, cb, word)
+	s.forwardMethod = function(self, cb, s, word)
 		print("forward", tostring(word))
-		local r = s.forward("test", "hello", "say", word)
+		local r = s.forward("test", "hello", "say", s, word)
 		aicall.done(cb, nil, r)
 	end
 	
-	self.scenes["hello"] = s
+	self.cases["hello"] = s
 	return bma.app.Application.init(self)
 end
 
