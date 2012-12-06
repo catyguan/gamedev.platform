@@ -5,21 +5,21 @@
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- timer -->
-	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager" 
+	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager"
 		init-method="startManager" destroy-method="stopManager"/>
 		
 	<!-- sync thread pool -->
 	<bean id="threadPool" class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
 		<property name="threadNamePrefix" value="threadPool-" />
-		<property name="corePoolSize" value="5" />
-		<property name="maxPoolSize" value="100" />
-		<property name="keepAliveSeconds" value="60" />
+		<property name="corePoolSize" value="${threadpool.coreSize}" />
+		<property name="maxPoolSize" value="${threadpool.maxSize}" />
+		<property name="keepAliveSeconds" value="${threadpool.keepAlive}" />
 	</bean>
 	
 	<!-- aivm -->
 	<bean id="aivmMain" class="bma.common.langutil.ai.vm.AIVM" 
 		init-method="initMain" destroy-method="close" lazy-init="false">
-		<property name="threadSize" value="3"/>
+		<property name="threadSize" value="${aivm.threadSize}"/>
 		<property name="timer" ref="aitimer"/>
 	</bean>
 
@@ -27,32 +27,23 @@
 	<bean id="nettyClientBootstrap" class="bma.common.netty.client.NettyClientBootstrap"
 		init-method="init">
 		<property name="worker" value="3" />
-	</bean>
-	<bean id="aiThriftClientFactory" class="bma.common.netty.thrift.client.AIThriftClientFactoryNetty">
-		<property name="bootstrap" ref="nettyClientBootstrap" />
-		<property name="traceBufferSize" value="0" />
-	</bean>
-
-	<!-- ip limit -->
-	<bean id="secureFilter" class="bma.common.netty.thrift.common.ThriftIpLimit"
-		init-method="init">
-		<property name="whiteAddress">
-			<value></value>
+	</bean>	
+	
+	<!-- NettyPool -->
+	<bean id="nettyPool" class="bma.common.netty.pool.NettyChannelPool" destroy-method="close">
+		<property name="maxActive" value="${nettypool.maxActive}"/>
+		<property name="idleMaxTime" value="${nettypool.idleMaxTime}"/>
+		<property name="timer" ref="aitimer"/>
+		<property name="factory">
+			<bean class="bma.common.netty.pool.SimpleNettyChannelPoolFactory">
+				<property name="bootstrap" ref="nettyClientBootstrap"/>				
+			</bean>
 		</property>
 	</bean>
-
-	<bean id="thriftServiceServer" class="bma.common.netty.thrift.core.NettyThriftServer"
-		destroy-method="close">
-		<property name="name" value="thriftService" />
-		<property name="worker" value="5" />
-		<property name="traceBufferSize" value="256" />
-		<property name="Pipelines">
-			<list>
-				<ref bean="secureFilter" />
-			</list>
-		</property>
-		<property name="node" ref="thriftServiceNode" />
-		<property name="processExecutor" ref="threadPool" />
+	
+	<!-- thrift client factory -->
+	<bean id="aiThriftClientFactory" class="bma.common.netty.thrift.client.AIThriftClientFactoryNettyPool">
+		<property name="pool" ref="nettyPool" />
 	</bean>
 	
 </beans>

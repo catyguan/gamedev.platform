@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<!-- SessionManager -->
+	<bean id="sessionManager" class="bma.common.netty.webserver.ai.SessionManager4AI">
+		<property name="sessionDataSize" value="${sessionManager.sessionDataSize}"/>
+		<property name="maxSessionDataSize" value="${sessionManager.maxSessionDataSize}"/>		
+		<property name="sessionTimeout" value="${sessionManager.sessionTimeout}"/>
+		<property name="factory">
+			<bean class="bma.common.netty.webserver.ai.SessionFactory4AI"/>
+		</property>
+	</bean>
+	
+	<!-- AppCommand Client -->
+	<bean id="commandClient" class="ge.lua.appcommand.AppCommandClient">
+		<property name="factory" ref="aiThriftClientFactory"/>
+		<property name="frameSize" value="10M"/>
+		<property name="dispatcher">
+			<bean class="ge.lua.appcommand.DispatcherSimple">
+				<property name="accessIdMap">
+					<map>
+						<entry key="test" value="${lua.accessId.test}"/>
+					</map>
+				</property>
+			</bean>
+		</property>		
+	</bean>
+	
+	<!-- WebHandler : html libs -->
+	<bean id="WRPHtmlLibs" class="bma.common.netty.webserver.common.RequestDispatcherVPath">
+		<property name="path" value="/html.libs/"/>
+		<property name="processor">
+			<bean class="bma.common.netty.webserver.file.RequestProcessorStaticFile">
+				<property name="root" value="${httpserver.htmlLibs.root}"/>
+			</bean>
+		</property>
+	</bean>	
+	
+	<!--  WebHandler : lua agent -->
+	<bean id="WRPLuaAgent" class="bma.common.netty.webserver.common.RequestDispatcherVPath">
+		<property name="path" value="/agent/"/>
+		<property name="processor">
+			<bean class="ge.lua.httpagent.ARPGroup" init-method="init">
+				<property name="sessionManager" ref="sessionManager"/>
+				<property name="client" ref="commandClient"/>
+				<property name="accessIdOfAuth" value="test"/>
+			</bean>
+		</property>
+	</bean>	
+	
+	<!-- agent HttpServer -->
+	<bean id="nettyHttpServer" class="bma.common.netty.webserver.NettyWebServer"
+		destroy-method="close">
+		<property name="name" value="agentWebServer" />
+		<property name="port" value="${httpserver.port}" />
+		<property name="processorList">
+			<list>
+				<ref bean="WRPHtmlLibs"/>
+				<ref bean="WRPLuaAgent"/>
+			</list>
+		</property>
+	</bean>	
+
+</beans>

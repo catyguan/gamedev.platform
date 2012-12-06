@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<property resource="service.properties" /> 
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>%date [%thread] %-5level %logger{80} - %msg%n</pattern>
+		</layout>
+	</appender>
+
+	<appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.path}/${log.name}.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${log.path}/${log.name}.%d{yyyy-MM-dd}.log.zip</FileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		<encoder>
+     		<pattern>%date [%thread] %-5level %logger{80} - %msg%n</pattern>
+     		<charset>UTF-8</charset>
+   		</encoder>
+	</appender>
+	
+	<logger name="bma.siteone" additivity="false">
+		<level value="${log.level}" />
+		<appender-ref ref="logfile" />
+	</logger>
+	
+	<logger name="bma.common" additivity="false">
+		<level value="${log.level}" />
+		<appender-ref ref="logfile" />
+	</logger>	
+
+	<logger name="org.springframework" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="logfile" />
+	</logger>
+	
+	<logger name="com.mchange.v2" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="logfile" />
+	</logger>
+	<logger name="org.hibernate" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="logfile" />
+	</logger>
+	<logger name="net.sf.ehcache" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="logfile" />
+	</logger>
+	<logger name="bma.common.langutil.concurrent.ProcessTimeWheel" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="logfile" />
+	</logger>	
+
+	<root>
+		<level value="${log.level}" />
+		<appender-ref ref="logfile" />
+	</root>
+</configuration>
