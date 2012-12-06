@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- timer -->
+	<bean id="aitimer" class="bma.common.langutil.concurrent.TimerManager" 
+		init-method="startManager" destroy-method="stopManager"/>
+		
+	<!-- sync thread pool -->
+	<bean id="threadPool" class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+		<property name="threadNamePrefix" value="threadPool-" />
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="100" />
+		<property name="keepAliveSeconds" value="60" />
+	</bean>
+	
+	<!-- aivm -->
+	<bean id="aivmMain" class="bma.common.langutil.ai.vm.AIVM" 
+		init-method="initMain" destroy-method="close" lazy-init="false">
+		<property name="threadSize" value="3"/>
+		<property name="timer" ref="aitimer"/>
+	</bean>
+
+	<!-- netty client support -->
+	<bean id="nettyClientBootstrap" class="bma.common.netty.client.NettyClientBootstrap"
+		init-method="init">
+		<property name="worker" value="3" />
+	</bean>
+	<bean id="aiThriftClientFactory" class="bma.common.netty.thrift.client.AIThriftClientFactoryNetty">
+		<property name="bootstrap" ref="nettyClientBootstrap" />
+		<property name="traceBufferSize" value="0" />
+	</bean>
+			
+</beans>

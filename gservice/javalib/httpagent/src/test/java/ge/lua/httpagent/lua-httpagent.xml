@@ -4,6 +4,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 	
+	<import resource="netty-thrift-global.xml"/>
+	
 	<!-- SessionManager -->
 	<bean id="sessionManager" class="bma.common.netty.webserver.ai.SessionManager4AI">
 		<property name="maxSessionDataSize" value="256"/>
@@ -31,10 +33,10 @@
 	
 	<!-- WebHandler : html libs -->
 	<bean id="WRPHtmlLibs" class="bma.common.netty.webserver.common.RequestDispatcherVPath">
-		<property name="path" value="${httpserver.htmlLibs.path}"/>
+		<property name="path" value="/html.libs/"/>
 		<property name="processor">
 			<bean class="bma.common.netty.webserver.file.RequestProcessorStaticFile">
-				<property name="root" value="${httpserver.htmlLibs.root}"/>
+				<property name="root" value="e:/tmp"/>
 			</bean>
 		</property>
 	</bean>	
@@ -55,7 +57,7 @@
 	<bean id="nettyHttpServer" class="bma.common.netty.webserver.NettyWebServer"
 		destroy-method="close">
 		<property name="name" value="agentWebServer" />
-		<property name="port" value="${httpserver.port}" />
+		<property name="port" value="8080" />
 		<property name="processorList">
 			<list>
 				<ref bean="WRPHtmlLibs"/>
@@ -63,5 +65,13 @@
 			</list>
 		</property>
 	</bean>	
+	
+	<bean id="booter" class="bma.common.langutil.spring.SimpleServerBooter">
+        <property name="mainList">
+        	<list>
+        		<ref bean="nettyHttpServer"/>   
+        	</list>
+        </property>
+    </bean>	  
 
 </beans>
