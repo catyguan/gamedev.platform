@@ -16,6 +16,10 @@ void luamodule_md5(lua_State *L);
 // DES56
 void luamodule_des56(lua_State *L);
 
+void addSearchPath(lua_State* L, const char* path);
+
+int isLuaArray(lua_State *l, int idx);
+
 /* Constant that is used to index the JNI Environment */
 #define LUAJAVA_JNIENV		"__JAVA_JNIEnv"
 /* Defines the lua State Index Property Name */
@@ -206,38 +210,7 @@ void pushJNIEnv( JNIEnv * env , lua_State * L )
 	}
 }
 
-static int isLuaArray(lua_State *l, int idx)
-{
-    double k;
-    int max;
-    int items;
 
-    max = 0;
-    items = 0;
-
-    lua_pushnil(l);
-    /* table, startkey */
-	while (lua_next(l, idx) != 0) {
-        /* table, key, value */
-		if (lua_type(l, -2) == LUA_TNUMBER &&
-			(k = lua_tonumber(l, -2))) {
-            /* Integer >= 1 ? */
-            if (floor(k) == k && k >= 1) {
-                if (k > max)
-                    max = k;
-                items++;
-                lua_pop(l, 1);
-                continue;
-            }
-        }
-
-        /* Must not be an array (non integer key) */
-        lua_pop(l, 2);
-        return -1;
-    }
-
-    return max;
-}
 
 static void popLuaValue(lua_State* L,JNIEnv* env, JAPI* api, jobject data,int idx) {
 	jobject v = NULL;
@@ -431,42 +404,19 @@ int luaopen_java_ext (lua_State *L) {
 *   JNI Called function
 ************************************************************************/
 
-static void* MyAlloc(void* ud, void* ptr, size_t osize, size_t nsize)
-{
-	int* p = (int*) ud;
-    if (nsize == 0)
-    {
-        free(ptr);
-		*p-=osize;
-        return NULL;
-    }
-    else
-    {
-		void* r = realloc(ptr,nsize);
-        *p-=osize;
-		if (r) *p+=nsize;
-		return r;
-    }
-}
+
 
 JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
   (JNIEnv * env , jobject jobj  /*, jint*/)
 {
 	jobject gobj;
 	lua_State * L = NULL;
-	int *ud;
 
 	gobj = ( *env )->NewGlobalRef( env, jobj );
 
 	// L = luaL_newstate();
 
-	ud = (int*) realloc(NULL,sizeof(int));
-	*ud = 0;
-	L = lua_newstate(&MyAlloc, ud);
-
-	lua_pushstring( L , "_memuse");
-	lua_pushlightuserdata(L, ud);
-	lua_settable( L , LUA_REGISTRYINDEX );
+	L = luaL_newstate();
 
 	luaL_openlibs(L);  /* open libraries */
 	luamodule_cjson(L);
@@ -488,31 +438,14 @@ JNIEXPORT jlong JNICALL Java_ge_lua_LuaState__1open
 JNIEXPORT void JNICALL Java_ge_lua_LuaState__1close
   (JNIEnv * env , jobject jobj , jlong cptr)
 {
-	void* p;
 	lua_State * L = getStateFromJObj( env , cptr );
 	jobject gobj = getLuaStateObj(L);
 	( *env )->DeleteGlobalRef(env, gobj);
 
-	lua_pushstring( L , "_memuse");
-	lua_rawget( L , LUA_REGISTRYINDEX );
-	p = lua_touserdata(L , -1);
-	lua_pop(L,1);	
-
 	lua_close( L );
-	free(p);
 }
 
-static void addSearchPath(lua_State* L, const char* path)
-{
-	const char* cur_path;
-    lua_getglobal(L, "package");                              /* stack: package */
-    lua_getfield(L, -1, "path");            /* get package.path, stack: package path */
-    cur_path =  lua_tostring(L, -1);
-    lua_pop(L, 1);                                            /* stack: package */
-    lua_pushfstring(L, "%s;%s/?.lua", cur_path, path);        /* stack: package newpath */
-    lua_setfield(L, -2, "path");      /* package.path = newpath, stack: package */
-	lua_pop(L, 1);                                            /* stack: - */
-}
+
 
 JNIEXPORT jboolean JNICALL Java_ge_lua_LuaState__1addpath
    (JNIEnv * env, jobject jThis, jlong data, jstring path) 
