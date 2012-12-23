@@ -41,6 +41,8 @@ void addSearchPath(lua_State* L, const char* path);
 
 int isLuaArray(lua_State *l, int idx);
 
+void setModuleLoader(lua_State* L, lua_CFunction loader,int replace );
+
 #ifdef __cplusplus
 }
 #endif
@@ -60,6 +62,20 @@ static int lua_dotnetcall(lua_State *L) {
 	return f(L);
 }
 
+static int lua_dotnetloader(lua_State *L) {
+	lua_pushstring( L , "_dotnetloader");
+	lua_rawget( L , LUA_REGISTRYINDEX );
+
+	if( !lua_islightuserdata(L, -1))	
+	{
+		lua_pushstring( L , "invalid dotnetloader function" );
+		return 1;
+	}	
+	lua_CFunction f = (lua_CFunction) lua_touserdata(L , -1);
+	lua_pop(L,1);
+	return f(L);
+}
+
 static struct luaL_Reg dotnetlib[] = {
   {"call", lua_dotnetcall},
   {NULL, NULL}
@@ -70,6 +86,8 @@ int luaopen_dotnet_ext (lua_State *L) {
   luaL_openlib(L, "dotnet", dotnetlib, 0);  
   return 1;
 }
+
+#define toState		((lua_State *) luaState.ToPointer())
 
 // Not sure of the purpose of this, but I'm keeping it -kevinh
 static int tag = 0;
@@ -98,63 +116,25 @@ namespace Lua
 	/*
 	 * Delegate for functions passed to Lua as function pointers
 	 */
-	public delegate int LuaCSFunction(IntPtr luaState);
+	ref class LuaState;
+	public delegate int LuaCFunction(IntPtr L);
+	public delegate bool LuaCallback(LuaState^ luaState, List<Object^>^ params);
+	public delegate String^ LuaLoader(LuaState^ luaState, String^ name);
 
 	// To fix the strings:
 	// http://support.microsoft.com/kb/311259
 
-	public ref class LuaAPI
+	public ref class LuaState
 	{
 	private:
 		 static Encoding^ u8 = Encoding::UTF8;
+		 IntPtr luaState;
+		 LuaCFunction^ csCall;
+		 LuaCFunction^ csLoader;
+		 LuaCallback^ dotnetCall;
+		 LuaLoader^ dotnetLoader;
 
-	public:
-
-#define toState		((lua_State *) luaState.ToPointer())
-
-		static IntPtr open()
-		{
-			lua_State* L = ::luaL_newstate();
-			::luaL_openlibs(L);  /* open libraries */
-			::luamodule_cjson(L);
-			::luamodule_cjson_safe(L);
-			::luamodule_md5(L);
-			::luamodule_des56(L);
-			::luaopen_dotnet_ext(L);
-			return IntPtr(L);
-		}
-
-		static void error(IntPtr luaState)
-		{
-			::lua_error(toState);
-		}
-
-		static void close(IntPtr luaState)
-		{
-			::lua_close(toState);
-		}
-
-		static void addpath(IntPtr luaState, String^ path)
-		{
-			array<Byte>^bbuf = u8->GetBytes(path);
-			pin_ptr<Byte> pbuf = &bbuf[0];
-			::addSearchPath( toState , (const char*) pbuf);
-		}
-
-		static void setvar(IntPtr luaState, String^ key, String^ value)
-		{
-			lua_State* L = toState;
-
-			array<Byte>^bkey = u8->GetBytes(key);
-			pin_ptr<Byte> pkey = &bkey[0];
-
-			array<Byte>^bvalue = u8->GetBytes(value);
-			pin_ptr<Byte> pvalue = &bvalue[0];
-
-			::lua_pushstring(L, (const char*) pvalue);
-			::lua_setfield(L, LUA_GLOBALSINDEX, (const char*) pkey);
-		}
-
+	private:
 		static void pushDotnetValue(lua_State* L,Object^ v) {
 			if(v==nullptr) {
 				lua_pushnil(L);
@@ -290,10 +270,6 @@ namespace Lua
 			}
 		}
 
-		static void getParams(IntPtr luaState, List<Object^>^ data,int top,int nresults) {
-			popStackData(toState,data,top,nresults);
-		}
-
 		static void popStackData(lua_State* L, List<Object^>^ data,int top,int nresults) {
 			data->Clear();
 			for(int i=1;i<=nresults;i++) {		
@@ -304,9 +280,117 @@ namespace Lua
 			}
 		}
 
-		static bool pcall(IntPtr luaState, String^ fun, List<Object^>^ params)
+		int thisLuaCall(IntPtr nouse) {
+			lua_State* L = toState;
+			List<Object^>^ params = gcnew List<Object^>();
+			popStackData(L, params,0,lua_gettop(L));
+			try{
+				if(dotnetCall==nullptr) {
+					return luaL_error(L,"call is null");	
+				}
+				bool done = dotnetCall(this, params);
+				int r = pushStackData(L, params);
+				if(done)return r;
+				return lua_error(L);
+			} catch(System::Exception^ err){
+				array<Byte>^bbuf = u8->GetBytes(err->Message);
+				pin_ptr<Byte> pbuf = &bbuf[0];
+				return luaL_error(L,(const char*) pbuf);
+			}
+		}
+
+		int thisLuaLoader(IntPtr nouse) {
+			lua_State* L = toState;
+			if(dotnetLoader==nullptr) {
+				lua_pushstring(L, "invalid .net loader");
+				return 1;
+			}
+			const char* lname = lua_tostring(L,-1);
+			String^ name = gcnew String(lname, 0, strlen(lname), Encoding::UTF8);			
+			try{
+				String^ content = dotnetLoader(this, name);
+				if(content==nullptr) {
+					lua_pushstring(L, ".net load fail");
+					return 1;
+				}
+				array<Byte>^bcontent = u8->GetBytes(content);
+				pin_ptr<Byte> pcontent = &bcontent[0];
+				luaL_loadbuffer(L, (const char*) pcontent, bcontent->Length, lname);				
+				return 1;				
+			} catch(System::Exception^ err){
+				array<Byte>^bbuf = u8->GetBytes(err->Message);
+				pin_ptr<Byte> pbuf = &bbuf[0];
+				lua_pushstring(L, (const char*) pbuf);
+				return 1;
+			}
+		}
+
+	public:
+		bool open()
+		{
+			lua_State* L = ::luaL_newstate();
+			::luaL_openlibs(L);  /* open libraries */
+			::luamodule_cjson(L);
+			::luamodule_cjson_safe(L);
+			::luamodule_md5(L);
+			::luamodule_des56(L);
+			::luaopen_dotnet_ext(L);
+
+			luaState = IntPtr(L);
+			csCall = gcnew LuaCFunction(this, &LuaState::thisLuaCall); 
+
+			IntPtr p = Marshal::GetFunctionPointerForDelegate(csCall);
+			lua_pushstring( L , "_dotnetcall");
+			lua_pushlightuserdata(L, p.ToPointer());
+			lua_settable( L , LUA_REGISTRYINDEX );		
+
+			return true;
+		}
+
+		void close()
 		{
 			lua_State* L = toState;
+			if(L!=NULL) {
+				::lua_close(L);
+				luaState = IntPtr(nullptr);
+				csCall = nullptr;
+				csLoader = nullptr;
+			}
+		}
+
+		void addpath(String^ path)
+		{
+			lua_State* L = toState;
+			if(L==NULL)return;
+			array<Byte>^bbuf = u8->GetBytes(path);
+			pin_ptr<Byte> pbuf = &bbuf[0];
+			::addSearchPath( toState , (const char*) pbuf);
+		}
+
+		void setvar(String^ key, String^ value)
+		{
+			lua_State* L = toState;
+			if(L==NULL)return;
+
+			array<Byte>^bkey = u8->GetBytes(key);
+			pin_ptr<Byte> pkey = &bkey[0];
+
+			array<Byte>^bvalue = u8->GetBytes(value);
+			pin_ptr<Byte> pvalue = &bvalue[0];
+
+			::lua_pushstring(L, (const char*) pvalue);
+			::lua_setfield(L, LUA_GLOBALSINDEX, (const char*) pkey);
+		}
+
+		bool pcall(String^ fun, List<Object^>^ params)
+		{
+			lua_State* L = toState;
+			if(L==NULL) {
+				params->Clear();
+				params->Add(gcnew String("luaState not open"));
+				return false;
+			}
+
 			int top = lua_gettop(L);
 
 			array<Byte>^bfun = u8->GetBytes(fun);
@@ -321,9 +405,12 @@ namespace Lua
 			return err==0;
 		}
 
-		static String^ eval(IntPtr luaState, String^ s)
+		String^ eval(String^ s)
 		{
 			lua_State* L = toState;
+			if(L==NULL) {
+				return gcnew String("luaState not open");
+			}
 
 			array<Byte>^bbuf = u8->GetBytes(s);
 			pin_ptr<Byte> pbuf = &bbuf[0];
@@ -337,17 +424,28 @@ namespace Lua
 			return nullptr;
 		}
 
-		static int gettop(IntPtr luaState) {
-			return lua_gettop(toState);
+		void callback(LuaCallback^ function)
+		{
+			dotnetCall = function;					
 		}
 
-		static void callfunction(IntPtr luaState, LuaCSFunction^ function)
+		void loader(LuaLoader^ l)
 		{
-			lua_State* L = toState;
-			IntPtr p = Marshal::GetFunctionPointerForDelegate(function);
-			lua_pushstring( L , "_dotnetcall");
-			lua_pushlightuserdata(L, p.ToPointer());
-			lua_settable( L , LUA_REGISTRYINDEX );			
+			dotnetLoader = l;
+			if(csLoader==nullptr) {
+				lua_State* L = toState;
+
+				csLoader = gcnew LuaCFunction(this, &LuaState::thisLuaLoader); 
+
+				IntPtr p = Marshal::GetFunctionPointerForDelegate(csLoader);
+				lua_pushstring( L , "_dotnetloader");
+				lua_pushlightuserdata(L, p.ToPointer());
+				lua_settable( L , LUA_REGISTRYINDEX );		
+
+				setModuleLoader(toState, lua_dotnetloader, 1);
+			}
 		}
 	};
 }
+
+

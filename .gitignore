@@ -28,3 +28,5 @@ UpgradeLog.*
 libluajni.so
 *.zip
 *.log
+*.pfx
+*.ipch

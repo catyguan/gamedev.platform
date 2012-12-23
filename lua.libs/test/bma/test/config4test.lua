@@ -2,7 +2,7 @@
 CONFIG.DEBUG = true
 
 CONFIG.Log = {
-	type="print"
+	type="print",
 }
 
 CONFIG.Living = {

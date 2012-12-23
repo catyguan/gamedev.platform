@@ -161,6 +161,11 @@ class.instance = function(name)
 	return o
 end
 
+class.hasInstance = function(name)
+	local o = _instance[name]
+	return o~=nil
+end
+
 class.setInstance = function(name,o)
 	_instance[name] = o
 end

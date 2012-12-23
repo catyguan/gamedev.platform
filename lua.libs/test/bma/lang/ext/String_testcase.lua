@@ -1,8 +1,8 @@
 ---- string
 require("bma.lang.ext.Core")
 
-testcase.include("bma.lang.ext.String")
-testcase.include("bma.lang.ext.Dump")
+include("bma.lang.ext.String")
+include("bma.lang.ext.Dump")
 
 if false then
 	-- hex2bin

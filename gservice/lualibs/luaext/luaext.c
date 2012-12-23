@@ -51,3 +51,18 @@ void addSearchPath(lua_State* L, const char* path)
     lua_setfield(L, -2, "path");      /* package.path = newpath, stack: package */
 	lua_pop(L, 1);                                            /* stack: - */
 }
+
+void setModuleLoader(lua_State* L, lua_CFunction loader,int replace )
+{
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "loaders");
+	if (!lua_istable(L, -1))
+		luaL_error(L, LUA_QL("package.loaders") " must be a table");
+	if(loader!=NULL) {
+		lua_pushcfunction(L, loader);
+	} else {
+		lua_pushnil(L);
+	}
+	lua_rawseti(L, -2, replace==0?3:2);
+	lua_pop(L,2);
+}

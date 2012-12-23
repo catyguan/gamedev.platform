@@ -36,46 +36,56 @@ function Class:callStack(opts)
 	end
 end
 
-function Class:response(opts,error,result)
-	local f = function()
-		if error then		
-			if type(opts)=="function" then 
-				opts(error)
-				return
-			end
-			if type(opts)=="table" then
-				if opts['handler'] then
-					opts['handler'](error)
-				else if opts['error'] then
-						opts['error'](error)
-						return
-					end
-				end			
-				LOG:debug("host.BaseService","miss error handler")
-			end
-		else
-			if result==nil then result = {} end				
-			if type(opts)=="function" then 
-				opts(nil, unpack(result))
-				return
-			end
-			if type(opts)=="table" then
-				if opts['filter'] then
-					result = opts['filter'](result);
-				end
-				if opts['handler'] then
-					opts['handler'](nil, unpack(result))
-				else if opts['success'] then
-						opts['success'](unpack(result))
-						return
-					end
-				end
-				LOG:debug("host.BaseService","miss success handler")
-			end
+function Class:response(opts,err,result)
+	if opts==nil then
+		if err then
+			error(err)
 		end
-		LOG:warn("host.BaseService","invalid options type"..type(opts))
+		return unpack(result)
+	else
+		local f = function()
+			if err then		
+				if type(opts)=="function" then 
+					opts(err)
+					return
+				end
+				if type(opts)=="table" then
+					if opts['handler'] then
+						opts['handler'](err)
+						return
+					else if opts['error'] then
+							opts['error'](err)
+							return
+						end
+					end			
+					LOG:debug("host.BaseService","miss error handler")
+				end
+			else
+				if result==nil then result = {} end				
+				if type(opts)=="function" then 
+					opts(nil, unpack(result))
+					return
+				end
+				if type(opts)=="table" then
+					if opts['filter'] then
+						result = opts['filter'](result);
+					end
+					if opts['handler'] then
+						opts['handler'](nil, unpack(result))
+						return
+					else if opts['success'] then
+							opts['success'](unpack(result))
+							return
+						end
+					end
+					LOG:debug("host.BaseService","miss success handler")
+				end
+			end
+			LOG:warn("host.BaseService","invalid options type "..type(opts))
+		end
+		tryCache(f, "Host.Response")
 	end
-	tryCache(f, "Host.Response")
+	return -1
 end
 
 function Class:aiResponse(callId, ...)
@@ -83,6 +93,10 @@ function Class:aiResponse(callId, ...)
 		LOG:debug("host.BaseService", "aiResponse => "..tostring(r1).."/"..tostring(r2))
 	end
 	self:call(fn, "airesponse", callId, ...)
+end
+
+function Class:scall(name, ...)
+	return self:call(nil,name,...)
 end
 
 function Class:createApp(cb, appId, appType)	
