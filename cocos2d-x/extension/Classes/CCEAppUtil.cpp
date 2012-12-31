@@ -16,7 +16,7 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
 
 	while(strlen(resources->directory)!=0) {
 		// if the frame's height is larger than the height of medium resource size, select large resource.
-		if (frameSize.height > resources->size.height)
+		if (frameSize.height >= resources->size.height)
 		{ 
 			CCFileUtils::sharedFileUtils()->setResourceDirectory(resources->directory);
 			CCDirector::sharedDirector()->setContentScaleFactor(MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width));

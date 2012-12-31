@@ -1,14 +1,14 @@
 #ifndef  __CCE_LUAHOST_H__
 #define  __CCE_LUAHOST_H__
 
+#include "CCEApplication.h"
+#include <list>
+
 typedef struct lua_State lua_State;
 
-#include "cocos2d.h"
-#include "luadef.h"
-
-class CCELuaHost;
-typedef bool (CALLBACK *CCELuaCall)(CCELuaHost* host, void* data, int callId, CCELuaValueArray& params);
-typedef std::string (CALLBACK *CCELuaLoader)(CCELuaHost* host, void* data, const char* name);
+class CCELuaApplication;
+typedef bool (CALLBACK *CCELuaCall)(CCELuaApplication* host, void* data, int callId, CCValueArray& ctx);
+typedef std::string (CALLBACK *CCELuaLoader)(CCELuaApplication* host, void* data, const char* name);
 
 typedef struct {
 	CCELuaCall call;
@@ -22,18 +22,16 @@ typedef struct {
 	int fix;
 } CCELuaHostTimer;
 
-class CCELuaHost
+class CCELuaApplication : public CCEApplication
 {
 public:
-    CCELuaHost();
-    virtual ~CCELuaHost();
+    CCELuaApplication();
+    virtual ~CCELuaApplication();
 
 private:
-	bool handleCallback(lua_State* L, CCELuaValueArray& data);
+	bool handleCallback(lua_State* L, CCValueArray& data);
 
 public:    
-    static void setInstance(CCELuaHost* host);
-
 	void open();
 	bool isOpen() {
 		return state!=NULL;
@@ -42,13 +40,13 @@ public:
 
 	void addpath(const char* path);
 	void setvar(const char* key, const char* value);
-	bool pcall(const char* fun, CCELuaValueArray& data);
+	bool pcall(const char* fun, CCValueArray& data);
 	std::string eval(const char* content);
 
 	void setLoader(CCELuaLoader loader,void* data);
 	void setCall(const char* name, CCELuaCall call, void* data);	
 
-	bool callResponse(int callId, const char* err, CCELuaValueArray& params);
+	bool callResponse(int callId, const char* err, CCValueArray& params);
 
 	void enablePrintLog();
 	void require(const char* package);
@@ -57,11 +55,10 @@ public:
 		std::list<std::string> pathList, std::list<std::string> bootstrapList);
 	
 	int luaCallback(lua_State* L);
-	static bool luaCallError(CCELuaValueArray& r,  const char * format, ...);
+	static bool luaCallError(CCValueArray& r,  const char * format, ...);
 	int luaLoad(lua_State* L);
         
-    static CCELuaHost* sharedLuaHost(void);
-    static void purgeSharedLuaHost(void);    
+    static CCELuaApplication* sharedLuaHost(void);
 
 	static void CALLBACK appRunnable(void* data, long mstick);
 
@@ -75,7 +72,8 @@ private:
 	std::list<CCELuaHostTimer> timers;
 	int minWaitTime;
 	int nowTick;
-	long startTick;	
+	int gcTick;
+	int startTick;	
 };
 
 #endif // __CCE_LUAHOST_H__

@@ -14,7 +14,7 @@ c2dxHS.install()
 local HS = class.instance("bma.host.Service")
 
 -- call & response
-if true then
+if false then
     local fun = nil
     fun = function(err, ...)
         print("callback",err, ...)    
@@ -97,3 +97,32 @@ if false then
     
 end   
 
+-- CC_FUNCTION_CALL
+if false then
+	local fun = function(err, f)
+        print("callback",err, f)    
+		print("function call = ", f("world"))
+    end
+    print("get function")
+    HS:call(fun, "function")
+end
+
+-- CCObject
+if false then
+	local fun = function(err, o)
+        print("callback",err, o)    
+		print("object method = ", o.visible(false))
+    end
+    print("get object")
+    HS:call(fun, "object")
+end
+
+-- CCObject Call
+if true then
+	local fun = function(err, o)
+        print("callback",err, o)    
+		print("object call = ", o(false))
+    end
+    print("get object call")
+    HS:call(fun, "ocall")
+end

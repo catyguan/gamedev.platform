@@ -12,17 +12,26 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppMacros.h" />
+    <ClInclude Include="..\Classes\CCEActionUtil.h" />
+    <ClInclude Include="..\Classes\CCEActor.h" />
+    <ClInclude Include="..\Classes\CCEActorCharacter.h" />
+    <ClInclude Include="..\Classes\CCEApplication.h" />
     <ClInclude Include="..\Classes\CCEAppUtil.h" />
-    <ClInclude Include="..\Classes\CCEDirector.h" />
-    <ClInclude Include="..\Classes\CCELuaHost.h" />
-    <ClInclude Include="..\Classes\LuaCall4UserDefaul.h" />
-    <ClInclude Include="..\Classes\luadef.h" />
+    <ClInclude Include="..\Classes\CCELuaApplication.h" />
+    <ClInclude Include="..\Classes\CCEScene.h" />
+    <ClInclude Include="..\Classes\CCESpriteFrameUtil.h" />
+    <ClInclude Include="..\Classes\CCEUtil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Classes\CCEActionUtil.cpp" />
+    <ClCompile Include="..\Classes\CCEActor.cpp" />
+    <ClCompile Include="..\Classes\CCEActorCharacter.cpp" />
+    <ClCompile Include="..\Classes\CCEApplication.cpp" />
     <ClCompile Include="..\Classes\CCEAppUtil.cpp" />
-    <ClCompile Include="..\Classes\CCEDirector.cpp" />
-    <ClCompile Include="..\Classes\CCELuaHost.cpp" />
-    <ClCompile Include="..\Classes\LuaCall4UserDefaul.cpp" />
+    <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
+    <ClCompile Include="..\Classes\CCEScene.cpp" />
+    <ClCompile Include="..\Classes\CCESpriteFrameUtil.cpp" />
+    <ClCompile Include="..\Classes\CCEUtil.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libCocosExtension</ProjectName>
@@ -69,7 +78,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;$(ProjectDir)..\..\..\gservice\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;$(ProjectDir)..\..\..\gservice\lua;D:\Program Files\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;COCOS2D_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
