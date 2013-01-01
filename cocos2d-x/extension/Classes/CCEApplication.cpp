@@ -54,12 +54,12 @@ CC_END_CALLS(CCEApplication, CCObject)
 CCValue CCEApplication::CALLNAME(pushScene)(CCValueArray& params) {	
 	std::string sceneName;
 	if(params.size()<1) {
-		throw std::string("miss sceneName");
+		throw new std::string("miss sceneName");
 	}
 	sceneName = params[0].stringValue();
 	CCScene* s = NULL; // getScene(sceneName, params);
 	if(s==NULL) {
-		throw std::string(sceneName+" scene invalid");
+		throw new std::string(sceneName+" scene invalid");
 	}	
 	CCDirector::sharedDirector()->pushScene(s);
 	return CCValue::booleanValue(true);
@@ -69,12 +69,12 @@ CCValue CCEApplication::CALLNAME(replaceScene)(CCValueArray& params)
 {
 	std::string sceneName;
 	if(params.size()<1) {
-		throw std::string("miss sceneName");
+		throw new std::string("miss sceneName");
 	}
 	sceneName = params[0].stringValue();
 	CCScene* s = NULL; // CCEDirector::sharedDirector()->getScene(sceneName, ctx);
 	if(s==NULL) {
-		throw std::string(sceneName+" scene invalid");
+		throw new std::string(sceneName+" scene invalid");
 	}	
 	CCDirector::sharedDirector()->replaceScene(s);
 	return CCValue::booleanValue(true);

@@ -69,6 +69,7 @@ int luaopen_cocos2d_ext (lua_State *L) {
 #define FLAG_OMCALL "_FOMCall"
 #define FLAG_FUNCTION "_FFunction"
 #define FLAG_OCALL "_FOCall"
+#define FLAG_LUA_FUNCTION "_FLuaFunction"
 
 static int isLuaFlag( lua_State * L , int idx, const char* flag )
 {
@@ -91,8 +92,7 @@ static int isLuaFlag( lua_State * L , int idx, const char* flag )
 }
 
 int luaObjectIndex( lua_State * L );
-int luaFunctionCall( lua_State * L );
-int luaObjectCall( lua_State* L);
+int luaProcessCall( lua_State * L );
 
 int luaMemGC( lua_State * L )
 {
@@ -112,9 +112,9 @@ int luaMemGC( lua_State * L )
 		return 0;
 	}
 	if ( isLuaFlag( L , 1 , FLAG_OCALL ) ) {
-		CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
-		if(obj!=NULL) {
-			obj->release();
+		CCOCall* call = (CCOCall*) lua_touserdata( L , 1 );
+		if(call->pObject!=NULL) {
+			call->pObject->release();
 		}
 		return 0;
 	}
@@ -143,6 +143,11 @@ static void pushCCObject(lua_State* L,CCObject* obj)
 	/* pusher the __gc metamethod */
 	lua_pushstring( L , "__gc");
 	lua_pushcfunction( L , &luaMemGC );
+	lua_rawset( L , -3 );
+
+	/* pusher the __call metamethod */
+	lua_pushstring( L , "__call");
+	lua_pushcfunction( L , &luaProcessCall);
 	lua_rawset( L , -3 );
 
 	lua_pushstring( L , FLAG_OBJECT);
@@ -206,7 +211,7 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 
 		/* pushes the __index metamethod */
 		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaFunctionCall );
+		lua_pushcfunction( L , &luaProcessCall );
 		lua_rawset( L , -3 );
 
 		lua_pushstring( L , FLAG_FUNCTION);
@@ -227,7 +232,7 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 
 		/* pushes the __index metamethod */
 		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaObjectCall );
+		lua_pushcfunction( L , &luaProcessCall );
 		lua_rawset( L , -3 );
 
 		lua_pushstring( L , "__gc" );
@@ -277,8 +282,24 @@ static CCValue popLuaValue(lua_State* L, int idx) {
 			if(idx<0) {
 				idx = lua_gettop(L)+idx+1;
 			}
+
 			int len = isLuaArray(L, idx);
 			if (len > 0) {
+				if(len==1) {
+					if ( lua_getmetatable( L , idx ) != 0 ) {
+						lua_pushstring( L , FLAG_LUA_FUNCTION);
+						lua_rawget( L , -2 );
+						int islf = lua_isnil( L, -1 );
+						lua_pop( L , 2 );
+						if(islf==0) {
+							lua_rawgeti(L, idx, 1);
+							int cid = lua_tointeger(L,-1);
+							lua_pop(L,1);
+							CCELuaCallResponse* rep = CCELuaCallResponse::create(getHost(L), cid);
+							return CCValue::objectValue(rep);
+						}
+					}
+				}
 				CCValueArray r;
 				for (int i = 1; i <= len; i++) {		
 					lua_rawgeti(L, idx, i);
@@ -320,7 +341,8 @@ static CCValue popLuaValue(lua_State* L, int idx) {
 	}
 }
 
-static void popStackData(lua_State* L, CCValueArray& params,int top,int nresults) {
+static void popStackData(lua_State* L, CCValueArray& params,int nresults) {
+	int top = lua_gettop(L) - nresults;
 	for(int i=1;i<=nresults;i++) {		
 		params.push_back(popLuaValue(L,top+i));
 	}
@@ -329,73 +351,38 @@ static void popStackData(lua_State* L, CCValueArray& params,int top,int nresults
 	}	
 }
 
-int luaObjectMethodCall( lua_State * L )
+int luaProcessCall( lua_State * L )
 {
-	if ( !isLuaFlag( L , 1 , FLAG_OMCALL ) )
-	{
-		lua_pushstring( L , "not CCObject call" );
-		lua_error( L );
-	}
-	CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
-	CCObject* obj = *(ptr);
-	char* p = (char*) (ptr+1);
-
 	int pc = lua_gettop(L)-1;
 	CCValueArray params;
-	popStackData(L, params, 1, pc);
+	popStackData(L, params, pc);
 
 	try {
-		CCValue r = obj->call(p, params);
+		CCValue r;
+		if ( isLuaFlag( L , 1 , FLAG_OMCALL ) )
+		{
+			CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
+			CCObject* obj = *(ptr);
+			char* p = (char*) (ptr+1);
+			r = obj->call(p, params);		
+		} else if ( isLuaFlag( L , 1 , FLAG_OBJECT) ) {
+			CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
+			r = (*ptr)->invoke(params);		
+		} else if ( isLuaFlag( L , 1 , FLAG_OCALL) ) {
+			CCOCall* ptr = (CCOCall*) lua_touserdata( L , 1 );
+			r = (ptr->pObject->*ptr->call)(params);
+		} else if( isLuaFlag( L , 1 , FLAG_FUNCTION) ) {
+			CC_FUNCTION_CALL* ptr = (CC_FUNCTION_CALL*) lua_touserdata( L , 1 );
+			CC_FUNCTION_CALL fn = *(ptr);
+			r = fn(params);
+		} else {
+			lua_pushstring( L , "invalid call" );
+			lua_error( L );
+		}
 		pushLuaValue(L, &r);
-	} catch(std::string err) {
-		lua_pushstring(L, err.c_str());
-		lua_error(L);
-	}
-	return 1;
-}
-
-int luaFunctionCall( lua_State * L )
-{
-	if ( !isLuaFlag( L , 1 , FLAG_FUNCTION) )
-	{
-		lua_pushstring( L , "not Function call" );
-		lua_error( L );
-	}
-	CC_FUNCTION_CALL* ptr = (CC_FUNCTION_CALL*) lua_touserdata( L , 1 );
-	CC_FUNCTION_CALL fn = *(ptr);
-	
-	int pc = lua_gettop(L)-1;
-	CCValueArray params;
-	popStackData(L, params, 1, pc);
-
-	try {
-		CCValue r = fn(params);
-		pushLuaValue(L, &r);
-	} catch(std::string err) {
-		lua_pushstring(L, err.c_str());
-		lua_error(L);
-	}
-	return 1;
-}
-
-int luaObjectCall( lua_State * L )
-{
-	if ( !isLuaFlag( L , 1 , FLAG_OCALL) )
-	{
-		lua_pushstring( L , "not Object call" );
-		lua_error( L );
-	}
-	CCOCall* ptr = (CCOCall*) lua_touserdata( L , 1 );
-		
-	int pc = lua_gettop(L)-1;
-	CCValueArray params;
-	popStackData(L, params, 1, pc);
-
-	try {
-		CCValue r = (ptr->pObject->*ptr->call)(params);
-		pushLuaValue(L, &r);
-	} catch(std::string err) {
-		lua_pushstring(L, err.c_str());
+	} catch(std::string* err) {
+		lua_pushstring(L, err->c_str());
+		delete err;
 		lua_error(L);
 	}
 	return 1;
@@ -422,7 +409,7 @@ int luaObjectIndex( lua_State * L )
 
 		/* pushes the __call metamethod */
 		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaObjectMethodCall );
+		lua_pushcfunction( L , &luaProcessCall );
 		lua_rawset( L , -3 );
 
 		/* pusher the __gc metamethod */
@@ -522,10 +509,10 @@ bool CCELuaApplication::pcall(const char* fun, CCValueArray& data)
 	/* function to be called */
 	lua_getfield(L, LUA_GLOBALSINDEX, fun);
 	int sz = pushStackData(L, data);
-	int err = lua_pcall(L, sz, LUA_MULTRET, 0);
-	sz = lua_gettop(L) - top;
+	int err = lua_pcall(L, sz, LUA_MULTRET, 0);	
 	data.clear();
-	popStackData(L, data, top, sz);
+	int ntop = lua_gettop(L);
+	popStackData(L, data, ntop - top);
 	if(err==0) {
 		return true;
 	}
@@ -573,8 +560,9 @@ int CCELuaApplication::luaLoad(lua_State* L)
 		std::string content = loader(this, loaderData, lname);
 		luaL_loadbuffer(L, content.c_str(), content.length(), lname);				
 		return 1;				
-	} catch(std::string err){
-		lua_pushstring(L, err.c_str());
+	} catch(std::string* err){
+		lua_pushstring(L, err->c_str());
+		delete err;
 		return 1;
 	}
 }
@@ -626,9 +614,12 @@ bool CCELuaApplication::handleCallback(lua_State* L, CCValueArray& data)
 		bool r = false;
 		try {
 			r = it->second.call(this, it->second.data, cid, data);
-		} catch (std::string e) {
-			CCLOG("[Host::handleCallback EXCEPTION] %s", e.c_str());
-			return luaCallError(data, e.c_str());
+		} catch (std::string* e) {
+			CCLOG("[Host::handleCallback EXCEPTION] %s", e->c_str());
+			data.clear();
+			data.push_back(CCValue::stringValue(*e));
+			delete e;
+			return false;
 		}
 		if (r) {
 			data.insert(data.begin(), CCValue::booleanValue(true));
@@ -684,17 +675,20 @@ bool CCELuaApplication::handleCallback(lua_State* L, CCValueArray& data)
 
 int CCELuaApplication::luaCallback(lua_State* L)
 {
+	int top = lua_gettop(L);
 	CCValueArray data;
-	popStackData(L, data,0,lua_gettop(L));
+	popStackData(L, data, top);
 	try {
 		bool done = handleCallback(L, data);
 		int r = pushStackData(L, data);
 		if(done)return r;
 		CCLOG("[Host::luaCallback ERROR] %s", lua_tostring(state, -1));
 		return lua_error(L);
-	} catch(std::string err){		
-		CCLOG("[Host::luaCallback EXCEPTION] %s", err.c_str());
-		return luaL_error(L,err.c_str());
+	} catch(std::string* err){		
+		CCLOG("[Host::luaCallback EXCEPTION] %s", err->c_str());
+		lua_pushstring(L, err->c_str());
+		delete err;
+		return lua_error(L);
 	}	
 }
 
@@ -794,4 +788,36 @@ void CCELuaApplication::createApp(const char* appType,
 	for(std::list<std::string>::const_iterator it = bootstrapList.begin(); it != bootstrapList.end(); it++) {
 		require(it->c_str());
 	}	
+}
+
+// CCELuaCallResponse
+CCELuaCallResponse::CCELuaCallResponse()
+{
+	m_App = NULL;
+	m_callId = 0;
+}
+
+CCELuaCallResponse::~CCELuaCallResponse()
+{
+
+}
+
+CCELuaCallResponse* CCELuaCallResponse::create(CCELuaApplication* app, int cid)
+{
+	CCELuaCallResponse* r = new CCELuaCallResponse();
+	r->m_App = app==NULL?CCELuaApplication::sharedLuaHost():app;
+	r->m_callId = cid;
+	r->autorelease();
+	return r;
+}
+
+CCValue CCELuaCallResponse::invoke(CCValueArray& params)
+{
+	CCValueArray ps(params);
+	ps.insert(ps.begin(), CCValue::intValue(m_callId));
+	bool r = m_App->pcall("luaInvokeResponse", ps);
+	if(r) {
+		return ps.size()>0?ps[0]:CCValue::nullValue();
+	}
+	throw new std::string(ps.size()>0?ps[0].stringValue():"<empty message>");
 }

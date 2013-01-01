@@ -76,5 +76,22 @@ private:
 	int startTick;	
 };
 
+class CCELuaCallResponse : public CCObject
+{
+public:
+	~CCELuaCallResponse();
+
+public:
+	static CCELuaCallResponse* create(CCELuaApplication* app, int cid);
+
+	virtual CCValue invoke(CCValueArray& params);
+
+protected:
+	CCELuaCallResponse();
+
+	CCELuaApplication* m_App;
+	int m_callId;
+};
+
 #endif // __CCE_LUAHOST_H__
 

@@ -47,8 +47,9 @@ void CCEActorCommand::update(float time) {
     CCValueArray ps(m_Params);
 	try {
 		// m_pActor->processCommand(CCELuaHost::sharedLuaHost(),-1,m_csName,ps);
-	} catch(std::string err) {
-		CCLOG("CCEActorCommand: ERROR - [%s] fail, %s",m_csName.c_str(),err.c_str());
+	} catch(std::string* err) {
+		CCLOG("CCEActorCommand: ERROR - [%s] fail, %s",m_csName.c_str(),err->c_str());
+		delete err;
 	}
 }
 

@@ -67,6 +67,14 @@ local args = {...}
 	end	
 end
 
+function Class:wrap(f)
+	local cid = self:nextCallId()
+	self.calls[cid] = f
+	local r = {cid}
+	setmetatable(r,{_FLuaFunction=true})
+	return r
+end
+
 function luaCallResponse(callId, err, ...)
 	if LDEBUG then
 		LOG:debug(LTAG,"luaCallResponse - callId="..callId..",err="..tostring(err))
@@ -81,6 +89,21 @@ function luaCallResponse(callId, err, ...)
 		else
 			instance:response(opts,nil,{...})
 		end
+	else
+		if LDEBUG then
+			LOG:debug(LTAG,"discard response "..callId)
+		end
+	end
+end
+
+function luaInvokeResponse(callId, ...)
+	if LDEBUG then
+		LOG:debug(LTAG,"luaInvokeResponse - callId="..callId)
+		print(...)
+	end
+	local f = instance.calls[callId]
+	if f then
+		return f(...)
 	else
 		if LDEBUG then
 			LOG:debug(LTAG,"discard response "..callId)

@@ -118,11 +118,30 @@ if false then
 end
 
 -- CCObject Call
-if true then
+if false then
 	local fun = function(err, o)
         print("callback",err, o)    
 		print("object call = ", o(false))
     end
     print("get object call")
     HS:call(fun, "ocall")
+end
+
+-- CCObject invoke
+if false then
+	local fun = function(err, o)
+        print("callback",err, o)    
+		print("object invoke = ", o(false))
+    end
+    print("get object")
+    HS:call(fun, "object")
+end
+
+-- LuaFunction to c2dx
+if true then
+	local fun = function(v)
+		-- error("fuck")
+		print("callback", v)    
+	end
+	HS:call(function()end,"luaf", HS:wrap(fun))
 end
