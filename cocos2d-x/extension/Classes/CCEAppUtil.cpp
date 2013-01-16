@@ -4,10 +4,16 @@ USING_NS_CC;
 
 void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resources, CCSize designResolutionSize)
 {
-	// Set the design resolution
-    view->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionNoBorder);
-
 	CCSize frameSize = view->getFrameSize();
+	float h = frameSize.height;
+	if(frameSize.height>frameSize.width) {
+		// ÊúÆÁ
+		h = frameSize.width;
+		view->setDesignResolutionSize(designResolutionSize.height, designResolutionSize.width, kResolutionNoBorder);
+	} else {
+		// Set the design resolution
+		view->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionNoBorder);
+	}
 
     // In this demo, we select resource according to the frame's height.
     // If the resource size is different from design resolution size, you need to set contentScaleFactor.
@@ -16,8 +22,9 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
 
 	while(strlen(resources->directory)!=0) {
 		// if the frame's height is larger than the height of medium resource size, select large resource.
-		if (frameSize.height >= resources->size.height)
+		if (h >= resources->size.height)
 		{ 
+			CCLOG("designSize => %f x %f resource => %s", resources->size.width, resources->size.height, resources->directory);			
 			CCFileUtils::sharedFileUtils()->setResourceDirectory(resources->directory);
 			CCDirector::sharedDirector()->setContentScaleFactor(MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width));
 			break;

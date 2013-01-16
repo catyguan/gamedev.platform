@@ -108,10 +108,10 @@ if false then
 end
 
 -- CCObject
-if false then
+if true then
 	local fun = function(err, o)
         print("callback",err, o)    
-		print("object method = ", o.visible(false))
+		print("object method = ", o:visible(false))
     end
     print("get object")
     HS:call(fun, "object")
@@ -138,7 +138,7 @@ if false then
 end
 
 -- LuaFunction to c2dx
-if true then
+if false then
 	local fun = function(v)
 		-- error("fuck")
 		print("callback", v)    

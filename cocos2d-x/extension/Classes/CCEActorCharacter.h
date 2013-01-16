@@ -1,9 +1,9 @@
 #ifndef  __CCE_ACTOR_CHARACTER_H__
 #define  __CCE_ACTOR_CHARACTER_H__
 
-#include "CCEActor.h"
+#include "cocos2d.h"
 
-class CCEActorCharacter : public CCEActorSprite
+class CCEActorCharacter : public cocos2d::CCSprite
 {
 public:
 	CCEActorCharacter();
@@ -15,9 +15,8 @@ public:
 
 	void setAction(const char* name, cocos2d::CCAction* action);
 
-	CCEActorCommand* statusSwitchAction(const char* type, const char* newActionName);
-
-	CCEActorCommand* statusEndAction(const char* type);
+	// CCActionInstant* statusSwitchAction(const char* type, const char* newActionName);
+	// CCActionInstant* statusEndAction(const char* type);
 
 public:
 	virtual void cleanup();

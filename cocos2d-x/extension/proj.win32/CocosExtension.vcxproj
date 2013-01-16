@@ -12,26 +12,31 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppMacros.h" />
-    <ClInclude Include="..\Classes\CCEActionUtil.h" />
-    <ClInclude Include="..\Classes\CCEActor.h" />
+    <ClInclude Include="..\Classes\CCEAction.h" />
     <ClInclude Include="..\Classes\CCEActorCharacter.h" />
     <ClInclude Include="..\Classes\CCEApplication.h" />
     <ClInclude Include="..\Classes\CCEAppUtil.h" />
+    <ClInclude Include="..\Classes\CCELayerTouch.h" />
+    <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
-    <ClInclude Include="..\Classes\CCEScene.h" />
     <ClInclude Include="..\Classes\CCESpriteFrameUtil.h" />
     <ClInclude Include="..\Classes\CCEUtil.h" />
+    <ClInclude Include="..\Classes\CCO4UserDefault.h" />
+    <ClInclude Include="..\Classes\CCScale9Sprite.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Classes\CCEActionUtil.cpp" />
-    <ClCompile Include="..\Classes\CCEActor.cpp" />
+    <ClCompile Include="..\Classes\CCEAction.cpp" />
     <ClCompile Include="..\Classes\CCEActorCharacter.cpp" />
     <ClCompile Include="..\Classes\CCEApplication.cpp" />
+    <ClCompile Include="..\Classes\CCEApplication4CreateObject.cpp" />
     <ClCompile Include="..\Classes\CCEAppUtil.cpp" />
+    <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
+    <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
-    <ClCompile Include="..\Classes\CCEScene.cpp" />
     <ClCompile Include="..\Classes\CCESpriteFrameUtil.cpp" />
     <ClCompile Include="..\Classes\CCEUtil.cpp" />
+    <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
+    <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libCocosExtension</ProjectName>

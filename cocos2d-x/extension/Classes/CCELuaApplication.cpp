@@ -1,4 +1,5 @@
 #include "CCELuaApplication.h"
+#include "cocoa/CCValueSupport.h"
 
 USING_NS_CC;
 
@@ -94,6 +95,28 @@ static int isLuaFlag( lua_State * L , int idx, const char* flag )
 int luaObjectIndex( lua_State * L );
 int luaProcessCall( lua_State * L );
 
+int luaToString( lua_State* L )
+{
+	if ( isLuaFlag( L , 1 , FLAG_OBJECT ) )
+	{
+		CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
+		lua_pushfstring(L,"CCVObject: %p", obj);
+		return 1;		
+	}
+	if ( isLuaFlag( L , 1 , FLAG_OMCALL ) ) {
+		char* p = (char*) lua_touserdata( L , 1 );
+		lua_pushfstring(L,"CCVOMethod: %s", p);
+		return 1;
+	}
+	if ( isLuaFlag( L , 1 , FLAG_OCALL ) ) {
+		CCOCall* call = (CCOCall*) lua_touserdata( L , 1 );
+		lua_pushfstring(L,"CCVOCall: %p,%p", call->pObject,call->call);
+		return 1;
+	}
+	lua_pushfstring(L,"unknow userdata: %p", lua_touserdata(L, 1));
+	return 1;
+}
+
 int luaMemGC( lua_State * L )
 {
 	if ( isLuaFlag( L , 1 , FLAG_OBJECT ) )
@@ -104,11 +127,7 @@ int luaMemGC( lua_State * L )
 		}
 		return 0;	
 	}
-	if ( isLuaFlag( L , 1 , FLAG_OMCALL ) ) {
-		CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
-		if(obj!=NULL) {
-			obj->release();
-		}
+	if ( isLuaFlag( L , 1 , FLAG_OMCALL ) ) {		
 		return 0;
 	}
 	if ( isLuaFlag( L , 1 , FLAG_OCALL ) ) {
@@ -145,6 +164,11 @@ static void pushCCObject(lua_State* L,CCObject* obj)
 	lua_pushcfunction( L , &luaMemGC );
 	lua_rawset( L , -3 );
 
+	/* pusher the __tostring metamethod */
+	lua_pushstring( L , "__tostring");
+	lua_pushcfunction( L , &luaToString );
+	lua_rawset( L , -3 );	
+
 	/* pusher the __call metamethod */
 	lua_pushstring( L , "__call");
 	lua_pushcfunction( L , &luaProcessCall);
@@ -177,10 +201,10 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 		lua_pushnumber(L, v->numberValue());
 		return;
 	} else if(t==CCValueTypeArray) {
-		const CCValueArray& o = v->arrayValue();
+		const CCValueArray* o = v->arrayValue();
 		lua_newtable(L);
 		int i = 1;
-		for (CCValueArrayIterator it = o.begin(); it != o.end(); ++ it)
+		for (CCValueArrayIterator it = o->begin(); it != o->end(); ++ it)
 		{	
 			lua_pushnumber(L, i+1);
 			pushLuaValue(L, &(*it));
@@ -188,9 +212,9 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 		}
 		return;
 	} else if(t==CCValueTypeMap) {
-		const CCValueMap& o = v->mapValue();
+		const CCValueMap* o = v->mapValue();
 		lua_newtable(L);
-		for(CCValueMapIterator it = o.begin(); it != o.end(); it++)
+		for(CCValueMapIterator it = o->begin(); it != o->end(); it++)
 		{
 			lua_pushstring(L, it->first.c_str());
 			pushLuaValue(L, &(it->second));
@@ -214,6 +238,11 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 		lua_pushcfunction( L , &luaProcessCall );
 		lua_rawset( L , -3 );
 
+		/* pusher the __tostring metamethod */
+		lua_pushstring( L , "__tostring");
+		lua_pushcfunction( L , &luaToString );
+		lua_rawset( L , -3 );
+
 		lua_pushstring( L , FLAG_FUNCTION);
 		lua_pushboolean( L , 1 );
 		lua_rawset( L , -3 );
@@ -235,8 +264,14 @@ static void pushLuaValue(lua_State* L, const CCValue* v)
 		lua_pushcfunction( L , &luaProcessCall );
 		lua_rawset( L , -3 );
 
+		/* pusher the __gc metamethod */
 		lua_pushstring( L , "__gc" );
 		lua_pushcfunction( L , &luaMemGC);
+		lua_rawset( L , -3 );
+
+		/* pusher the __tostring metamethod */
+		lua_pushstring( L , "__tostring");
+		lua_pushcfunction( L , &luaToString );
 		lua_rawset( L , -3 );
 
 		lua_pushstring( L , FLAG_OCALL);
@@ -295,7 +330,7 @@ static CCValue popLuaValue(lua_State* L, int idx) {
 							lua_rawgeti(L, idx, 1);
 							int cid = lua_tointeger(L,-1);
 							lua_pop(L,1);
-							CCELuaCallResponse* rep = CCELuaCallResponse::create(getHost(L), cid);
+							CCELuaResponseObject* rep = CCELuaResponseObject::create(getHost(L), cid);
 							return CCValue::objectValue(rep);
 						}
 					}
@@ -323,15 +358,15 @@ static CCValue popLuaValue(lua_State* L, int idx) {
 		}
 		case LUA_TUSERDATA: {
 			if(isLuaFlag(L, idx, FLAG_OBJECT)) {
-				CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
+				CCObject* obj = *((CCObject**) lua_touserdata( L , idx ));
 				return CCValue::objectValue(obj);
 			}
 			if(isLuaFlag(L, idx, FLAG_FUNCTION)) {
-				CC_FUNCTION_CALL fn = *((CC_FUNCTION_CALL*) lua_touserdata( L , 1 ));
+				CC_FUNCTION_CALL fn = *((CC_FUNCTION_CALL*) lua_touserdata( L , idx ));
 				return CCValue::fcallValue(fn);
 			}
 			if(isLuaFlag(L, idx, FLAG_OCALL)) {
-				CCOCall* call = (CCOCall*) lua_touserdata( L , 1 );
+				CCOCall* call = (CCOCall*) lua_touserdata( L , idx );
 				return CCValue::ocallValue(call->pObject, call->call);
 			}
 		}
@@ -361,9 +396,13 @@ int luaProcessCall( lua_State * L )
 		CCValue r;
 		if ( isLuaFlag( L , 1 , FLAG_OMCALL ) )
 		{
-			CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
-			CCObject* obj = *(ptr);
-			char* p = (char*) (ptr+1);
+			if(params.size()<1 || !params[0].isObject()) {
+				lua_pushstring(L, "invalid object for method call");
+				lua_error(L);
+			}
+			CCObject* obj = params[0].objectValue();
+			params.erase(params.begin());
+			char* p = (char*) lua_touserdata( L , 1 );			
 			r = obj->call(p, params);		
 		} else if ( isLuaFlag( L , 1 , FLAG_OBJECT) ) {
 			CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
@@ -398,11 +437,8 @@ int luaObjectIndex( lua_State * L )
 	CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
 	const char* key = lua_tostring(L, 2);
 	if(obj->canCall(key)) {
-		CCObject** userData = ( CCObject** ) lua_newuserdata( L , sizeof( CCObject* )+strlen(key)+1 );
-		*userData = obj;
-		obj->retain();
-		char* p = (char*) (userData+1);
-		strcpy(p, key);
+		char* userData = ( char* ) lua_newuserdata( L , strlen(key)+1 );		
+		strcpy(userData, key);
 
 		/* Creates metatable */
 		lua_newtable( L );
@@ -466,6 +502,12 @@ void CCELuaApplication::open()
 	lua_pushlightuserdata(L, this);
 	lua_settable( L , LUA_REGISTRYINDEX );		
 	state = L;
+}
+
+void CCELuaApplication::cleanup()
+{
+	CCEApplication::cleanup();
+	close();
 }
 
 void CCELuaApplication::close()
@@ -597,9 +639,13 @@ bool CCELuaApplication::handleCallback(lua_State* L, CCValueArray& data)
 	std::string name = data[0].stringValue();
 	data.erase(data.begin());
 
-	if (name.compare("hostCall")==0) {
+	if (name.compare("hostApplication")==0) {
+		data.clear();
+		data.push_back(CCValue::objectValue(this));
+		return true;
+	} else if (name.compare("hostCall")==0) {
 		if(data.size()<2) {
-			return luaCallError(data, "invalid callId & methodId");
+			return luaCallError(data, "invalid callId & method");
 		}
 		int cid = data[0].intValue();
 		data.erase(data.begin());
@@ -609,7 +655,7 @@ bool CCELuaApplication::handleCallback(lua_State* L, CCValueArray& data)
 
 		std::map<std::string, CCELuaCallItem>::const_iterator it = calls.find(method);
 		if(it==calls.end()) {
-			return luaCallError(data, "invalid methodId '%s'", method.c_str()); 
+			return luaCallError(data, "invalid method '%s'", method.c_str()); 
 		}		
 		bool r = false;
 		try {
@@ -791,31 +837,79 @@ void CCELuaApplication::createApp(const char* appType,
 }
 
 // CCELuaCallResponse
-CCELuaCallResponse::CCELuaCallResponse()
+CCELuaResponseObject::CCELuaResponseObject()
 {
 	m_App = NULL;
 	m_callId = 0;
 }
 
-CCELuaCallResponse::~CCELuaCallResponse()
+CCELuaResponseObject::~CCELuaResponseObject()
 {
 
 }
 
-CCELuaCallResponse* CCELuaCallResponse::create(CCELuaApplication* app, int cid)
+CCELuaResponseObject* CCELuaResponseObject::create(CCELuaApplication* app, int cid)
 {
-	CCELuaCallResponse* r = new CCELuaCallResponse();
+	CCValueArray ret;
+	return create(app,cid,ret);
+}
+
+CCELuaResponseObject* CCELuaResponseObject::create(CCELuaApplication* app, int cid, CCValueArray& ret)
+{
+	CCELuaResponseObject* r = new CCELuaResponseObject();
 	r->m_App = app==NULL?CCELuaApplication::sharedLuaHost():app;
 	r->m_callId = cid;
 	r->autorelease();
+	r->m_Return.push_back(CCValue::intValue(cid));
+	CCValueUtil::append(r->m_Return, ret);
 	return r;
 }
 
-CCValue CCELuaCallResponse::invoke(CCValueArray& params)
+CCValue CCELuaResponseObject::invoke(CCValueArray& params)
 {
-	CCValueArray ps(params);
-	ps.insert(ps.begin(), CCValue::intValue(m_callId));
+	CCValueArray ps;
+	CCValueUtil::append(ps,m_Return);
+	CCValueUtil::append(ps,params);	
 	bool r = m_App->pcall("luaInvokeResponse", ps);
+	if(r) {
+		return ps.size()>0?ps[0]:CCValue::nullValue();
+	}
+	throw new std::string(ps.size()>0?ps[0].stringValue():"<empty message>");
+}
+
+// CCELuaCallObject
+CCELuaCallObject::CCELuaCallObject()
+{
+	m_App = NULL;
+}
+
+CCELuaCallObject::~CCELuaCallObject()
+{
+
+}
+
+CCELuaCallObject* CCELuaCallObject::create(CCELuaApplication* app, const char* fun)
+{
+	CCValueArray ps;
+	return create(app,fun,ps);
+}
+
+CCELuaCallObject* CCELuaCallObject::create(CCELuaApplication* app, const char* fun, CCValueArray& ps)
+{
+	CCELuaCallObject* r = new CCELuaCallObject();
+	r->m_App = app==NULL?CCELuaApplication::sharedLuaHost():app;
+	r->m_csFun = fun;
+	r->autorelease();
+	r->m_Params = ps;
+	return r;
+}
+
+CCValue CCELuaCallObject::invoke(CCValueArray& params)
+{
+	CCValueArray ps;
+	CCValueUtil::append(ps,m_Params);
+	CCValueUtil::append(ps,params);	
+	bool r = m_App->pcall(m_csFun.c_str(), ps);
 	if(r) {
 		return ps.size()>0?ps[0]:CCValue::nullValue();
 	}

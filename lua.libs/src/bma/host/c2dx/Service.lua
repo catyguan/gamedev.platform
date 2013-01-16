@@ -10,13 +10,14 @@ local CFG = CONFIG.C2dxHost or EMPTY_TABLE
 local instance;
 
 function Class.install()
-	if not instance then instance = Class.new() end	
-	class.setInstance("bma.host.Service", instance)
+	if not instance then instance = Class.new() end		
+	class.setInstance("bma.host.Service", instance)		
 end
 
 function Class:ctor()
 	self.calls = {}
 	self.timers = {}
+	_G.director = c2dx.call("hostApplication")
 end
 
 function Class:nextCallId()

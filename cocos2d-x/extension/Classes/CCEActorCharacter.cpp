@@ -17,7 +17,7 @@ void CCEActorCharacter::cleanup()
 {
 	statusActions.removeAllObjects();
 	actions.removeAllObjects();
-	CCEActorSprite::cleanup();
+	CCSprite::cleanup();
 }
 
 /*
@@ -66,6 +66,7 @@ void CCEActorCharacter::setAction(const char* name,CCAction* action)
 	actions.setObject(action, name);
 }
 
+/*
 CCEActorCommand* CCEActorCharacter::statusSwitchAction(const char* type, const char* newActionName)
 {
 	CCValueArray ps;
@@ -80,3 +81,4 @@ CCEActorCommand* CCEActorCharacter::statusEndAction(const char* type)
 {
 	return statusSwitchAction(type,NULL);
 }
+*/

@@ -62,6 +62,9 @@ public:
 
 	static void CALLBACK appRunnable(void* data, long mstick);
 
+protected:
+	virtual void cleanup();
+
 private:	
     lua_State* state;
 	CCELuaLoader loader;
@@ -76,22 +79,44 @@ private:
 	int startTick;	
 };
 
-class CCELuaCallResponse : public CCObject
+class CCELuaResponseObject : public CCObject
 {
 public:
-	~CCELuaCallResponse();
+	~CCELuaResponseObject();
 
 public:
-	static CCELuaCallResponse* create(CCELuaApplication* app, int cid);
+	static CCELuaResponseObject* create(CCELuaApplication* app, int cid);
+	static CCELuaResponseObject* create(CCELuaApplication* app, int cid, CCValueArray& ret);
 
 	virtual CCValue invoke(CCValueArray& params);
 
 protected:
-	CCELuaCallResponse();
+	CCELuaResponseObject();
 
 	CCELuaApplication* m_App;
 	int m_callId;
+	CCValueArray m_Return;
 };
+
+class CCELuaCallObject: public CCObject
+{
+public:
+	~CCELuaCallObject();
+
+public:
+	static CCELuaCallObject* create(CCELuaApplication* app, const char* fun);
+	static CCELuaCallObject* create(CCELuaApplication* app, const char* fun, CCValueArray& ret);
+
+	virtual CCValue invoke(CCValueArray& params);
+
+protected:
+	CCELuaCallObject();
+
+	CCELuaApplication* m_App;
+	std::string m_csFun;
+	CCValueArray m_Params;
+};
+
 
 #endif // __CCE_LUAHOST_H__
 

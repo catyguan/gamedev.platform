@@ -1,16 +1,17 @@
 require("bma.lang.ext.Dump")
-
-include("bma.c2dx.CCEDirector")
+require("bma.c2dx.Common")
 
 if true then
-	local cls = bma.c2dx.CCEDirector;	
 	local HS = class.instance("bma.host.Service")
 	
 	print("Director simple test")
-	cls.pushScene("test1","Hello World!!!",240,240)	
+	local s = director:createObject("testScene1", "Hello World 1!!!",Point(240,240));
+	print("create = ",s)
+	director:pushScene(s)	
 	
 	HS:setTimer(function()
-		cls.replaceScene("test1","Hello World 2!!!",480,480)	
-		HS:setTimer(function() cls.popScene() end, 5000)
+		local s = director:createObject("testScene1", "Hello World 2!!!",Point(480,480));
+		director:replaceScene(s)	
+		HS:setTimer(function() director:popScene() end, 5000)
 	end, 5000)	
 end
