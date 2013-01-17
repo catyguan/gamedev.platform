@@ -13,7 +13,7 @@ public:
 	virtual ~CCELogoLayer();
 
 public:
-	virtual bool init();  
+	virtual bool init(CCValue call);  
 	
 	static CCELogoLayer* create(CCValueArray& ps);
 

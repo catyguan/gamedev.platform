@@ -85,7 +85,7 @@ void CCELayerTouchItem::call(int checktype,int type, CCTouch* touch)
 
 bool CCELayerTouchItem::operator() (const CCELayerTouchItem* t1,const CCELayerTouchItem* t2)
 {
-	if(t1->priority < t2->priority) return true;
+	if(t1->priority > t2->priority) return true;
 	if(t1->node->getZOrder() > t2->node->getZOrder())return true;
 	return false;
 }

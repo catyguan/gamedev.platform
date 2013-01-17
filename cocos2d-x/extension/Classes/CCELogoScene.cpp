@@ -16,24 +16,27 @@ CCELogoLayer::~CCELogoLayer()
 CCELogoLayer* CCELogoLayer::create(CCValueArray& ps)
 {
 	CCELogoLayer* layer = new CCELogoLayer();	
-	if(!layer->init()) {
+	CCValue call;
+	if(ps.size()>0) {
+		call = ps[0];		
+	}
+	if(!layer->init(call)) {
 		CC_SAFE_DELETE(layer);
 		return NULL;
-	}
-	if(ps.size()>0) {
-		layer->m_callDone = ps[0];
-		layer->m_callDone.retain();
-	}
+	}	
 	layer->autorelease();
 	return layer;
 }
 
-bool CCELogoLayer::init()
+bool CCELogoLayer::init(CCValue call)
 {
     // super init first
 	if(!CCELayerTouch::init()) {    
         return false;
     }
+
+	m_callDone = call;
+	m_callDone.retain();
     
     CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -41,7 +44,7 @@ bool CCELogoLayer::init()
 	this->addChild(l);
 
 	CCELayerTouchItem* item = createTouch(l);
-	item->onClick(1,this,touch_selector(CCELogoLayer::clickHandler));
+	item->onClick(this,touch_selector(CCELogoLayer::clickHandler));
 
     // build logo
     CCSprite* logo1 = CCSprite::create("logo_me.png");

@@ -38,13 +38,13 @@ public:
 	CCELayerTouchItem();
 	~CCELayerTouchItem();
 
-protected:
-	void addEventHandler(int id, int type, CCObject* obj, SEL_TouchHandler handler);
-
-	void call(int checktype, int type, CCTouch* touch);
+protected:	
 	void call(int type, CCTouch* touch){call(type,type,touch);}
 	
 public:
+	void addEventHandler(int id, int type, CCObject* obj, SEL_TouchHandler handler);
+	void call(int checktype, int type, CCTouch* touch);	
+
 	void setPriority(int newPriority){priority=newPriority;}
 	int getPriority(){return priority;}
 
@@ -53,11 +53,11 @@ public:
 
 	bool hasHandler(int type);
 
-	void onFocus(int id, CCObject* obj, SEL_TouchHandler handler) {
-		addEventHandler(id, kTouchTypeFocus, obj, handler);
+	void onFocus(CCObject* obj, SEL_TouchHandler handler) {
+		addEventHandler(kTouchTypeFocus, kTouchTypeFocus, obj, handler);
 	}
-	void onClick(int id, CCObject* obj, SEL_TouchHandler handler) {
-		addEventHandler(id, kTouchTypeClick, obj, handler);
+	void onClick(CCObject* obj, SEL_TouchHandler handler) {
+		addEventHandler(kTouchTypeClick, kTouchTypeClick, obj, handler);
 	}
 	bool remove(int id);
 	void clear();
@@ -84,7 +84,7 @@ public:
     /** creates an empty CCMenu */
     static CCELayerTouch* create();
 
-    /** initializes an empty CCMenu */
+    /** initializes */
     virtual bool init();
 
     /** set event handler priority. By default it is: -16 */

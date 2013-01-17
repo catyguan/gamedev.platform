@@ -5,6 +5,8 @@ require("bma.lang.ext.Dump")
 include("bma.matrix.Matrix")
 include("bma.matrix.Action")
 
+print(_G)
+
 local M =  bma.matrix.Matrix
 
 local hello = class.define("test.hello",{bma.matrix.Action})
@@ -35,7 +37,7 @@ if false then
     print(m:obj("abc"))
 end
 
-if true then
+if false then
     local a1 = class.define("test.a1",{bma.matrix.Action})    
     function a1:execute()
         print("a1")

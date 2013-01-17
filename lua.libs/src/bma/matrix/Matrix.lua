@@ -4,25 +4,22 @@ require("bma.lang.ext.Dump")
 require("bma.lang.ext.Table")
 
 -- macro
-local _statis = {}
-
-MT = function(m)
-    if not m then
-        return _statis.cur
-    end
-    return m
+MT = function()
+	if m then return m end
+    if _MATRIX_ then return _MATRIX_ end
+    error("running matrix not setup")
 end
 
 NOW = function()
-    return _statis.cur:prop("time")
+    return MT():prop("time")
 end
 
 DELAY = function(t)
-    return _statis.cur:prop("time") + t
+    return MT():prop("time") + t
 end
 
 OBJ = function(oid)
-    return _statis.cur:obj(oid)
+    return MT():obj(oid)
 end
 
 local CFG = CONFIG.Matrix or EMPTY_TABLE
@@ -31,7 +28,7 @@ local LACTDEBUG = CFG.ActionDebug or false
 local LTAG = "Matrix"
 
 -- class: Matrix
-local Matrix = class.define("bma.matrix.Matrix", {bma.persistent.PersistentEntity})
+local Matrix = class.define("bma.matrix.Matrix", {bma.lang.StdObject})
 
 Matrix.TLF_SECOND = function(t,st)
     return string.format("%.3fs",(t-st)/1000)
@@ -41,7 +38,7 @@ function Matrix:ctor()
     self.timeLabelFun = function(t,st)
         return (t-st) .. "t"
     end
-    self._prop = {}
+    
     self.actions = {}
     self.hasNewAction = false    
     self.config = {}
@@ -60,15 +57,15 @@ function Matrix:initObject()
 end
 
 function Matrix:isBegin()
-	return self._p.begin
+	return self._prop.begin
 end
 
 function Matrix:dumpTime()
-    return self.timeLabelFun(self._p.time, self._p.startTime)
+    return self.timeLabelFun(self._prop.time, self._prop.startTime)
 end
 
 function Matrix:clock()
-    return self._p.time + self._p.startTime
+    return self._prop.time + self._prop.startTime
 end
 
 function Matrix:random(m,n)
@@ -84,7 +81,7 @@ end
 -- <<objects>>
 function Matrix:obj(oid)    
     if oid==nil then return nil end
-    return self._p.objects[oid]
+    return self._prop.objects[oid]
 end
 
 function Matrix:addObject(o)    
@@ -93,47 +90,29 @@ function Matrix:addObject(o)
     if oid==nil then
         error(string.format("object(%s) id is nil",tostring(o)))
     end
-    if self._p.objects[oid]~=nil then
+    if self._prop.objects[oid]~=nil then
         error(string.format("oid[%s] exists",tostring(oid)))
     end
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> object[%s] enter",self:dumpTime(), self._p.time, oid)
+        LOG:debug(LTAG,"%s(%d) >> object[%s] enter",self:dumpTime(), self._prop.time, oid)
     end
-    self._p.objects[oid] = o
-    self:stateModify(true)
+    self._prop.objects[oid] = o
     if V(self:isBegin(), false) and o.onMatrixStart then    
         o:onMatrixStart(false)
     end
     return o
 end
 
-function Matrix:loadObject(cb, id, param, syn)
-	local m = class.instance("bma.persistent.Service")
-	local cb1 = function(err, o)
-		if not err then
-			if o and o:isObjectValid() then
-				self:addObject(o)
-				return aicall.done(cb, nil, self)
-			end
-			cb("loadObject("..tostring(id)..") invalid object")
-		else
-			cb(err)
-		end
-	end
-	m:get(cb1, id, param, syn)
-end
-
 function Matrix:removeObject(oid)
-    local o = self._p.objects[oid]
+    local o = self._prop.objects[oid]
     if o~=nil then
         if LDEBUG then
-            LOG:debug(LTAG,"%s(%d) >> object(%s) leave",self:dumpTime(), self._p.time, oid)
+            LOG:debug(LTAG,"%s(%d) >> object(%s) leave",self:dumpTime(), self._prop.time, oid)
         end
         if o.onMatrixKill ~= nil then
             o:onMatrixKill(true)
         end
-        self._p.objects[oid] = nil 
-        self:stateModify(true)   
+        self._prop.objects[oid] = nil 
         return true
     end
     return false
@@ -152,7 +131,7 @@ function Matrix:dumpAction()
     local r = ""
     for _,v in ipairs(self.actions) do 
         if #r > 0 then r = r .. "\n" end
-        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self._p.startTime),actstr(v.a))
+        r = r .. string.format("%s - %s",self.timeLabelFun(v.t, self._prop.startTime),actstr(v.a))
     end
     return r
 end
@@ -165,7 +144,7 @@ local handleAction = function(self, a)
     end
             
     if LDEBUG and LACTDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self._p.time,actstr(a))
+        LOG:debug(LTAG,"%s(%d) >> take[%s]",self:dumpTime(), self._prop.time,actstr(a))
     end                                
     local done,r,stt = pcall(function()
         if type(a.a)=="function" then
@@ -185,11 +164,11 @@ end
 function Matrix:process(step)
     if step==nil then step = 0 end
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> process(%d)",self:dumpTime(), self._p.time, step)
+        LOG:debug(LTAG,"%s(%d) >> process(%d)",self:dumpTime(), self._prop.time, step)
     end
-    _statis.cur = self
+    _G._MATRIX_ = self
     
-    local et = self._p.time + step
+    local et = self._prop.time + step
     while #self.actions>0 do
         if self.hasNewAction then            
             table.sort(self.actions, function(e1,e0)
@@ -206,27 +185,27 @@ function Matrix:process(step)
         end
     end    
     self:prop("time", et)
-    return self._p.time
+    return self._prop.time
 
 end
 
 function Matrix:delayAction(time,act)    
-    self:runAction(self._p.time+time,act)
+    self:runAction(self._prop.time+time,act)
 end
 
 function Matrix:nowAction(act)    
-    self:runAction(self._p.time,act)
+    self:runAction(self._prop.time,act)
 end
 
 function Matrix:runAction(time, act)    
     if act==nil then
         return false
     end    
-    if time < self._p.time then
+    if time < self._prop.time then
         if LOG:warnEnabled() then
-            LOG:warn(LTAG,"%d >> runAction(%d,_,%s) invalid time",self._p.time,time,actstr(act))
+            LOG:warn(LTAG,"%d >> runAction(%d,_,%s) invalid time",self._prop.time,time,actstr(act))
         end
-        error(string.format("runAction(%d) invalid time at %d", time, self._p.time))
+        error(string.format("runAction(%d) invalid time at %d", time, self._prop.time))
     end
     table.insert(self.actions, {t=time,a=act})
     self.hasNewAction = true    
@@ -257,18 +236,18 @@ end
 function Matrix:setup(startTime, time)
     self:prop("startTime", startTime)
     self:prop("time", time)
-    _statis.cur = self    
+    _G._MATRIX_ = self    
 end
 
 function Matrix:begin()
     self:prop("begin",true)
-    _statis.cur = self
+    _G._MATRIX_ = self
     
     if LDEBUG then
-        LOG:debug(LTAG,"%s(%d) >> begin",self:dumpTime(), self._p.time)    
+        LOG:debug(LTAG,"%s(%d) >> begin",self:dumpTime(), self._prop.time)    
     end
     
-    for k,o in pairs(self._p.objects) do
+    for k,o in pairs(self._prop.objects) do
         if o.onMatrixStart~= nil then
             o:onMatrixStart(false)
         end

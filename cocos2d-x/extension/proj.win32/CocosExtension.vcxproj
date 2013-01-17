@@ -20,7 +20,9 @@
     <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
     <ClInclude Include="..\Classes\CCESpriteFrameUtil.h" />
+    <ClInclude Include="..\Classes\CCETest4Lua.h" />
     <ClInclude Include="..\Classes\CCEUtil.h" />
+    <ClInclude Include="..\Classes\CCO4File.h" />
     <ClInclude Include="..\Classes\CCO4UserDefault.h" />
     <ClInclude Include="..\Classes\CCScale9Sprite.h" />
   </ItemGroup>
@@ -34,7 +36,9 @@
     <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
     <ClCompile Include="..\Classes\CCESpriteFrameUtil.cpp" />
+    <ClCompile Include="..\Classes\CCETest4Lua.cpp" />
     <ClCompile Include="..\Classes\CCEUtil.cpp" />
+    <ClCompile Include="..\Classes\CCO4File.cpp" />
     <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
     <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
   </ItemGroup>
