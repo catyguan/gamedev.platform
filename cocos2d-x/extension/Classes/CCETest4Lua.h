@@ -19,7 +19,7 @@ public:
 
     virtual bool init(const char* packageName);
 
-	void clickHandler(CCNode* node, int type, CCTouch*);
+	void clickHandler(CCNode* node, const char* name, CCNodeEvent*);
 
 protected:
 	std::string m_packageName;

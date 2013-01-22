@@ -50,8 +50,8 @@ bool CCETest4LuaLayer::init(const char* packageName)
 	CCLayerColor* main = CCLayerColor::create(ccc4(128,128,128,255));
 	this->addChild(main);
 
-	CCELayerTouchItem* item = createTouch(main);
-	item->onClick(this, touch_selector(CCETest4LuaLayer::clickHandler));
+	createTouch(main);
+	main->onEvent(NODE_EVENT_CLICK, this, nodeevent_selector(CCETest4LuaLayer::clickHandler));
 
 	CCLabelTTF* label = CCLabelTTF::create(packageName, "Arial", 24*2);
 	label->setPosition(ccp(size.width/2,size.height/2));
@@ -60,7 +60,7 @@ bool CCETest4LuaLayer::init(const char* packageName)
 	return true;
 }
 
-void CCETest4LuaLayer::clickHandler(CCNode* node, int type, CCTouch*)
+void CCETest4LuaLayer::clickHandler(CCNode* node, const char* name, CCNodeEvent*)
 {
 	CCValueArray ps;
 	ps.push_back(CCValue::stringValue(m_packageName));

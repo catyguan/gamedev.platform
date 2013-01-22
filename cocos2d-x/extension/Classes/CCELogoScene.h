@@ -17,7 +17,7 @@ public:
 	
 	static CCELogoLayer* create(CCValueArray& ps);
 
-	void clickHandler(CCNode* node, int type, CCTouch*);
+	void clickHandler(CCNode* node, const char* name, CCNodeEvent*);
 
 protected:
 	CCValue m_callDone;

@@ -12,25 +12,9 @@ enum {
     kCCELayerTouchHandlerPriority = -16,
 };
 
-typedef enum
-{
-	kTouchTypeNone,
-	kTouchTypeFocus,
-	kTouchTypeUnFocus,
-    kTouchTypeClick,
-	kTouchTypeHold,
-    kTouchTypeMax
-};
-
-typedef void (CCObject::*SEL_TouchHandler)(CCNode* node, int type, CCTouch*);
-#define touch_selector(_SELECTOR) (SEL_TouchHandler)(&_SELECTOR)
-
-typedef struct {
-	int id;
-	int type;	
-	CCObject* handleObject;
-	SEL_TouchHandler handler;
-} CCELayerTouchHandler;
+#define NODE_EVENT_FOCUS "focus"
+#define NODE_EVENT_UNFOCUS "unfocus"
+#define NODE_EVENT_CLICK "click"
 
 class CCELayerTouchItem {
 
@@ -38,41 +22,42 @@ public:
 	CCELayerTouchItem();
 	~CCELayerTouchItem();
 
-protected:	
-	void call(int type, CCTouch* touch){call(type,type,touch);}
-	
-public:
-	void addEventHandler(int id, int type, CCObject* obj, SEL_TouchHandler handler);
-	void call(int checktype, int type, CCTouch* touch);	
 
+public:
 	void setPriority(int newPriority){priority=newPriority;}
 	int getPriority(){return priority;}
 
 	void setCover(bool v){cover=v;}
 	bool isCover(){return cover;}
 
-	bool hasHandler(int type);
-
-	void onFocus(CCObject* obj, SEL_TouchHandler handler) {
-		addEventHandler(kTouchTypeFocus, kTouchTypeFocus, obj, handler);
-	}
-	void onClick(CCObject* obj, SEL_TouchHandler handler) {
-		addEventHandler(kTouchTypeClick, kTouchTypeClick, obj, handler);
-	}
-	bool remove(int id);
-	void clear();
+	void setTrack(bool v){track=v;}
+	bool isTrack(){return track;}
 
 	bool operator()(const CCELayerTouchItem* t1,const CCELayerTouchItem* t2);
 
 protected:
 	CCNode* node;
-	std::list<CCELayerTouchHandler*> eventHandlers;
-	
+
 	int priority;
 	bool cover;
+	bool track;
+		
 	bool focus;
+	bool tracked;
 
 	friend class CCELayerTouch;
+};
+
+class CCETouchEvent : public CCNodeEvent
+{
+public:
+	CCETouchEvent(CCPoint touch){m_touch = touch;};
+	~CCETouchEvent(){};
+
+	CCPoint& getTouch(){return m_touch;};
+
+protected:
+	CCPoint m_touch;
 };
 
 class CCELayerTouch : public CCLayer
@@ -101,7 +86,8 @@ public:
     virtual void ccTouchCancelled(CCTouch *touch, CCEvent* event);
     virtual void ccTouchMoved(CCTouch* touch, CCEvent* event);
 
-	CCELayerTouchItem* createTouch(CCNode* node);
+	CCELayerTouchItem* createTouch(CCNode* node){return createTouch(node,false);};
+	CCELayerTouchItem* createTouch(CCNode* node,bool track);
 	CCELayerTouchItem* getTouch(CCNode* node);
 	void removeTouch(CCNode* node);
 	void removeAllTouch();
@@ -115,14 +101,20 @@ public:
 	virtual bool isEnabled() { return m_bEnabled; }
     virtual void setEnabled(bool value) { m_bEnabled = value; };
 
-protected:
-	void focus(std::list<CCELayerTouchItem*>& items, CCTouch* touch);
-	void lostFocus(CCELayerTouchItem* item, CCTouch* touch);
+	void checkItems();
+	void itemTrackHandler(CCNode* node, const char* name, CCNodeEvent*);
 
-    bool itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCTouch * touch);
+protected:
+	void focus(std::list<CCELayerTouchItem*>& items, CCPoint touch);
+	void lostFocus(CCELayerTouchItem* item, CCPoint touch);
+	void untrack(CCELayerTouchItem* item);
+	
+    bool itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCPoint& touchPostion, bool track);
 	
 	std::list<CCELayerTouchItem*> m_touchItems;	
 	bool m_bEnabled;
+
+	CCPoint m_lastTouch;
 };
 
 #endif

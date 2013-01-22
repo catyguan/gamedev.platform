@@ -44,7 +44,7 @@ bool CCELogoLayer::init(CCValue call)
 	this->addChild(l);
 
 	CCELayerTouchItem* item = createTouch(l);
-	item->onClick(this,touch_selector(CCELogoLayer::clickHandler));
+	l->onEvent(NODE_EVENT_CLICK,this,nodeevent_selector(CCELogoLayer::clickHandler));
 
     // build logo
     CCSprite* logo1 = CCSprite::create("logo_me.png");
@@ -80,7 +80,7 @@ bool CCELogoLayer::init(CCValue call)
     return true;
 }
 
-void CCELogoLayer::clickHandler(CCNode* node, int type, CCTouch*)
+void CCELogoLayer::clickHandler(CCNode* node, const char* name, CCNodeEvent*)
 {
 	this->stopActionByTag(1);
 	if(m_callDone.canCall()) {
