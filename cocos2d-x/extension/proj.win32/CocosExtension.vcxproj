@@ -16,6 +16,9 @@
     <ClInclude Include="..\Classes\CCEActorCharacter.h" />
     <ClInclude Include="..\Classes\CCEApplication.h" />
     <ClInclude Include="..\Classes\CCEAppUtil.h" />
+    <ClInclude Include="..\Classes\CCEButton.h" />
+    <ClInclude Include="..\Classes\CCEControl.h" />
+    <ClInclude Include="..\Classes\CCELabelButton.h" />
     <ClInclude Include="..\Classes\CCELayerTouch.h" />
     <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
@@ -32,6 +35,9 @@
     <ClCompile Include="..\Classes\CCEApplication.cpp" />
     <ClCompile Include="..\Classes\CCEApplication4CreateObject.cpp" />
     <ClCompile Include="..\Classes\CCEAppUtil.cpp" />
+    <ClCompile Include="..\Classes\CCEButton.cpp" />
+    <ClCompile Include="..\Classes\CCEControl.cpp" />
+    <ClCompile Include="..\Classes\CCELabelButton.cpp" />
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
     <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />

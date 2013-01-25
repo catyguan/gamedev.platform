@@ -602,7 +602,7 @@ CCScale9Sprite* CCScale9Sprite::create()
 void CCScale9Sprite::setColor(const ccColor3B& color3)
 {
     m_tColor = color3;
-    if (scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
+    if (scale9Image!=NULL && scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
     {
         CCObject* child;
         CCARRAY_FOREACH(scale9Image->getChildren(), child)
@@ -625,7 +625,7 @@ void CCScale9Sprite::setOpacity(GLubyte var)
 {
     m_cOpacity = var;
 
-    if (scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
+    if (scale9Image!=NULL && scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
     {
         CCObject* child;
         CCARRAY_FOREACH(scale9Image->getChildren(), child)
@@ -701,7 +701,7 @@ void CCScale9Sprite::updateCapInset()
 void CCScale9Sprite::setOpacityModifyRGB(bool var)
 {
     m_bIsOpacityModifyRGB = var;
-    if (scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
+    if (scale9Image!=NULL && scale9Image->getChildren() && scale9Image->getChildren()->count() != 0)
     {
         CCObject* child;
         CCARRAY_FOREACH(scale9Image->getChildren(), child)

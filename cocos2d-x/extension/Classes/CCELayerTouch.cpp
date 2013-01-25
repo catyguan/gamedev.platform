@@ -187,7 +187,14 @@ bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
 		focus(items,m_lastTouch);
 		return true;
 	}
-	return false;
+
+	CCRect r = boundingBox();
+	r.origin = CCPointZero;
+	if(r.isEqual(&CCRectZero)) {
+		return true;
+	}
+	CCPoint local = getParent()->convertToNodeSpace(m_lastTouch);
+	return r.containsPoint(local);
 }
 
 void CCELayerTouch::lostFocus(CCELayerTouchItem* item, CCPoint touch)
@@ -315,4 +322,15 @@ bool CCELayerTouch::itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCPoint& to
 void CCELayerTouch::itemTrackHandler(CCNode* node, const char* name, CCNodeEvent*)
 {
 	checkItems();
+}
+
+CCELayerTouch* CCELayerTouch::getTouchLayer(CCNode* node)
+{
+    CCNode* pParent = node->getParent();
+    for( CCNode *c = pParent; c != NULL; c = c->getParent() )
+    {
+		CCELayerTouch* r = dynamic_cast<CCELayerTouch*>(c);        
+		if(r)return r;
+    }
+    return NULL;
 }

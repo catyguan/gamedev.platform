@@ -91,11 +91,10 @@ public:
 	CCELayerTouchItem* getTouch(CCNode* node);
 	void removeTouch(CCNode* node);
 	void removeAllTouch();
+	
+	
+	static CCELayerTouch* getTouchLayer(CCNode* node);
 
-    /**
-    @since v0.99.5
-    override onExit
-    */
     virtual void onExit();
 	
 	virtual bool isEnabled() { return m_bEnabled; }
