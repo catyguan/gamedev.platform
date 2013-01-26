@@ -246,10 +246,8 @@ CCEButton* CCEButton::create()
 
 void CCEButton::onEnter()
 {
-	CCNode::onEnter();
-	if(m_node==NULL) {
-		updateControl();
-	}
+	CCEControl::onEnter();
+	updateControl();
 }
 
 void CCEButton::cleanup()
