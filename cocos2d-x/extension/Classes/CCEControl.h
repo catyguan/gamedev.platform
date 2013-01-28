@@ -1,7 +1,7 @@
 #ifndef __CCE_CONTROL_H__
 #define __CCE_CONTROL_H__
 
-#include "cocos2d.h"
+#include "CCEContainer.h"
 
 USING_NS_CC;
 
@@ -14,16 +14,8 @@ USING_NS_CC;
 #define CONTROL_STATE_DISABLED		(1 << 2)
 #define CONTROL_STATE_SELECTED		(1 << 3)
 
-class CCEControl : public CCNode, public CCRGBAProtocol
+class CCEControl : public CCEContainer
 {
-    //CCRGBAProtocol
-    CC_PROPERTY(GLubyte, m_cOpacity, Opacity); 
-    CC_PROPERTY_PASS_BY_REF(ccColor3B, m_tColor, Color);
-	
-    bool m_bIsOpacityModifyRGB;
-    bool isOpacityModifyRGB();
-    void setOpacityModifyRGB(bool bOpacityModifyRGB);
-
 public:
     /** Tells whether the control is enabled. */
     virtual void setEnabled(bool v);

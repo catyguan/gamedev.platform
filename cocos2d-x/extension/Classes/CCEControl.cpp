@@ -3,10 +3,7 @@
 #include "CCELayerTouch.h"
 
 CCEControl::CCEControl()
-: m_cOpacity(0)
-, m_tColor(ccBLACK)
-, m_bIsOpacityModifyRGB(false)
-, m_bEnabled(false)
+: m_bEnabled(false)
 , m_bSelected(false)
 , m_bHighlighted(false)
 {
@@ -47,69 +44,6 @@ bool CCEControl::init()
 CCEControl::~CCEControl()
 {
     
-}
-
-//CRGBA protocol
-void CCEControl::setColor(const ccColor3B& color)
-{
-    m_tColor=color;
-    CCObject* child;
-    CCArray* children=getChildren();
-    CCARRAY_FOREACH(children, child)
-    {
-        CCRGBAProtocol* pNode = dynamic_cast<CCRGBAProtocol*>(child);        
-        if (pNode)
-        {
-            pNode->setColor(m_tColor);
-        }
-    }
-}
-
-ccColor3B CCEControl::getColor(void)
-{
-    return m_tColor;
-}
-
-
-void CCEControl::setOpacity(GLubyte opacity)
-{
-    m_cOpacity = opacity;
-    
-    CCObject* child;
-    CCArray* children=getChildren();
-    CCARRAY_FOREACH(children, child)
-    {
-        CCRGBAProtocol* pNode = dynamic_cast<CCRGBAProtocol*>(child);        
-        if (pNode)
-        {
-            pNode->setOpacity(opacity);
-        }
-    }
-}
-
-GLubyte CCEControl::getOpacity()
-{
-    return m_cOpacity;
-}
-
-void CCEControl::setOpacityModifyRGB(bool bOpacityModifyRGB)
-{
-    m_bIsOpacityModifyRGB=bOpacityModifyRGB;
-    CCObject* child;
-    CCArray* children=getChildren();
-    CCARRAY_FOREACH(children, child)
-    {
-        CCRGBAProtocol* pNode = dynamic_cast<CCRGBAProtocol*>(child);        
-        if (pNode)
-        {
-            pNode->setOpacityModifyRGB(bOpacityModifyRGB);
-        }
-    }
-}
-
-bool CCEControl::isOpacityModifyRGB()
-{
-    return m_bIsOpacityModifyRGB;
 }
 
 void CCEControl::setEnabled(bool bEnabled)

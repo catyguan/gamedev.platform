@@ -48,7 +48,7 @@ protected:
 	CCNode* m_titleLabel;
 	CCScale9Sprite* m_backgroundSprite;
 	
-public:
+public:	
     /* Define the button margin for Top/Bottom edge */
     CC_SYNTHESIZE_READONLY(int, m_marginV, VerticalMargin);
     /* Define the button margin for Left/Right edge */

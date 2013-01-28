@@ -7,10 +7,7 @@
 
 USING_NS_CC;
 
-enum {
-    //* priority used by the menu for the event handler
-    kCCELayerTouchHandlerPriority = -16,
-};
+#define kCCELayerTouchHandlerPriority -16
 
 #define NODE_EVENT_FOCUS "focus"
 #define NODE_EVENT_UNFOCUS "unfocus"
