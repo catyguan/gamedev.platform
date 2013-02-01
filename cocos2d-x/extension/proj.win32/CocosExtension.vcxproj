@@ -30,6 +30,7 @@
     <ClInclude Include="..\Classes\CCO4File.h" />
     <ClInclude Include="..\Classes\CCO4UserDefault.h" />
     <ClInclude Include="..\Classes\CCScale9Sprite.h" />
+    <ClInclude Include="..\Classes\CCScrollView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Classes\CCEAction.cpp" />
@@ -51,6 +52,7 @@
     <ClCompile Include="..\Classes\CCO4File.cpp" />
     <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
     <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
+    <ClCompile Include="..\Classes\CCScrollView.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libCocosExtension</ProjectName>

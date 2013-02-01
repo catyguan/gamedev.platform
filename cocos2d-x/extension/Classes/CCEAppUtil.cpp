@@ -104,3 +104,25 @@ CCPoint CCEAppUtil::getVisibleRightBottom()
     lazyInit();
     return ccp(s_visibleRect.origin.x+s_visibleRect.size.width, s_visibleRect.origin.y);
 }
+
+long CCEAppUtil::timestamp()
+{
+	return (long) time(NULL);
+}
+
+long CCEAppUtil::timeTick()
+{
+#ifndef CC_PLATFORM_WIN32
+  struct timeval tp = {0};
+  if (gettimeofday(&tp, NULL)) {
+    return 0;
+  } else {
+	return (long)(tp.tv_sec*1000 + tp.tv_usec/1000);
+  }  
+#endif
+
+#ifdef CC_PLATFORM_WIN32
+  DWORD tm = GetTickCount();
+  return (long)tm;
+#endif
+}

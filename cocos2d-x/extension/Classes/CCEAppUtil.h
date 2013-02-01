@@ -25,6 +25,9 @@ public:
     static cocos2d::CCPoint getVisibleLeftBottom();
     static cocos2d::CCPoint getVisibleRightBottom();
 
+	static long timestamp();
+	static long timeTick();
+
 private:
     static void lazyInit();
     static cocos2d::CCRect s_visibleRect;

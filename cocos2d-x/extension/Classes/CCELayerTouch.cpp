@@ -5,20 +5,20 @@
 #include "touch_dispatcher/CCTouchDispatcher.h"
 #include "touch_dispatcher/CCTouch.h"
 #include "base_nodes/CCNode_Events.h"
+#include "CCEAppUtil.h"
 
 //
 //CCELayerTouchItem
 //
 CCELayerTouchItem::CCELayerTouchItem()
+	: node(NULL)
+	, priority(0)
+	, cover(true)
+	, holdThreshold(750)
+	, focus(false)
+	, focusTime(0)
+	, holded(false)
 {
-	node = NULL;
-	
-	priority =0;	
-    cover = true;
-	track = false;
-
-	focus = false;
-	tracked = false;
 }
 
 CCELayerTouchItem::~CCELayerTouchItem()
@@ -37,8 +37,11 @@ bool CCELayerTouchItem::operator() (const CCELayerTouchItem* t1,const CCELayerTo
 //CCELayerTouch
 //
 CCELayerTouch::CCELayerTouch()
-{
-	m_bEnabled = true;
+	: m_bEnabled(true)
+	, m_checkHoldInterval(0.1f)
+	, m_checkHold(false)
+{	
+	
 }
 
 CCELayerTouch::~CCELayerTouch()
@@ -71,9 +74,13 @@ bool CCELayerTouch::init()
     setTouchMode(kCCTouchesOneByOne);
     setTouchEnabled(true);
 
-	m_bEnabled = true;       
-    
 	return true;
+}
+
+void CCELayerTouch::onEnter()
+{
+	CCLayer::onEnter();
+	m_checkHold = false;
 }
 
 void CCELayerTouch::onExit()
@@ -82,16 +89,20 @@ void CCELayerTouch::onExit()
     CCLayer::onExit();
 }
 
+CCELayerTouchItem* CCELayerTouch::newItem()
+{
+	return new CCELayerTouchItem();
+}
+
 CCELayerTouchItem* CCELayerTouch::createTouch(CCNode* node,bool track)
 {
 	CC_ASSERT(node);
 
 	CCELayerTouchItem* item = getTouch(node);
 	if(item!=NULL)return item;
-	item = new CCELayerTouchItem();
+	item = newItem();
 	item->node = node;
 	node->retain();
-	item->track = track;
 	m_touchItems.push_back(item);
 	return item;
 }
@@ -117,7 +128,6 @@ void CCELayerTouch::removeTouch(CCNode* node)
         CCELayerTouchItem* pItem = (*cur);
 		if(pItem->node==node) {
 			m_touchItems.erase(cur);
-			untrack(pItem);
 			delete pItem;
 		}
     }
@@ -129,7 +139,6 @@ void CCELayerTouch::removeAllTouch()
 	for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
     {
         CCELayerTouchItem* pItem = (*it);
-		untrack(pItem);
 		delete pItem;
     }
 	m_touchItems.clear();
@@ -156,7 +165,16 @@ void CCELayerTouch::focus(std::list<CCELayerTouchItem*>& items, CCPoint touch)
 		if(!item->focus) {
 			item->focus = true;
 			CCETouchEvent event(touch);
-			item->node->raiseEvent(NODE_EVENT_FOCUS,&event);		
+			item->node->raiseEvent(NODE_EVENT_FOCUS,&event);
+
+			if(item->node->hasEventHandler(NODE_EVENT_HOLD)) {
+				if(item->focusTime==0)item->focusTime = CCEAppUtil::timeTick();
+				if(!m_checkHold) {
+					m_checkHold = true;				
+					CCDirector::sharedDirector()->
+						getScheduler()->scheduleSelector(schedule_selector(CCELayerTouch::checkHold), this, m_checkHoldInterval,false);
+				}
+			}
 		}
 	}
 }
@@ -179,14 +197,16 @@ bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
         }
     }
 
-	m_lastTouch = touch->getLocation();
-
-	std::list<CCELayerTouchItem*> items;	
-	if (this->itemsForTouch(items,m_lastTouch,true))
+	CCPoint cp = touch->getLocation();
+	std::list<CCELayerTouchItem*> items;
+	itemsForTouch(items, cp);
+	if (items.size()>0)
 	{
-		focus(items,m_lastTouch);
+		focus(items,cp);
+		m_lastTouch = cp;
 		return true;
 	}
+	m_lastTouch = cp;	
 
 	CCRect r = boundingBox();
 	r.origin = CCPointZero;
@@ -199,8 +219,14 @@ bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
 
 void CCELayerTouch::lostFocus(CCELayerTouchItem* item, CCPoint touch)
 {
-	item->focus = false;
 	CCETouchEvent event(touch);
+	if(item->holded) {
+		item->holded = false;
+		item->node->raiseEvent(NODE_EVENT_UNHOLD,&event);	
+	}
+
+	item->focus = false;
+	item->focusTime = 0;	
 	item->node->raiseEvent(NODE_EVENT_UNFOCUS,&event);	
 }
 
@@ -216,7 +242,6 @@ void CCELayerTouch::ccTouchEnded(CCTouch *touch, CCEvent* event)
 			item->node->raiseEvent(NODE_EVENT_CLICK, &event);
 			lostFocus(item, touch->getLocation());
 		}
-		untrack(item);
 	}
 }
 
@@ -230,24 +255,19 @@ void CCELayerTouch::ccTouchCancelled(CCTouch *touch, CCEvent* event)
 		if(item->focus) {
 			lostFocus(item, touch->getLocation());
 		}
-		untrack(item);		
 	}
 }
 
-void CCELayerTouch::untrack(CCELayerTouchItem* item)
+void CCELayerTouch::checkItems(CCPoint* movePoint)
 {
-	if(item->tracked) {
-		item->node->removeEventHandler(NULL,this);
-		item->tracked = false;
+	CCPoint cp = movePoint!=NULL?*movePoint:m_lastTouch;
+
+	std::list<CCELayerTouchItem*> items;
+	itemsForTouch(items, cp);
+    if(items.size()>0) {
+		focus(items,cp);
 	}
-}
-
-void CCELayerTouch::checkItems()
-{
-	std::list<CCELayerTouchItem*> items;	        
-	this->itemsForTouch(items, m_lastTouch, true);
-	focus(items,m_lastTouch);
-
+	
     std::list<CCELayerTouchItem*>::const_iterator it;
 	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
 		CCELayerTouchItem* item = (*it);
@@ -261,62 +281,68 @@ void CCELayerTouch::checkItems()
 					break;
 				}
 			}
-			if(!f)lostFocus(item,m_lastTouch);
+			if(!f) {				
+				lostFocus(item,cp);
+			}			
 		}
+	}	
+}
+
+void CCELayerTouch::checkHold(float dt)
+{
+	bool hashold = false;
+	long tm = CCEAppUtil::timeTick();
+	std::list<CCELayerTouchItem*>::const_iterator it;
+	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
+		CCELayerTouchItem* item = (*it);
+		if(item->focusTime>0)
+		{
+			hashold = true;
+			if(!item->holded)
+			{
+				if(tm - item->focusTime >= item->holdThreshold)
+				{
+					item->holded = true;
+					CCETouchEvent event(m_lastTouch);
+					item->node->raiseEvent(NODE_EVENT_HOLD,&event);
+				}
+			}
+		}
+	}		
+	if(!hashold) {
+		m_checkHold = false;
+		CCDirector::sharedDirector()->getScheduler()->unscheduleSelector(schedule_selector(CCELayerTouch::checkHold),this);
 	}
 }
 
 void CCELayerTouch::ccTouchMoved(CCTouch* touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(event);
-	CCLOG("ccTouchMoved - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
+	// CCLOG("ccTouchMoved - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 
-	m_lastTouch = touch->getLocation();
-	checkItems();
+	CCPoint cp =touch->getLocation();
+	checkItems(&cp);
+	m_lastTouch = cp;
 }
 
-bool CCELayerTouch::itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCPoint& touchLocation,bool track)
-{	
-	if (m_touchItems.size()>0)
-    {
+void CCELayerTouch::orderItems(std::list<CCELayerTouchItem*>& ret)
+{
+	if(ret.size()>0) {
 		std::list<CCELayerTouchItem*>::const_iterator it;
-		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
-        {
-            CCELayerTouchItem* pItem = (*it);
-			CCNode* pChild = pItem->node;
-            if (pChild && pChild->isVisible())
-            {
-                CCPoint local = pChild->convertToNodeSpace(touchLocation);
-				if(pChild->containsPoint(local))
-                {
-					ret.push_front(pItem);					
-                }
-            }
-			if(track) {
-				if(pItem->track && !pItem->tracked) {
-					pChild->onEvent(NODE_EVENT_MOVE,this, nodeevent_selector(CCELayerTouch::itemTrackHandler));
-					pItem->tracked = true;
-				}
+		ret.sort(CCELayerTouchItem());
+		bool cover = false;
+		for(it=ret.begin();it!=ret.end();)
+		{
+			std::list<CCELayerTouchItem*>::const_iterator cur = it;
+			it++;
+			CCELayerTouchItem* pItem = (*cur);
+			if(cover) {
+				ret.erase(cur);
+			} else {
+				if(pItem->cover)cover = true;
 			}
-        }
-		if(ret.size()>0) {
-			ret.sort(CCELayerTouchItem());
-			bool cover = false;
-			for(it=ret.begin();it!=ret.end();)
-			{
-				std::list<CCELayerTouchItem*>::const_iterator cur = it;
-				it++;
-				CCELayerTouchItem* pItem = (*cur);
-				if(cover) {
-					ret.erase(cur);
-				} else {
-					if(pItem->cover)cover = true;
-				}
-			}
-			return true;
 		}
-    }	
-    return false;
+	}
 }
 
 void CCELayerTouch::itemTrackHandler(CCNode* node, const char* name, CCNodeEvent*)
@@ -333,4 +359,43 @@ CCELayerTouch* CCELayerTouch::getTouchLayer(CCNode* node)
 		if(r)return r;
     }
     return NULL;
+}
+
+void CCELayerTouch::itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCPoint& touchLocation)
+{	
+	if (m_touchItems.size()>0)
+    {
+		std::list<CCELayerTouchItem*>::const_iterator it;
+		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
+        {
+            CCELayerTouchItem* pItem = (*it);
+			CCNode* pChild = pItem->node;
+            if (pChild && pChild->isVisible())
+            {
+                CCPoint local = pChild->convertToNodeSpace(touchLocation);
+				if(pChild->containsPoint(local))
+                {
+					ret.push_front(pItem);					
+                }
+            }
+        }
+		if(ret.size()>0) {
+			orderItems(ret);			
+		}
+    }	
+}
+
+void CCELayerTouch::getFocusedItems(std::list<CCELayerTouchItem*>& ret)
+{	
+	if (m_touchItems.size()>0)
+    {
+		std::list<CCELayerTouchItem*>::const_iterator it;
+		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
+        {
+            CCELayerTouchItem* pItem = (*it);
+			if(pItem->focus) {
+				ret.push_front(pItem);
+			}
+        }
+    }	
 }
