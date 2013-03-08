@@ -38,13 +38,15 @@ bool CCELogoLayer::init(CCValue call)
 	m_callDone = call;
 	m_callDone.retain();
     
+	CCETouchBuilder b;
     CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
 	CCLayerColor* l = CCLayerColor::create(ccc4(255,255,255,255));
 	this->addChild(l);
 
-	CCELayerTouchItem* item = createTouch(l);
-	l->onEvent(NODE_EVENT_CLICK,this,nodeevent_selector(CCELogoLayer::clickHandler));
+	b.bind(l)
+		.onTap(this,nodeevent_selector(CCELogoLayer::clickHandler))
+		.createTouch(this);
 
     // build logo
     CCSprite* logo1 = CCSprite::create("logo_me.png");

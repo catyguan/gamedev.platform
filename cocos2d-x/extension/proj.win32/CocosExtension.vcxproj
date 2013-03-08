@@ -24,13 +24,16 @@
     <ClInclude Include="..\Classes\CCELayerTouch.h" />
     <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
+    <ClInclude Include="..\Classes\CCEScrollView.h" />
+    <ClInclude Include="..\Classes\CCESocket.h" />
     <ClInclude Include="..\Classes\CCESpriteFrameUtil.h" />
     <ClInclude Include="..\Classes\CCETest4Lua.h" />
+    <ClInclude Include="..\Classes\CCEThread.h" />
+    <ClInclude Include="..\Classes\CCETouch.h" />
     <ClInclude Include="..\Classes\CCEUtil.h" />
     <ClInclude Include="..\Classes\CCO4File.h" />
     <ClInclude Include="..\Classes\CCO4UserDefault.h" />
     <ClInclude Include="..\Classes\CCScale9Sprite.h" />
-    <ClInclude Include="..\Classes\CCScrollView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Classes\CCEAction.cpp" />
@@ -46,13 +49,16 @@
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
     <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
+    <ClCompile Include="..\Classes\CCEScrollView.cpp" />
+    <ClCompile Include="..\Classes\CCESocket.cpp" />
     <ClCompile Include="..\Classes\CCESpriteFrameUtil.cpp" />
     <ClCompile Include="..\Classes\CCETest4Lua.cpp" />
+    <ClCompile Include="..\Classes\CCEThread.cpp" />
+    <ClCompile Include="..\Classes\CCETouch.cpp" />
     <ClCompile Include="..\Classes\CCEUtil.cpp" />
     <ClCompile Include="..\Classes\CCO4File.cpp" />
     <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
     <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
-    <ClCompile Include="..\Classes\CCScrollView.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libCocosExtension</ProjectName>
@@ -99,7 +105,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;$(ProjectDir)..\..\..\gservice\lua;D:\Program Files\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\pthread;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;$(ProjectDir)..\..\..\gservice\lua;D:\Program Files\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;COCOS2D_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -121,7 +127,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\kazmath\include;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\win32;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\OGLES;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\platform\third_party\win32\pthread;$(ProjectDir)..\..\..\..\cocos2d-x\cocos2d-x\cocos2dx\support;..\Classes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;_EXPORT_DLL_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>

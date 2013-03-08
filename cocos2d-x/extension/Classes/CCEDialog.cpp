@@ -59,14 +59,14 @@ int CCEDialog::getResult()
 	
 void CCEDialog::bindOKClick(CCNode* node)
 {
-	createTouch(node);	
-	node->onEvent(NODE_EVENT_CLICK, this, nodeevent_selector(CCEDialog::onOKClick));
+	CCETouchBuilder b;
+	b.bind(node).onTap(this, nodeevent_selector(CCEDialog::onOKClick)).createTouch(this);
 }
 
 void CCEDialog::bindCancelClick(CCNode* node)
 {
-	createTouch(node);
-	node->onEvent(NODE_EVENT_CLICK, this, nodeevent_selector(CCEDialog::onCancelClick));
+	CCETouchBuilder b;
+	b.bind(node).onTap(this, nodeevent_selector(CCEDialog::onCancelClick)).createTouch(this);
 }
 	
 void CCEDialog::onOKClick(CCNode* node, const char* name, CCNodeEvent*)

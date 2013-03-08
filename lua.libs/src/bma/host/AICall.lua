@@ -89,19 +89,19 @@ function Class:run(...)
     end
 	
 	local HS = class.instance("bma.host.Service")
-	HS:call(f, unpack(ps))
+	HS:ainvoke(f, unpack(ps))
 	return self
-
 	
 end
 
 function Class:response(callId)
+	error("not finish");
 	return self:next(function(...)
 		local HS = class.instance("bma.host.Service")
-		HS:aiResponse(callId,nil,...)
+		HS:response2host(callId,nil,...)
 	end):error(function(err)
 	    local HS = class.instance("bma.host.Service")
-		HS:aiResponse(callId,err)
+		HS:response2host(callId,err)
 	end)
 end
 

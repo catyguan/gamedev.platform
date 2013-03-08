@@ -1,70 +1,19 @@
 #include "CCELuaApplication.h"
 #include "cocoa/CCValueSupport.h"
+#include "CCEUtil.h"
 
 USING_NS_CC;
 
-// CCELuaApplication
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef CCValue LuaHostValue;
+typedef CCValue& LuaHostValue_Ref;
+typedef CCValueArray LuaHostArray;
+typedef CCValueArray& LuaHostArray_Ref;
+typedef CCValueArrayIterator LuaHostArrayIterator;
+typedef CCValueMap LuaHostMap;
+typedef CCValueMap& LuaHostMap_Ref;
+typedef CCValueMapIterator LuaHostMapIterator;
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-
-// JSON
-void luamodule_cjson(lua_State *L);  
-void luamodule_cjson_safe(lua_State *L);
-// MD5
-void luamodule_md5(lua_State *L);
-// DES56
-void luamodule_des56(lua_State *L);
-
-// luaext
-void addSearchPath(lua_State* L, const char* path);
-
-int isLuaArray(lua_State *l, int idx);
-
-void setModuleLoader(lua_State* L, lua_CFunction loader,int replace );
-
-#ifdef __cplusplus
-}
-#endif
-
-static CCELuaApplication* getHost(lua_State* L) {
-	lua_pushstring( L , "_cocos2dhost");
-	lua_rawget( L , LUA_REGISTRYINDEX );
-
-	if( !lua_islightuserdata(L, -1))	
-	{
-		lua_pushstring( L , "invalid _cocos2d host object" );
-		lua_error( L );
-	}	
-	CCELuaApplication* host = (CCELuaApplication*) lua_touserdata(L , -1);
-	lua_pop(L,1);
-	return host;
-}
-
-static int lua_hostloader(lua_State *L) {	
-	CCELuaApplication* host = getHost(L);
-	return host->luaLoad(L);
-}
-
-static int lua_hostcall(lua_State *L) {
-	CCELuaApplication* host = getHost(L);
-	return host->luaCallback(L);
-}
-
-static struct luaL_Reg cocos2dlib[] = {
-  {"call", lua_hostcall},
-  {NULL, NULL}
-};
-
-
-int luaopen_cocos2d_ext (lua_State *L) {
-  luaL_openlib(L, "c2dx", cocos2dlib, 0);  
-  return 1;
-}
+#include "../lualibs/luahost/luahost_prototype.cpp"
 
 #define FLAG_OBJECT "_FObject"
 #define FLAG_OMCALL "_FOMCall"
@@ -72,436 +21,431 @@ int luaopen_cocos2d_ext (lua_State *L) {
 #define FLAG_OCALL "_FOCall"
 #define FLAG_LUA_FUNCTION "_FLuaFunction"
 
-static int isLuaFlag( lua_State * L , int idx, const char* flag )
+class CCELuaHostValuePrototype : public LuaHostValuePrototype
 {
-   if ( !lua_isuserdata( L , idx ) )
-      return 0;
+protected:
+	int getLuaType(CCValueType t) {
+		switch(t) {
+		case CCValueTypeInt:return LUA_TINT;
+		case CCValueTypeString:return LUA_TSTRING;
+		case CCValueTypeBoolean:return LUA_TBOOLEAN;
+		case CCValueTypeNumber:return LUA_TNUMBER;
+		case CCValueTypeArray:return LUA_TARRAY;
+		case CCValueTypeMap:return LUA_TMAP;
+		case CCValueTypeObject:
+		case CCValueTypeFunction:
+		case CCValueTypeObjectCall:
+			return LUA_TUSERDATA;
+		default:
+			return LUA_TNIL;
+		}
+	};
+public:
+	LuaHostPrototype* host;
+	CCValue VNULL;
 
-   if ( lua_getmetatable( L , idx ) == 0 )
-      return 0;
+public:
+	virtual int getLuaType(LuaHostValue_Ref v) {
+		CCValueType t = v.getType();
+		return getLuaType(t);
+	};
+	
+	virtual LuaHostArray newArray() {
+		return CCValueArray();
+	};
+	virtual int arraySize(LuaHostArray_Ref array) {
+		return array.size();
+	};
+	virtual LuaHostArrayIterator arrayBegin(LuaHostArray_Ref array) {
+		return array.begin();
+	};
+	virtual bool arrayValid(LuaHostArray_Ref array, LuaHostArrayIterator& it) {
+		return it!=array.end();
+	};
+	virtual bool arrayNext(LuaHostArray_Ref array, LuaHostArrayIterator& it) {
+		if(it!=array.end()) {
+			it++;
+		}
+		return it!=array.end();
+	};
+	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, LuaHostArrayIterator it) {
+		if(it!=array.end()) {
+			return (LuaHostValue_Ref) *it;
+		}
+		return VNULL;
+	};
+	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, int idx) {
+		int i = idx-1;
+		if(i>=0 && i<(int) array.size()) {
+			return array.at(i);
+		}
+		return VNULL;
+	};
+	virtual void arrayAdd(LuaHostArray_Ref array, LuaHostValue_Ref v) {
+		array.push_back(v);
+	};
+	virtual LuaHostValue arrayPopFirst(LuaHostArray_Ref array) {
+		CCValueArrayIterator it = array.begin();
+		if(it!=array.end()) {
+			CCValue r = *it;
+			array.erase(it);
+			return r;
+		}
+		return CCValue::nullValue();
+	};
+	virtual void arrayPushFirst(LuaHostArray_Ref array,LuaHostValue_Ref v) {
+		array.insert(array.begin(), v);
+	};
+	virtual void resetArray(LuaHostArray_Ref array) {
+		array.clear();
+	};
+	virtual void releaseArray(LuaHostArray_Ref v) {
+		v.clear();
+	};
+	
+	virtual LuaHostMap newMap() {
+		return CCValueMap();
+	};
+	virtual LuaHostMapIterator mapBegin(LuaHostMap_Ref map) {
+		return map.begin();
+	};
+	virtual bool mapValid(LuaHostMap_Ref map, LuaHostMapIterator& it) {
+		return it!=map.end();
+	};
+	virtual bool mapNext(LuaHostMap_Ref map, LuaHostMapIterator& it) {
+		if(it!=map.end()) {
+			it++;
+		}
+		return it!=map.end();
+	};
+	virtual std::string mapGetKey(LuaHostMap_Ref map, LuaHostMapIterator it) {
+		return it->first;
+	};
+	virtual LuaHostValue_Ref mapGetValue(LuaHostMap_Ref map, LuaHostMapIterator it) {
+		return (LuaHostValue_Ref) it->second;
+	};
+	virtual void mapSet(LuaHostMap_Ref map, const char* key, LuaHostValue_Ref v) {
+		map[key] = v;
+	};
+	virtual void releaseMap(LuaHostMap_Ref map) {
+		map.clear();
+	};
+	
+	virtual int intValue(LuaHostValue_Ref v) {
+		return v.intValue();
+	};
+	virtual std::string stringValue(LuaHostValue_Ref v) {
+		return v.stringValue();
+	};
+	virtual bool booleanValue(LuaHostValue_Ref v) {
+		return v.booleanValue();
+	};
+	virtual double numberValue(LuaHostValue_Ref v) {
+		return v.numberValue();
+	};
+	virtual LuaHostArray_Ref arrayValue(LuaHostValue_Ref v) {
+		return *v.arrayValue();
+	};
+	virtual LuaHostMap_Ref mapValue(LuaHostValue_Ref v) {
+		return *v.mapValue();
+	};
+	
+	virtual LuaHostValue newBoolean(bool v) {
+		return CCValue::booleanValue(v);
+	};
+	virtual LuaHostValue newInt(int v) {
+		return CCValue::intValue(v);
+	};
+	virtual LuaHostValue newNumber(double v) {
+		return CCValue::numberValue(v);
+	};
+	virtual LuaHostValue newString(const char* v) {
+		return CCValue::stringValue(v);
+	};
+	virtual LuaHostValue newArrayValue(LuaHostArray_Ref v) {
+		return CCValue::arrayValue(v);
+	};
+	virtual LuaHostValue newMapValue(LuaHostMap_Ref v) {
+		return CCValue::mapValue(v);
+	};
+	virtual LuaHostValue newNull() {
+		return CCValue::nullValue();
+	};
+	
+	virtual void pushUserdata(lua_State* L, LuaHostValue_Ref v) {
+		CCValueType t = v.getType();
+		if(t==CCValueTypeObject) {
+			CCObject* obj = v.objectValue();
+			obj->retain();			
+			host->pushUserdata(FLAG_OBJECT, &obj, sizeof(CCObject*), true, true);	
+			return;
+		} else if(t==CCValueTypeFunction) {
+			CC_FUNCTION_CALL fn = v.fcallValue();
+			host->pushUserdata(FLAG_FUNCTION, &fn, sizeof(CC_FUNCTION_CALL), false, true);	
+			return;
+		} else if(t==CCValueTypeObjectCall) {
+			const CCOCall* call = v.ocallValue();
+			host->pushUserdata(FLAG_OCALL, (void*) call, sizeof(CCOCall), false, true);
+			call->pObject->retain();
+			return;
+		}		
+	};
+	virtual LuaHostValue popUserdata(lua_State* L, const char* flag, const void* data) {
+		if(strcmp(flag, FLAG_OBJECT)==0) {
+			CCObject* obj = *((CCObject**) data);
+			return CCValue::objectValue(obj);
+		}
+		if(strcmp(flag, FLAG_FUNCTION)==0) {
+			CC_FUNCTION_CALL fn = *((CC_FUNCTION_CALL*) data);
+			return CCValue::fcallValue(fn);
+		}
+		if(strcmp(flag, FLAG_OCALL)==0) {
+			CCOCall* call = (CCOCall*) data;
+			return CCValue::ocallValue(call->pObject, call->call);
+		}
+		return CCValue::nullValue();
+	};
+};
 
-   lua_pushstring( L , flag );
-   lua_rawget( L , -2 );
+class CCELuaHost: public LuaHostPrototype
+{
+public:
+	CCELuaHost(CCELuaApplication* app) {
+		m_valuePrototype.host = this;
+		m_app = app;
+	};
+	virtual ~CCELuaHost(){};
 
-   if (lua_isnil( L, -1 ))
-   {
-      lua_pop( L , 2 );
-      return 0;
-   }
-   lua_pop( L , 2 );
-   return 1;
+public:
+	virtual int lapi_load();	
+	virtual LuaHostValue lapi_createClosure(int callId);
+	virtual std::string lapi_tostring(const char* flag, void* userdata);
+	virtual void lapi_ud_memgc(const char* flag, void* userdata);
+	virtual int lapi_ud_index(const char* flag, void* userdata, const char* key);
+	
+protected:
+	virtual LuaHostValuePrototype* valuePrototype() {
+		return &m_valuePrototype;
+	};
+	virtual int lapi_userdataCall(const char* flag, void* userdata, LuaHostArray_Ref params);		
+	
+	virtual bool handle_lua2host_call(std::string& callType, LuaHostArray_Ref data);
+	
+protected:
+	virtual void lcall_print(const char* msg) {
+		CCLOG("[LUA print] %s", msg);
+	};
+	virtual void lcall_setTimer(int timerId, int delayTime, int fixTime);
+	virtual bool lcall_invoke(const char* method, LuaHostArray_Ref data);
+	virtual bool lcall_ainvoke(int callId, const char* method, LuaHostArray_Ref data);
+	virtual void lcall_response(LuaHostArray_Ref data);
+	
+protected:
+	CCELuaApplication* m_app;
+	CCELuaHostValuePrototype m_valuePrototype;
+};
+
+std::string CCELuaHost::lapi_tostring(const char* flag, void* userdata)
+{
+	if(strcmp(flag, FLAG_OBJECT ) == 0)
+	{
+		CCObject* obj = *((CCObject**) userdata);
+		return StringUtil::format("CCVObject: %p", obj);
+	}
+	if (strcmp(flag, FLAG_OMCALL ) == 0) {
+		char* p = (char*) userdata;
+		return StringUtil::format("CCVOMethod: %s", p);
+	}
+	if ( strcmp( flag , FLAG_OCALL ) ==0 ) {
+		CCOCall* call = (CCOCall*) userdata;
+		return StringUtil::format("CCVOCall: %p,%p", call->pObject,call->call);
+	}
+	return "";
 }
 
-int luaObjectIndex( lua_State * L );
-int luaProcessCall( lua_State * L );
-
-int luaToString( lua_State* L )
+void CCELuaHost::lapi_ud_memgc(const char* flag, void* userdata)
 {
-	if ( isLuaFlag( L , 1 , FLAG_OBJECT ) )
+	if ( strcmp(flag , FLAG_OBJECT ) == 0 )
 	{
-		CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
-		lua_pushfstring(L,"CCVObject: %p", obj);
-		return 1;		
-	}
-	if ( isLuaFlag( L , 1 , FLAG_OMCALL ) ) {
-		char* p = (char*) lua_touserdata( L , 1 );
-		lua_pushfstring(L,"CCVOMethod: %s", p);
-		return 1;
-	}
-	if ( isLuaFlag( L , 1 , FLAG_OCALL ) ) {
-		CCOCall* call = (CCOCall*) lua_touserdata( L , 1 );
-		lua_pushfstring(L,"CCVOCall: %p,%p", call->pObject,call->call);
-		return 1;
-	}
-	lua_pushfstring(L,"unknow userdata: %p", lua_touserdata(L, 1));
-	return 1;
-}
-
-int luaMemGC( lua_State * L )
-{
-	if ( isLuaFlag( L , 1 , FLAG_OBJECT ) )
-	{
-		CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
+		CCObject* obj = *((CCObject**) userdata);
 		if(obj!=NULL) {
 			obj->release();
 		}
-		return 0;	
+		return;
 	}
-	if ( isLuaFlag( L , 1 , FLAG_OMCALL ) ) {		
-		return 0;
+	if ( strcmp(flag, FLAG_OMCALL ) ==0 ) {		
+		return;
 	}
-	if ( isLuaFlag( L , 1 , FLAG_OCALL ) ) {
-		CCOCall* call = (CCOCall*) lua_touserdata( L , 1 );
+	if ( strcmp(flag , FLAG_OCALL ) ==0 ) {
+		CCOCall* call = (CCOCall*) userdata;
 		if(call->pObject!=NULL) {
 			call->pObject->release();
 		}
-		return 0;
+		return;
 	}
 	CCLOG("unknow userdata");
-	return 0;
 }
 
-static void pushCCObject(lua_State* L,CCObject* obj)
+int CCELuaHost::lapi_userdataCall(const char* flag, void* userdata, LuaHostArray_Ref params)
 {
-	if(obj==NULL) {
-		lua_pushnil(L);
-	}
-
-	CCObject** userData = ( CCObject** ) lua_newuserdata( L , sizeof( CCObject* ) );
-	*userData = obj;
-	obj->retain();
-
-	/* Creates metatable */
-	lua_newtable( L );
-
-	/* pushes the __index metamethod */
-	lua_pushstring( L , "__index" );
-	lua_pushcfunction( L , &luaObjectIndex );
-	lua_rawset( L , -3 );
-
-	/* pusher the __gc metamethod */
-	lua_pushstring( L , "__gc");
-	lua_pushcfunction( L , &luaMemGC );
-	lua_rawset( L , -3 );
-
-	/* pusher the __tostring metamethod */
-	lua_pushstring( L , "__tostring");
-	lua_pushcfunction( L , &luaToString );
-	lua_rawset( L , -3 );	
-
-	/* pusher the __call metamethod */
-	lua_pushstring( L , "__call");
-	lua_pushcfunction( L , &luaProcessCall);
-	lua_rawset( L , -3 );
-
-	lua_pushstring( L , FLAG_OBJECT);
-	lua_pushboolean( L , 1 );
-	lua_rawset( L , -3 );
-
-	lua_setmetatable( L , -2 );
-}
-
-static void pushLuaValue(lua_State* L, const CCValue* v)
-{
-	if(v==NULL) {
-		lua_pushnil(L);
-		return;
-	}
-	CCValueType t = v->getType();
-	if(t==CCValueTypeInt) {
-		lua_pushinteger(L, v->intValue());	
-		return;
-	} else if(t==CCValueTypeString) {
-		lua_pushstring(L, v->stringValue().c_str());
-		return;
-	} else if(t==CCValueTypeBoolean) {
-		lua_pushboolean(L, v->booleanValue()?1:0);
-		return;
-	} else if(t==CCValueTypeNumber) {
-		lua_pushnumber(L, v->numberValue());
-		return;
-	} else if(t==CCValueTypeArray) {
-		const CCValueArray* o = v->arrayValue();
-		lua_newtable(L);
-		int i = 1;
-		for (CCValueArrayIterator it = o->begin(); it != o->end(); ++ it)
-		{	
-			lua_pushnumber(L, i+1);
-			pushLuaValue(L, &(*it));
-			lua_settable(L,-3);
+	lua_State* L = m_state;
+	CCValue r;
+	if ( strcmp(flag, FLAG_OMCALL )==0 )
+	{
+		if(params.size()<1 || !params[0].isObject()) {
+			lua_pushstring(L, "invalid object for method call");
+			lua_error(L);
 		}
-		return;
-	} else if(t==CCValueTypeMap) {
-		const CCValueMap* o = v->mapValue();
-		lua_newtable(L);
-		for(CCValueMapIterator it = o->begin(); it != o->end(); it++)
-		{
-			lua_pushstring(L, it->first.c_str());
-			pushLuaValue(L, &(it->second));
-			lua_settable(L,-3);
-		}
-		return;
-	} else if(t==CCValueTypeObject) {
-		CCObject* obj = v->objectValue();
-		pushCCObject(L, obj);
-		return;
-	} else if(t==CCValueTypeFunction) {
-		CC_FUNCTION_CALL fn = v->fcallValue();
-		CC_FUNCTION_CALL* userData = ( CC_FUNCTION_CALL* ) lua_newuserdata( L , sizeof( CC_FUNCTION_CALL ) );
-		*userData = fn;
-
-		/* Creates metatable */
-		lua_newtable( L );
-
-		/* pushes the __index metamethod */
-		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaProcessCall );
-		lua_rawset( L , -3 );
-
-		/* pusher the __tostring metamethod */
-		lua_pushstring( L , "__tostring");
-		lua_pushcfunction( L , &luaToString );
-		lua_rawset( L , -3 );
-
-		lua_pushstring( L , FLAG_FUNCTION);
-		lua_pushboolean( L , 1 );
-		lua_rawset( L , -3 );
-
-		lua_setmetatable( L , -2 );
-		return;
-	} else if(t==CCValueTypeObjectCall) {
-		const CCOCall* call = v->ocallValue();
-		CCOCall* userData = ( CCOCall* ) lua_newuserdata( L , sizeof( CCOCall ) );
-		userData->pObject = call->pObject;
-		userData->call = call->call;
-		call->pObject->retain();
-
-		/* Creates metatable */
-		lua_newtable( L );
-
-		/* pushes the __index metamethod */
-		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaProcessCall );
-		lua_rawset( L , -3 );
-
-		/* pusher the __gc metamethod */
-		lua_pushstring( L , "__gc" );
-		lua_pushcfunction( L , &luaMemGC);
-		lua_rawset( L , -3 );
-
-		/* pusher the __tostring metamethod */
-		lua_pushstring( L , "__tostring");
-		lua_pushcfunction( L , &luaToString );
-		lua_rawset( L , -3 );
-
-		lua_pushstring( L , FLAG_OCALL);
-		lua_pushboolean( L , 1 );
-		lua_rawset( L , -3 );
-
-		lua_setmetatable( L , -2 );
-		return;
+		CCObject* obj = params[0].objectValue();
+		params.erase(params.begin());
+		char* p = (char*) userdata;			
+		r = obj->call(p, params);		
+	} else if ( strcmp(flag , FLAG_OBJECT)==0) {
+		CCObject** ptr = (CCObject**) userdata;
+		r = (*ptr)->invoke(params);		
+	} else if ( strcmp(flag, FLAG_OCALL)==0 ) {
+		CCOCall* ptr = (CCOCall*) userdata;
+		r = (ptr->pObject->*ptr->call)(params);
+	} else if( strcmp( flag , FLAG_FUNCTION)==0 ) {
+		CC_FUNCTION_CALL* ptr = (CC_FUNCTION_CALL*) userdata;
+		CC_FUNCTION_CALL fn = *(ptr);
+		r = fn(params);
+	} else {
+		lua_pushstring( L , "invalid call" );
+		lua_error( L );
 	}
-	lua_pushnil(L);	
-}
-
-static int pushStackData(lua_State* L, CCValueArray& params) {
-	int i = 0;	 
-	for (CCValueArrayIterator it = params.begin(); it != params.end(); ++ it)
-	{	
-		i++;
-		pushLuaValue(L, &(*it));
-	}
-	return i;
-}
-
-static CCValue popLuaValue(lua_State* L, int idx) {
-	int type = lua_type(L,idx);		
-	switch(type) {
-		case LUA_TBOOLEAN: {
-			return CCValue::booleanValue(lua_toboolean(L,idx)!=0);
-		}
-		case LUA_TNUMBER: {
-			lua_Integer v1 = lua_tointeger(L,idx);
-			lua_Number v2 = lua_tonumber(L,idx);
-			if(v1==v2) {
-				return CCValue::intValue((int) v1);
-			} else {
-				return CCValue::numberValue((double) v2);
-			}				
-		}
-		case LUA_TSTRING: {
-			const char* v = lua_tostring(L, idx);			
-			return CCValue::stringValue(v);
-		}		
-		case LUA_TTABLE: {				
-			if(idx<0) {
-				idx = lua_gettop(L)+idx+1;
-			}
-
-			int len = isLuaArray(L, idx);
-			if (len > 0) {
-				if(len==1) {
-					if ( lua_getmetatable( L , idx ) != 0 ) {
-						lua_pushstring( L , FLAG_LUA_FUNCTION);
-						lua_rawget( L , -2 );
-						int islf = lua_isnil( L, -1 );
-						lua_pop( L , 2 );
-						if(islf==0) {
-							lua_rawgeti(L, idx, 1);
-							int cid = lua_tointeger(L,-1);
-							lua_pop(L,1);
-							CCELuaResponseObject* rep = CCELuaResponseObject::create(getHost(L), cid);
-							return CCValue::objectValue(rep);
-						}
-					}
-				}
-				CCValueArray r;
-				for (int i = 1; i <= len; i++) {		
-					lua_rawgeti(L, idx, i);
-					r.push_back(popLuaValue(L, -1));
-					lua_pop(L, 1);
-				}
-				return CCValue::arrayValue(r);
-			} else {
-				CCValueMap r;
-				lua_pushnil(L);
-				while (lua_next(L, idx) != 0) {
-					const char* key = lua_tostring(L, -2);
-					if(key!=NULL) {					
-						std::string s = key;
-						r[s] = popLuaValue(L, -1);						
-					}
-					lua_pop(L, 1);
-				}
-				return CCValue::mapValue(r);
-			}
-		}
-		case LUA_TUSERDATA: {
-			if(isLuaFlag(L, idx, FLAG_OBJECT)) {
-				CCObject* obj = *((CCObject**) lua_touserdata( L , idx ));
-				return CCValue::objectValue(obj);
-			}
-			if(isLuaFlag(L, idx, FLAG_FUNCTION)) {
-				CC_FUNCTION_CALL fn = *((CC_FUNCTION_CALL*) lua_touserdata( L , idx ));
-				return CCValue::fcallValue(fn);
-			}
-			if(isLuaFlag(L, idx, FLAG_OCALL)) {
-				CCOCall* call = (CCOCall*) lua_touserdata( L , idx );
-				return CCValue::ocallValue(call->pObject, call->call);
-			}
-		}
-		case LUA_TNIL:
-		default:		
-			return CCValue::nullValue();
-	}
-}
-
-static void popStackData(lua_State* L, CCValueArray& params,int nresults) {
-	int top = lua_gettop(L) - nresults;
-	for(int i=1;i<=nresults;i++) {		
-		params.push_back(popLuaValue(L,top+i));
-	}
-	if(nresults>0) {
-		lua_pop(L,nresults);
-	}	
-}
-
-int luaProcessCall( lua_State * L )
-{
-	int pc = lua_gettop(L)-1;
-	CCValueArray params;
-	popStackData(L, params, pc);
-
-	try {
-		CCValue r;
-		if ( isLuaFlag( L , 1 , FLAG_OMCALL ) )
-		{
-			if(params.size()<1 || !params[0].isObject()) {
-				lua_pushstring(L, "invalid object for method call");
-				lua_error(L);
-			}
-			CCObject* obj = params[0].objectValue();
-			params.erase(params.begin());
-			char* p = (char*) lua_touserdata( L , 1 );			
-			r = obj->call(p, params);		
-		} else if ( isLuaFlag( L , 1 , FLAG_OBJECT) ) {
-			CCObject** ptr = (CCObject**) lua_touserdata( L , 1 );
-			r = (*ptr)->invoke(params);		
-		} else if ( isLuaFlag( L , 1 , FLAG_OCALL) ) {
-			CCOCall* ptr = (CCOCall*) lua_touserdata( L , 1 );
-			r = (ptr->pObject->*ptr->call)(params);
-		} else if( isLuaFlag( L , 1 , FLAG_FUNCTION) ) {
-			CC_FUNCTION_CALL* ptr = (CC_FUNCTION_CALL*) lua_touserdata( L , 1 );
-			CC_FUNCTION_CALL fn = *(ptr);
-			r = fn(params);
-		} else {
-			lua_pushstring( L , "invalid call" );
-			lua_error( L );
-		}
-		pushLuaValue(L, &r);
-	} catch(std::string* err) {
-		lua_pushstring(L, err->c_str());
-		delete err;
-		lua_error(L);
-	}
+	pushValue(r);
 	return 1;
 }
 
-int luaObjectIndex( lua_State * L )
+int CCELuaHost::lapi_ud_index(const char* flag, void* userdata, const char* key)
 {
-	if ( !isLuaFlag( L , 1 , FLAG_OBJECT ) )
+	lua_State* L = m_state;
+	if ( strcmp( flag , FLAG_OBJECT )!=0 )
 	{
 		lua_pushstring( L , "not CCObject" );
 		lua_error( L );
 	}
-	CCObject* obj = *((CCObject**) lua_touserdata( L , 1 ));
-	const char* key = lua_tostring(L, 2);
+	CCObject* obj = *((CCObject**) userdata);	
 	if(obj->canCall(key)) {
-		char* userData = ( char* ) lua_newuserdata( L , strlen(key)+1 );		
-		strcpy(userData, key);
-
-		/* Creates metatable */
-		lua_newtable( L );
-
-		/* pushes the __call metamethod */
-		lua_pushstring( L , "__call" );
-		lua_pushcfunction( L , &luaProcessCall );
-		lua_rawset( L , -3 );
-
-		/* pusher the __gc metamethod */
-		lua_pushstring( L , "__gc");
-		lua_pushcfunction( L , &luaMemGC );
-		lua_rawset( L , -3 );
-
-		lua_pushstring( L , FLAG_OMCALL);
-		lua_pushboolean( L , 1 );
-		lua_rawset( L , -3 );
-
-		lua_setmetatable( L , -2 );
+		int c = strlen(key)+1;
+		char* buf = new char[c];
+		strcpy(buf, key);
+		pushUserdata(FLAG_OMCALL, buf, c, false, true);		
+		delete buf;
 		return 1;
 	}
 	CCObject* sobj = obj->findChildById(key);
-	pushCCObject(L, sobj);
+	if(sobj!=NULL) {
+		sobj->retain();			
+		pushUserdata(FLAG_OBJECT, &sobj, sizeof(CCObject*), true, true);	
+	} else {
+		lua_pushnil(L);
+	}
 	return 1;
 }
 
+int CCELuaHost::lapi_load()
+{
+	lua_State* L = m_state;
+	if(m_app->m_loader==NULL) {
+		lua_pushstring(L, "loader is null");
+		return 1;
+	}
+	const char* lname = lua_tostring(L,-1);
+	try{
+		std::string content = m_app->m_loader(m_app, m_app->m_loaderData, lname);
+		luaL_loadbuffer(L, content.c_str(), content.length(), lname);				
+		return 1;				
+	} catch(std::string* err){
+		lua_pushstring(L, err->c_str());
+		delete err;
+		return 1;
+	}
+}
+
+LuaHostValue CCELuaHost::lapi_createClosure(int callId)
+{
+	CCELuaClosureObject* obj = CCELuaClosureObject::create(m_app, callId);
+	return CCValue::objectValue(obj);
+}
+
+bool CCELuaHost::handle_lua2host_call(std::string& callType, LuaHostArray_Ref data)
+{
+	if (callType.compare("application")==0) {
+		data.clear();
+		data.push_back(CCValue::objectValue(m_app));
+		return true;
+	}
+	return LuaHostPrototype::handle_lua2host_call(callType, data); 
+}
+
+void CCELuaHost::lcall_setTimer(int timerId, int delayTime, int fixTime)
+{
+	CCLOG("setTimer - %d,%d,%d", timerId, delayTime, fixTime);
+	CCELuaHostTimer ntimer;
+	ntimer.id = timerId;
+	ntimer.delay = delayTime;
+	ntimer.fix = fixTime;
+	ntimer.time = m_app->m_nowTick+delayTime;
+	m_app->m_timers.push_back(ntimer);
+	if(m_app->m_minWaitTime<0 || ntimer.time<m_app->m_minWaitTime) {
+		m_app->m_minWaitTime = ntimer.time;
+	}	
+}
+
+bool CCELuaHost::lcall_invoke(const char* method, LuaHostArray_Ref data)
+{
+	std::map<std::string, CCELuaCallItem>::const_iterator it = m_app->m_calls.find(method);
+	if(it==m_app->m_calls.end()) {
+		return buildCallError(data, "invalid method '%s'", method); 
+	}
+	return it->second.call(m_app, it->second.data, 0, data);
+}
+
+bool CCELuaHost::lcall_ainvoke(int callId, const char* method, LuaHostArray_Ref data)
+{
+	std::map<std::string, CCELuaCallItem>::const_iterator it = m_app->m_calls.find(method);
+	if(it==m_app->m_calls.end()) {
+		return buildCallError(data, "invalid method '%s'", method); 
+	}
+	return it->second.call(m_app, it->second.data, callId, data);
+}
+
+void CCELuaHost::lcall_response(LuaHostArray_Ref data)
+{
+	CC_ASSERT(false);
+}
+
+// CCELuaApplication
 CCELuaApplication::CCELuaApplication()
 {
-	state = NULL;
-	loader = NULL;
-	loaderData = NULL;
+	m_host = new CCELuaHost(this);
+	
+	m_loader = NULL;
+	m_loaderData = NULL;
 
-	minWaitTime = -1;
-	startTick = -1;
-	nowTick = 0;
-	gcTick = 0;
+	m_minWaitTime = -1;
+	m_startTick = -1;
+	m_nowTick = 0;
+	m_gcTick = 0;
 }
 
 CCELuaApplication::~CCELuaApplication() 
 {
-	if(isOpen()) {
-		close();
+	if(m_host) {
+		delete m_host;
+		m_host = NULL;
 	}
+}
+
+bool CCELuaApplication::isOpen() {
+	return m_host->isOpen();
 }
 
 void CCELuaApplication::open()
 {
-    if (isOpen()) {
-		return;
-	}
-    // luaState.open();
-	lua_State* L = ::luaL_newstate();
-	::luaL_openlibs(L);  /* open libraries */
-	::luamodule_cjson(L);
-	::luamodule_cjson_safe(L);
-	::luamodule_md5(L);
-	::luamodule_des56(L);
-	::luaopen_cocos2d_ext(L);
-
-	lua_pushstring( L , "_cocos2dhost");
-	lua_pushlightuserdata(L, this);
-	lua_settable( L , LUA_REGISTRYINDEX );		
-	state = L;
+	m_host->open();
 }
 
 void CCELuaApplication::cleanup()
@@ -512,22 +456,15 @@ void CCELuaApplication::cleanup()
 
 void CCELuaApplication::close()
 {
-	if (isOpen())
-    {
-		lua_State* L = state;
-		if(L!=NULL) {
-			::lua_close(L);			
-		}
-        state = NULL;		
-	}
-	calls.clear();
+	m_host->close();
+	m_calls.clear();
 }
 
 void CCELuaApplication::addpath(const char* path)
 {
 	CC_ASSERT(isOpen());
 	CC_ASSERT(path!=NULL);
-	::addSearchPath( state , path);
+	m_host->addpath(path);
 }
 
 void CCELuaApplication::setvar(const char* key, const char* value)
@@ -535,78 +472,36 @@ void CCELuaApplication::setvar(const char* key, const char* value)
 	CC_ASSERT(isOpen());
 	CC_ASSERT(key!=NULL);
 	CC_ASSERT(value!=NULL);
-
-	::lua_pushstring(state, value);
-	::lua_setfield(state, LUA_GLOBALSINDEX, key);
+	m_host->setvar(key,value);
 }
 
 bool CCELuaApplication::pcall(const char* fun, CCValueArray& data)
 {
 	CC_ASSERT(isOpen());
 	CC_ASSERT(fun!=NULL);
-
-	lua_State* L = state;
-	int top = lua_gettop(L);
-
-	/* function to be called */
-	lua_getfield(L, LUA_GLOBALSINDEX, fun);
-	int sz = pushStackData(L, data);
-	int err = lua_pcall(L, sz, LUA_MULTRET, 0);	
-	data.clear();
-	int ntop = lua_gettop(L);
-	popStackData(L, data, ntop - top);
-	if(err==0) {
-		return true;
+	bool r = m_host->pcall(fun,data);
+	if(!r && data.size()>0) {
+		std::string err = data.begin()->stringValue();
+		CCLOG("pcall '%s' fail -> '%s'", fun, err.c_str());
 	}
-	if(data.size()>0 && data[0].isString()) {
-		CCLOG("[LuaHost pcall] call '%s' fail, error - %s", fun, data[0].stringValue().c_str());
-	} else {
-		CCLOG("[LuaHost pcall] call '%s' fail, unknow error", fun);
-	}
-	return false;
+	return r;
 }
 
 std::string CCELuaApplication::eval(const char* content)
 {
 	CC_ASSERT(isOpen());
 	CC_ASSERT(content!=NULL);
-
-	lua_State* L = state;		
-	int err = luaL_dostring(L, content);
-	if(err!=0) {
-		const char* s = lua_tostring(L,-1);
-		lua_pop(L,1);
-		return std::string(s);
-	}
-	return CCValue::EMPTY;
+	return m_host->eval(content);
 }
 
 void CCELuaApplication::setLoader(CCELuaLoader loader, void* data)
 {
 	CC_ASSERT(isOpen());
 
-	this->loader = loader;
-	this->loaderData = data;
+	this->m_loader = loader;
+	this->m_loaderData = data;
 
-	setModuleLoader(state, lua_hostloader, 1);
-}
-
-int CCELuaApplication::luaLoad(lua_State* L)
-{
-	if(loader==NULL) {
-		lua_pushstring(L, "loader is null");
-		return 1;
-	}
-	const char* lname = lua_tostring(L,-1);
-	try{
-		std::string content = loader(this, loaderData, lname);
-		luaL_loadbuffer(L, content.c_str(), content.length(), lname);				
-		return 1;				
-	} catch(std::string* err){
-		lua_pushstring(L, err->c_str());
-		delete err;
-		return 1;
-	}
+	m_host->enableModuleLoader();
 }
 
 void CCELuaApplication::setCall(const char* name, CCELuaCall call, void* data)
@@ -615,127 +510,7 @@ void CCELuaApplication::setCall(const char* name, CCELuaCall call, void* data)
 	CCELuaCallItem c;
 	c.call = call;
 	c.data = data;
-	calls[name] = c;
-}
-
-bool CCELuaApplication::luaCallError(CCValueArray& r, const char * format, ...)
-{
-	char buf[1024];
-	va_list arglist;
-	va_start(arglist, format);
-	_vsnprintf(buf, 1024, format, arglist);
-	va_end(arglist);
-	
-	r.clear();
-	r.push_back(CCValue::stringValue(buf));
-    return false;
-}
-
-bool CCELuaApplication::handleCallback(lua_State* L, CCValueArray& data)
-{
-	if(data.size()==0) {
-		return luaCallError(data, "invalid call type");
-	}
-	std::string name = data[0].stringValue();
-	data.erase(data.begin());
-
-	if (name.compare("hostApplication")==0) {
-		data.clear();
-		data.push_back(CCValue::objectValue(this));
-		return true;
-	} else if (name.compare("hostCall")==0) {
-		if(data.size()<2) {
-			return luaCallError(data, "invalid callId & method");
-		}
-		int cid = data[0].intValue();
-		data.erase(data.begin());
-
-		std::string method = data[0].stringValue();		
-		data.erase(data.begin());
-
-		std::map<std::string, CCELuaCallItem>::const_iterator it = calls.find(method);
-		if(it==calls.end()) {
-			return luaCallError(data, "invalid method '%s'", method.c_str()); 
-		}		
-		bool r = false;
-		try {
-			r = it->second.call(this, it->second.data, cid, data);
-		} catch (std::string* e) {
-			CCLOG("[Host::handleCallback EXCEPTION] %s", e->c_str());
-			data.clear();
-			data.push_back(CCValue::stringValue(*e));
-			delete e;
-			return false;
-		}
-		if (r) {
-			data.insert(data.begin(), CCValue::booleanValue(true));
-		} else {
-			data.clear();
-			if(cid<=0) {
-				return luaCallError(data, "invalid syn call '%s[%d]'", method.c_str(), cid);
-			}
-			data.push_back(CCValue::booleanValue(false));
-		}
-		return true;
-	} else if (name.compare("hostTimer")==0) {
-        if (data.size() < 3)
-        {
-            return luaCallError(data, "invalid timerId,fix,delay");
-        }
-		int tid = data[0].intValue();
-		if(tid<=0) {
-			return luaCallError(data, "invalid timerId '%d'", tid);
-		}
-		if (tid > 0) {                    
-			int fix = data[1].intValue();
-			int delay = data[2].intValue();
-			if (delay <= 0) {
-				return luaCallError(data, "invalid timer delay");
-			}
-            CCLOG("setTimer - %d,%d,%d", tid, fix, delay);
-			CCELuaHostTimer ntimer;
-			ntimer.id = tid;
-			ntimer.delay = delay;
-			ntimer.fix = fix;
-			ntimer.time = nowTick+delay;
-			timers.push_back(ntimer);
-			if(minWaitTime<0 || ntimer.time<minWaitTime) {
-				minWaitTime = ntimer.time;
-			}
-			data.clear();
-			return true;
-		}
-	} else if (name.compare("print")==0) {
-		if(data.size()>0) {
-			std::string msg = data[0].stringValue();
-			CCLOG("[LUA print] %s", msg.c_str());
-		}
-		data.clear();
-        return true;
-	}
-	std::string s = "invalid callType '";
-	s += name;
-	s += "'";
-	return luaCallError(data, s.c_str()); 
-}
-
-int CCELuaApplication::luaCallback(lua_State* L)
-{
-	int top = lua_gettop(L);
-	CCValueArray data;
-	popStackData(L, data, top);
-	try {
-		bool done = handleCallback(L, data);
-		int r = pushStackData(L, data);
-		if(done)return r;
-		CCLOG("[Host::luaCallback ERROR] %s", lua_tostring(state, -1));
-		return lua_error(L);
-	} catch(std::string* err){		
-		CCLOG("[Host::luaCallback EXCEPTION] %s", err->c_str());
-		lua_pushstring(L, err->c_str());
-		delete err;
-		return lua_error(L);
-	}	
+	m_calls[name] = c;
 }
 
 CCELuaApplication* CCELuaApplication::sharedLuaHost(void)
@@ -745,19 +520,13 @@ CCELuaApplication* CCELuaApplication::sharedLuaHost(void)
 
 bool CCELuaApplication::callResponse(int callId, const char* err, CCValueArray& data)
 {	
-	if(err==NULL) {
-		data.insert(data.begin(), CCValue::nullValue());
-	} else {
-		data.insert(data.begin(), CCValue::stringValue(err));
-	}
-	data.insert(data.begin(), CCValue::intValue(callId));
-	return pcall("luaCallResponse", data);
+	return m_host->reponseLuaAInvoke(callId, err, data);
 }
 
 void CCELuaApplication::enablePrintLog()
 {
 	CC_ASSERT(isOpen());
-	std::string err = eval("hostOrgPrint = print\n print = function(...)\n local msg = \"\"\n for i=1, arg.n do msg = msg .. tostring(arg[i])..\"\\t\" end\n c2dx.call(\"print\", msg)\n end\n");
+	std::string err = eval("hostOrgPrint = print\n print = function(...)\n local msg = \"\"\n for i=1, arg.n do msg = msg .. tostring(arg[i])..\"\\t\" end\n luahost.call(\"print\", msg)\n end\n");
 	err.c_str();
 }
 
@@ -767,23 +536,23 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 	CCELuaApplication* host = (CCELuaApplication*) data;
 	CC_ASSERT(host->isOpen());
 
-	if(host->startTick==-1) {
-		host->startTick = mstick;
+	if(host->m_startTick==-1) {
+		host->m_startTick = mstick;
 	}
-	host->nowTick = mstick - host->startTick;
+	host->m_nowTick = mstick - host->m_startTick;
 
 	// CCLOG("[LuaHost] apprun %d", host->nowTick);
-	if(host->minWaitTime>=0 && host->minWaitTime<host->nowTick) {
-		int mintm = host->nowTick+3600*1000;
-		for (std::list<CCELuaHostTimer>::const_iterator it = host->timers.begin(); it != host->timers.end(); )
+	if(host->m_minWaitTime>=0 && host->m_minWaitTime<host->m_nowTick) {
+		int mintm = host->m_nowTick+3600*1000;
+		for (std::list<CCELuaHostTimer>::const_iterator it = host->m_timers.begin(); it != host->m_timers.end(); )
 		{	
 			std::list<CCELuaHostTimer>::const_iterator cit = it;			
 
-			if(cit->time <= host->nowTick) {
+			if(cit->time <= host->m_nowTick) {
 				CCValueArray ps;
 				ps.push_back(CCValue::intValue(cit->id));
 				ps.push_back(CCValue::intValue(cit->fix));
-				bool r = host->pcall("luaTimerResponse", ps);
+				bool r = host->pcall(LUA_FUNCTION_HOST_TIMER_RESPONSE, ps);
 				if(r) {
 					CCLOG("[LuaHost] timer[%d] => done - %s", cit->id, (ps.size()>0?ps[0].booleanValue():false)?"true":"false");
 				} else {
@@ -797,13 +566,13 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 						ntimer.delay = cit->delay;
 						ntimer.fix = cit->fix;
 						ntimer.time = cit->time+cit->fix;
-						host->timers.push_back(ntimer);
+						host->m_timers.push_back(ntimer);
 					} else {
-						CCLOG("[LuaHost] timer[%d] => stop fix timer", cit->id);
+						CCLOG("[LuaHost] timer[%d] => stop timer", cit->id);
 					}
                 }
 				++ it;
-				host->timers.erase(cit);
+				host->m_timers.erase(cit);
 			} else {
 				if(cit->time < mintm) {
 					mintm = cit->time;
@@ -811,9 +580,9 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 				++ it;
 			}			
 		}
-		host->minWaitTime = mintm;
+		host->m_minWaitTime = mintm;
 	}	
-	lua_gc(host->state,LUA_GCSTEP,1);
+	host->m_host->gc(1);
 }
 
 void CCELuaApplication::require(const char* package)
@@ -910,6 +679,45 @@ CCValue CCELuaCallObject::invoke(CCValueArray& params)
 	CCValueUtil::append(ps,m_Params);
 	CCValueUtil::append(ps,params);	
 	bool r = m_App->pcall(m_csFun.c_str(), ps);
+	if(r) {
+		return ps.size()>0?ps[0]:CCValue::nullValue();
+	}
+	throw new std::string(ps.size()>0?ps[0].stringValue():"<empty message>");
+}
+
+
+// CCELuaClosureObject
+CCELuaClosureObject::CCELuaClosureObject()
+	: m_App(NULL)
+	, m_callId(0)
+{
+	m_App = NULL;
+}
+
+CCELuaClosureObject::~CCELuaClosureObject()
+{
+	if(m_App!=NULL && m_callId>0) {
+		CCValueArray ps;
+		ps.push_back(CCValue::intValue(m_callId));
+		m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_REMOVE, ps);
+	}
+}
+
+CCELuaClosureObject* CCELuaClosureObject::create(CCELuaApplication* app, int callId)
+{
+	CCELuaClosureObject* r = new CCELuaClosureObject();
+	r->m_App = app==NULL?CCELuaApplication::sharedLuaHost():app;
+	r->m_callId = callId;
+	r->autorelease();
+	return r;
+}
+
+CCValue CCELuaClosureObject::invoke(CCValueArray& params)
+{
+	CCValueArray ps;
+	ps.push_back(CCValue::intValue(m_callId));
+	CCValueUtil::append(ps,params);	
+	bool r = m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_CALL, ps);
 	if(r) {
 		return ps.size()>0?ps[0]:CCValue::nullValue();
 	}

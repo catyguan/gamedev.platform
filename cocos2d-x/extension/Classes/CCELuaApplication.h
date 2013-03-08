@@ -22,20 +22,16 @@ typedef struct {
 	int fix;
 } CCELuaHostTimer;
 
+class CCELuaHost;
 class CCELuaApplication : public CCEApplication
 {
 public:
     CCELuaApplication();
     virtual ~CCELuaApplication();
 
-private:
-	bool handleCallback(lua_State* L, CCValueArray& data);
-
 public:    
 	void open();
-	bool isOpen() {
-		return state!=NULL;
-	}
+	bool isOpen();
 	void close();
 
 	void addpath(const char* path);
@@ -54,10 +50,6 @@ public:
 	void createApp(const char* appType, 
 		std::list<std::string> pathList, std::list<std::string> bootstrapList);
 	
-	int luaCallback(lua_State* L);
-	static bool luaCallError(CCValueArray& r,  const char * format, ...);
-	int luaLoad(lua_State* L);
-        
     static CCELuaApplication* sharedLuaHost(void);
 
 	static void CALLBACK appRunnable(void* data, long mstick);
@@ -66,17 +58,19 @@ protected:
 	virtual void cleanup();
 
 private:	
-    lua_State* state;
-	CCELuaLoader loader;
-	void* loaderData;
+    CCELuaHost* m_host;
+	CCELuaLoader m_loader;
+	void* m_loaderData;
 	
-	std::map<std::string, CCELuaCallItem> calls;
+	std::map<std::string, CCELuaCallItem> m_calls;
 
-	std::list<CCELuaHostTimer> timers;
-	int minWaitTime;
-	int nowTick;
-	int gcTick;
-	int startTick;	
+	std::list<CCELuaHostTimer> m_timers;
+	int m_minWaitTime;
+	int m_nowTick;
+	int m_gcTick;
+	int m_startTick;	
+
+	friend class CCELuaHost;
 };
 
 class CCELuaResponseObject : public CCObject
@@ -117,6 +111,22 @@ protected:
 	CCValueArray m_Params;
 };
 
+class CCELuaClosureObject : public CCObject
+{
+public:
+	~CCELuaClosureObject();
+
+public:
+	static CCELuaClosureObject* create(CCELuaApplication* app, int cid);
+
+	virtual CCValue invoke(CCValueArray& params);
+
+protected:
+	CCELuaClosureObject();
+
+	CCELuaApplication* m_App;
+	int m_callId;
+};
 
 #endif // __CCE_LUAHOST_H__
 

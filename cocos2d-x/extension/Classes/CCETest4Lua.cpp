@@ -44,14 +44,17 @@ bool CCETest4LuaLayer::init(const char* packageName)
 		return false;
 	}
 	
+	CCETouchBuilder b;
+
 	CCSize size = CCDirector::sharedDirector()->getWinSize();
 
 	m_packageName = packageName;
 	CCLayerColor* main = CCLayerColor::create(ccc4(128,128,128,255));
 	this->addChild(main);
 
-	createTouch(main);
-	main->onEvent(NODE_EVENT_CLICK, this, nodeevent_selector(CCETest4LuaLayer::clickHandler));
+	b.bind(main)
+		.onTap(this, nodeevent_selector(CCETest4LuaLayer::clickHandler))
+		.createTouch(this);
 
 	CCLabelTTF* label = CCLabelTTF::create(packageName, "Arial", 24*2);
 	label->setPosition(ccp(size.width/2,size.height/2));

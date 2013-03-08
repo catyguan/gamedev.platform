@@ -108,14 +108,17 @@ bool CCEControl::raiseEvent(const char* name, CCNodeEvent* e)
 {
 	bool r = CCNode::raiseEvent(name,e);
 	if(strcmp(name,NODE_EVENT_FOCUS)==0) {
-		if(!isHighlighted()) {
-			setHighlighted(true);
-			r = true;
-		}
-	} else if(strcmp(name,NODE_EVENT_UNFOCUS)==0) {
-		if(isHighlighted()) {
-			setHighlighted(false);
-			r = true;
+		CCETouchFocusEvent* ev = (CCETouchFocusEvent*) e;
+		if(ev->isFocus()) {
+			if(!isHighlighted()) {
+				setHighlighted(true);
+				r = true;
+			}
+		} else {
+			if(isHighlighted()) {
+				setHighlighted(false);
+				r = true;
+			}
 		}
 	}
 	return r;

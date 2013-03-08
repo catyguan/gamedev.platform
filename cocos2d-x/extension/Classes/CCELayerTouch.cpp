@@ -11,25 +11,27 @@
 //CCELayerTouchItem
 //
 CCELayerTouchItem::CCELayerTouchItem()
-	: node(NULL)
+	: recognizer(NULL)
 	, priority(0)
-	, cover(true)
-	, holdThreshold(750)
-	, focus(false)
-	, focusTime(0)
-	, holded(false)
+	, actived(false)
 {
 }
 
 CCELayerTouchItem::~CCELayerTouchItem()
 {
-	CC_SAFE_RELEASE(node);	
+	CC_SAFE_DELETE(recognizer);
 }
 
 bool CCELayerTouchItem::operator() (const CCELayerTouchItem* t1,const CCELayerTouchItem* t2)
 {
 	if(t1->priority > t2->priority) return true;
-	if(t1->node->getZOrder() > t2->node->getZOrder())return true;
+	CCEGestureRecognizer4Node* p1 = dynamic_cast<CCEGestureRecognizer4Node*>(t1->recognizer);	
+	if(p1!=NULL) {
+		CCEGestureRecognizer4Node* p2 = dynamic_cast<CCEGestureRecognizer4Node*>(t2->recognizer);
+		if(p2!=NULL) {
+			if(p1->getNode()->getZOrder() > p2->getNode()->getZOrder())return true;
+		}
+	}
 	return false;
 }
 
@@ -38,8 +40,6 @@ bool CCELayerTouchItem::operator() (const CCELayerTouchItem* t1,const CCELayerTo
 //
 CCELayerTouch::CCELayerTouch()
 	: m_bEnabled(true)
-	, m_checkHoldInterval(0.1f)
-	, m_checkHold(false)
 {	
 	
 }
@@ -80,7 +80,6 @@ bool CCELayerTouch::init()
 void CCELayerTouch::onEnter()
 {
 	CCLayer::onEnter();
-	m_checkHold = false;
 }
 
 void CCELayerTouch::onExit()
@@ -89,36 +88,107 @@ void CCELayerTouch::onExit()
     CCLayer::onExit();
 }
 
-CCELayerTouchItem* CCELayerTouch::newItem()
+void CCELayerTouch::reorderItems()
 {
-	return new CCELayerTouchItem();
+	sortItems(m_touchItems);
+	sortItems(m_activedItems);
 }
 
-CCELayerTouchItem* CCELayerTouch::createTouch(CCNode* node,bool track)
+void CCELayerTouch::sortItems(std::list<CCELayerTouchItem*>& ret)
 {
-	CC_ASSERT(node);
+	if(ret.size()>0) {
+		ret.sort(CCELayerTouchItem());
+	}
+}
 
-	CCELayerTouchItem* item = getTouch(node);
+
+CCELayerTouchItem* CCELayerTouch::createTouch(CCEGestureRecognizer* recognizer)
+{
+	CC_ASSERT(recognizer);
+
+	CCELayerTouchItem* item = getTouch(recognizer);
 	if(item!=NULL)return item;
-	item = newItem();
-	item->node = node;
-	node->retain();
+	item = new CCELayerTouchItem();
+	item->recognizer = recognizer;
 	m_touchItems.push_back(item);
+	reorderItems();
 	return item;
 }
 
-CCELayerTouchItem* CCELayerTouch::getTouch(CCNode* node)
+CCELayerTouchItem* CCELayerTouch::getTouch(CCEGestureRecognizer* recognizer)
 {
 	std::list<CCELayerTouchItem*>::const_iterator it;
 	for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
     {
         CCELayerTouchItem* pItem = (*it);
-		if(pItem->node==node)return pItem;
+		if(pItem->recognizer==recognizer)return pItem;
     }
 	return NULL;
 }
 
-void CCELayerTouch::removeTouch(CCNode* node)
+CCELayerTouchItem* CCELayerTouch::getTouchByNode(CCNode* node)
+{
+	std::list<CCELayerTouchItem*>::const_iterator it;
+	for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
+    {
+        CCELayerTouchItem* pItem = (*it);
+		CCEGestureRecognizer4Node* p = dynamic_cast<CCEGestureRecognizer4Node*>(pItem->recognizer);
+		if(p!=NULL && p->getNode()==node)return pItem;
+    }
+	return NULL;
+}
+
+void CCELayerTouch::recognized(CCPoint pt, CCELayerTouchItem* item)
+{
+	std::list<CCELayerTouchItem*>::const_iterator it;
+	for(it=m_activedItems.begin();it!=m_activedItems.end();)
+	{
+		std::list<CCELayerTouchItem*>::const_iterator cur = it;
+		it++;
+		CCELayerTouchItem* pItem = (*cur);
+		if(pItem!=item) {
+			pItem->actived = false;
+			m_activedItems.erase(cur);
+			pItem->recognizer->touchCancelled(pt);
+		}
+	}
+}
+
+void CCELayerTouch::addActiveItem(CCELayerTouchItem* item)
+{
+	if(!item->actived) {
+		item->actived = true;		
+		m_activedItems.push_back(item);
+	}	
+}
+
+void CCELayerTouch::removeActiveItem(CCELayerTouchItem* item,bool except)
+{
+	std::list<CCELayerTouchItem*>::const_iterator it,cur;
+	for(it=m_activedItems.begin();it!=m_activedItems.end();)
+    {
+		cur = it;
+		it++;
+        CCELayerTouchItem* pItem = (*cur);
+		bool r = false;
+		if(pItem==item) {
+			if(!except) {
+				r = true;
+			}
+		} else {
+			if(except) {
+				r = true;
+			}
+		}
+		if(r) {
+			pItem->actived = false;
+			m_activedItems.erase(cur);
+			break;
+		}
+    }
+}
+
+void CCELayerTouch::removeTouch(CCEGestureRecognizer* recognizer)
 {
 	std::list<CCELayerTouchItem*>::const_iterator it,cur;
 	for(it=m_touchItems.begin();it!=m_touchItems.end();)
@@ -126,8 +196,26 @@ void CCELayerTouch::removeTouch(CCNode* node)
 		cur = it;
 		it++;
         CCELayerTouchItem* pItem = (*cur);
-		if(pItem->node==node) {
+		if(pItem->recognizer==recognizer) {
 			m_touchItems.erase(cur);
+			removeActiveItem(pItem,false);
+			delete pItem;
+		}
+    }
+}
+
+void CCELayerTouch::removeTouchByNode(CCNode* node)
+{
+	std::list<CCELayerTouchItem*>::const_iterator it,cur;
+	for(it=m_touchItems.begin();it!=m_touchItems.end();)
+    {
+		cur = it;
+		it++;
+        CCELayerTouchItem* pItem = (*cur);
+		CCEGestureRecognizer4Node* p = dynamic_cast<CCEGestureRecognizer4Node*>(pItem->recognizer);
+		if(p!=NULL && p->getNode()==node) {
+			m_touchItems.erase(cur);
+			removeActiveItem(pItem,false);
 			delete pItem;
 		}
     }
@@ -142,6 +230,7 @@ void CCELayerTouch::removeAllTouch()
 		delete pItem;
     }
 	m_touchItems.clear();
+	m_activedItems.clear();
 }
 
 //Menu - Events
@@ -157,34 +246,67 @@ void CCELayerTouch::registerWithTouchDispatcher()
     pDirector->getTouchDispatcher()->addTargetedDelegate(this, kCCELayerTouchHandlerPriority, true);
 }
 
-void CCELayerTouch::focus(std::list<CCELayerTouchItem*>& items, CCPoint touch)
+void CCELayerTouch::travel(int type, CCPoint pt)
 {
 	std::list<CCELayerTouchItem*>::const_iterator it;
-	for(it=items.begin();it!=items.end();it++) {
-		CCELayerTouchItem* item = (*it);
-		if(!item->focus) {
-			item->focus = true;
-			CCETouchEvent event(touch);
-			item->node->raiseEvent(NODE_EVENT_FOCUS,&event);
-
-			if(item->node->hasEventHandler(NODE_EVENT_HOLD)) {
-				if(item->focusTime==0)item->focusTime = CCEAppUtil::timeTick();
-				if(!m_checkHold) {
-					m_checkHold = true;				
-					CCDirector::sharedDirector()->
-						getScheduler()->scheduleSelector(schedule_selector(CCELayerTouch::checkHold), this, m_checkHoldInterval,false);
-				}
+	if(m_activedItems.size()>0) {		
+		for(it=m_activedItems.begin();it!=m_activedItems.end();)
+		{
+			std::list<CCELayerTouchItem*>::const_iterator cur = it;
+			it++;
+			CCELayerTouchItem* pItem = (*cur);
+			bool t = false;
+			switch(type) {
+			case 1:t = pItem->recognizer->touchBegan(pt);break;
+			case 2:t = pItem->recognizer->touchMoved(pt);break;
+			case 3:t = pItem->recognizer->touchEnded(pt);break;
+			case 4:pItem->recognizer->touchCancelled(pt);break;
 			}
+			if(!t) {
+				(*cur)->actived = false;
+				m_activedItems.erase(cur);
+			}
+			if(pItem->recognizer->isRecognized()) {
+				recognized(pt, pItem);
+				return;
+			}
+		}		
+	}
+
+	if(m_activedItems.size()==0) {
+		std::list<CCELayerTouchItem*>::const_iterator it;
+		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
+		{
+			CCELayerTouchItem* pItem = (*it);
+			bool t = false;
+			switch(type) {
+			case 1:t = pItem->recognizer->touchBegan(pt);break;
+			case 2:t = pItem->recognizer->touchMoved(pt);break;
+			case 3:t = pItem->recognizer->touchEnded(pt);break;
+			case 4:pItem->recognizer->touchCancelled(pt);break;
+			}			
+			if(t) {
+				addActiveItem(pItem);
+			}
+			if(pItem->recognizer->isRecognized()) {
+				recognized(pt, pItem);
+				return;
+			}			
 		}
 	}
+}
+
+void CCELayerTouch::checkItems(CCPoint* pt)
+{
+	if(pt==NULL)pt = &m_lastTouch;
+	travel(2, *pt);
 }
 
 bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
     CC_UNUSED_PARAM(event);
-	CCLOG("ccTouchBegan - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
+	// CCLOG("ccTouchBegan - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 	
-    // if (m_eState != kCCELayerTouchStateWaiting || ! m_bVisible || !m_bEnabled)
 	if (!m_bVisible || !m_bEnabled)
     {
         return false;
@@ -198,121 +320,9 @@ bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
     }
 
 	CCPoint cp = touch->getLocation();
-	std::list<CCELayerTouchItem*> items;
-	itemsForTouch(items, cp);
-	if (items.size()>0)
-	{
-		focus(items,cp);
-		m_lastTouch = cp;
-		return true;
-	}
-	m_lastTouch = cp;	
-
-	CCRect r = boundingBox();
-	r.origin = CCPointZero;
-	if(r.isEqual(&CCRectZero)) {
-		return true;
-	}
-	CCPoint local = getParent()->convertToNodeSpace(m_lastTouch);
-	return r.containsPoint(local);
-}
-
-void CCELayerTouch::lostFocus(CCELayerTouchItem* item, CCPoint touch)
-{
-	CCETouchEvent event(touch);
-	if(item->holded) {
-		item->holded = false;
-		item->node->raiseEvent(NODE_EVENT_UNHOLD,&event);	
-	}
-
-	item->focus = false;
-	item->focusTime = 0;	
-	item->node->raiseEvent(NODE_EVENT_UNFOCUS,&event);	
-}
-
-void CCELayerTouch::ccTouchEnded(CCTouch *touch, CCEvent* event)
-{    
-    CC_UNUSED_PARAM(event);
-	CCLOG("ccTouchEnded - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
-	std::list<CCELayerTouchItem*>::const_iterator it;
-	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
-		CCELayerTouchItem* item = (*it);
-		if(item->focus) {
-			CCETouchEvent event(touch->getLocation());
-			item->node->raiseEvent(NODE_EVENT_CLICK, &event);
-			lostFocus(item, touch->getLocation());
-		}
-	}
-}
-
-void CCELayerTouch::ccTouchCancelled(CCTouch *touch, CCEvent* event)
-{    
-    CC_UNUSED_PARAM(event);
-	CCLOG("ccTouchCancelled - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
-	std::list<CCELayerTouchItem*>::const_iterator it;
-	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
-		CCELayerTouchItem* item = (*it);
-		if(item->focus) {
-			lostFocus(item, touch->getLocation());
-		}
-	}
-}
-
-void CCELayerTouch::checkItems(CCPoint* movePoint)
-{
-	CCPoint cp = movePoint!=NULL?*movePoint:m_lastTouch;
-
-	std::list<CCELayerTouchItem*> items;
-	itemsForTouch(items, cp);
-    if(items.size()>0) {
-		focus(items,cp);
-	}
-	
-    std::list<CCELayerTouchItem*>::const_iterator it;
-	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
-		CCELayerTouchItem* item = (*it);
-		if(item->focus) {
-			bool f = false;
-			std::list<CCELayerTouchItem*>::const_iterator it2;
-			for(it2=items.begin();it2!=items.end();it2++) {
-				CCELayerTouchItem* item2 = (*it2);
-				if(item==item2) {
-					f = true;
-					break;
-				}
-			}
-			if(!f) {				
-				lostFocus(item,cp);
-			}			
-		}
-	}	
-}
-
-void CCELayerTouch::checkHold(float dt)
-{
-	bool hashold = false;
-	long tm = CCEAppUtil::timeTick();
-	std::list<CCELayerTouchItem*>::const_iterator it;
-	for(it=m_touchItems.begin();it!=m_touchItems.end();it++) {
-		CCELayerTouchItem* item = (*it);
-		if(item->focusTime>0)
-		{
-			hashold = true;
-			if(!item->holded)
-			{
-				if(tm - item->focusTime >= item->holdThreshold)
-				{
-					item->holded = true;
-					CCETouchEvent event(m_lastTouch);
-					item->node->raiseEvent(NODE_EVENT_HOLD,&event);
-				}
-			}
-		}
-	}		
-	if(!hashold) {
-		m_checkHold = false;
-		CCDirector::sharedDirector()->getScheduler()->unscheduleSelector(schedule_selector(CCELayerTouch::checkHold),this);
-	}
+	travel(1, cp);
+	m_lastTouch = cp;
+	return true;
 }
 
 void CCELayerTouch::ccTouchMoved(CCTouch* touch, CCEvent* event)
@@ -321,81 +331,113 @@ void CCELayerTouch::ccTouchMoved(CCTouch* touch, CCEvent* event)
 	// CCLOG("ccTouchMoved - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 
 	CCPoint cp =touch->getLocation();
-	checkItems(&cp);
+	travel(2, cp);
 	m_lastTouch = cp;
 }
 
-void CCELayerTouch::orderItems(std::list<CCELayerTouchItem*>& ret)
+void CCELayerTouch::ccTouchEnded(CCTouch *touch, CCEvent* event)
+{    
+    CC_UNUSED_PARAM(event);
+	// CCLOG("ccTouchEnded - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
+
+	CCPoint cp = touch->getLocation();
+	travel(3, cp);
+	m_lastTouch = cp;	
+}
+
+void CCELayerTouch::ccTouchCancelled(CCTouch *touch, CCEvent* event)
+{    
+    CC_UNUSED_PARAM(event);
+	// CCLOG("ccTouchCancelled - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
+
+	CCPoint cp = touch->getLocation();
+	travel(4, cp);
+	m_lastTouch = cp;	
+}
+
+//
+// CCETouchBuilder
+// 
+CCETouchBuilder::CCETouchBuilder()
+	: node(NULL)
+	, priority(0)
 {
-	if(ret.size()>0) {
-		std::list<CCELayerTouchItem*>::const_iterator it;
-		ret.sort(CCELayerTouchItem());
-		bool cover = false;
-		for(it=ret.begin();it!=ret.end();)
-		{
-			std::list<CCELayerTouchItem*>::const_iterator cur = it;
-			it++;
-			CCELayerTouchItem* pItem = (*cur);
-			if(cover) {
-				ret.erase(cur);
-			} else {
-				if(pItem->cover)cover = true;
-			}
-		}
+
+}
+
+CCETouchBuilder::~CCETouchBuilder()
+{
+	clear(true);
+}
+
+void CCETouchBuilder::clear(bool del)
+{	
+	if(del) {
+		std::list<CCEGestureRecognizer*>::const_iterator it;
+		for(it=recognizers.begin();it!=recognizers.end();it++) {
+			delete *it;
+		}	
 	}
+	recognizers.clear();
+	node = NULL;
 }
 
-void CCELayerTouch::itemTrackHandler(CCNode* node, const char* name, CCNodeEvent*)
+CCETouchBuilder& CCETouchBuilder::addGestureRecognizer(CCEGestureRecognizer* obj)
 {
-	checkItems();
+	recognizers.push_back(obj);
+	return *this;
 }
 
-CCELayerTouch* CCELayerTouch::getTouchLayer(CCNode* node)
+CCETouchBuilder& CCETouchBuilder::bind(CCNode* n)
 {
-    CCNode* pParent = node->getParent();
-    for( CCNode *c = pParent; c != NULL; c = c->getParent() )
-    {
-		CCELayerTouch* r = dynamic_cast<CCELayerTouch*>(c);        
-		if(r)return r;
-    }
-    return NULL;
+	clear(true);
+	node = n;
+	return *this;
 }
 
-void CCELayerTouch::itemsForTouch(std::list<CCELayerTouchItem*>& ret,CCPoint& touchLocation)
-{	
-	if (m_touchItems.size()>0)
-    {
-		std::list<CCELayerTouchItem*>::const_iterator it;
-		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
-        {
-            CCELayerTouchItem* pItem = (*it);
-			CCNode* pChild = pItem->node;
-            if (pChild && pChild->isVisible())
-            {
-                CCPoint local = pChild->convertToNodeSpace(touchLocation);
-				if(pChild->containsPoint(local))
-                {
-					ret.push_front(pItem);					
-                }
-            }
-        }
-		if(ret.size()>0) {
-			orderItems(ret);			
-		}
-    }	
+CCETouchBuilder& CCETouchBuilder::onFocus(CCObject* obj,SEL_NodeEventHandler handler)
+{
+	CC_ASSERT(node!=NULL);
+	CCEGestureRecognizer4Focus* gr = CCEGestureRecognizer4Focus::create(node);
+	node->onEvent(NODE_EVENT_FOCUS, obj, handler);
+	addGestureRecognizer(gr);
+	return *this;
 }
 
-void CCELayerTouch::getFocusedItems(std::list<CCELayerTouchItem*>& ret)
-{	
-	if (m_touchItems.size()>0)
-    {
-		std::list<CCELayerTouchItem*>::const_iterator it;
-		for(it=m_touchItems.begin();it!=m_touchItems.end();it++)
-        {
-            CCELayerTouchItem* pItem = (*it);
-			if(pItem->focus) {
-				ret.push_front(pItem);
-			}
-        }
-    }	
+CCETouchBuilder& CCETouchBuilder::onTap(CCObject* obj,SEL_NodeEventHandler handler)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Tap* gr = CCEGestureRecognizer4Tap::create(node);
+	node->onEvent(NODE_EVENT_TAP, obj, handler);
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler handler)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Holdpress* gr = CCEGestureRecognizer4Holdpress::create(node);
+	node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler handler,int timeThreshold, int moveThreshold, float checkInterval)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Holdpress* gr = CCEGestureRecognizer4Holdpress::create(node,timeThreshold,moveThreshold,checkInterval);
+	node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+
+void CCETouchBuilder::createTouch(CCELayerTouch* layer)
+{
+	std::list<CCEGestureRecognizer*>::const_iterator it;
+	for(it=recognizers.begin();it!=recognizers.end();it++) {
+		CCELayerTouchItem* item = layer->createTouch(*it);
+		item->setPriority(priority);
+	}
+	clear(false);
 }

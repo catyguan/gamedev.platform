@@ -290,14 +290,14 @@ function aicall.pcall(cb, fn)
 	end
 end
 
-function tryCache(f,n)
+function tryCatch(f,n)
 	local done,r,st = pcall(f)
 	if done then 
 		return r
 	else
 		if LOG:debugEnabled() then
 			if not n then n = "<Unknow>" end
-			LOG:debug("tryCache","%s - %s\n%s",tostring(n),tostring(r), tostring(st))
+			LOG:debug("tryCatch","%s - %s\n%s",tostring(n),tostring(r), tostring(st))
 		end
 	end
 end

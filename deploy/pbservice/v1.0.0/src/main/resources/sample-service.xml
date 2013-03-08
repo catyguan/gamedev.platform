@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<!-- HelloWorld Service -->
+	<bean id="handler" class="bma.common.netty.protobuf.sample.SamplePService">
+		<property name="target" value="sample"/>
+	</bean>
+	
+	<bean id="server" class="bma.common.netty.protobuf.server.NettyProtobufServer"
+		destroy-method="close">
+		<property name="name" value="protobufServer"/>
+		<property name="port" value="${pbserver.port}" />
+		<property name="worker" value="${pbserver.worker}" />
+		<property name="traceBufferSize" value="256"/>
+		<property name="Pipelines">
+			<list>
+				<ref bean="secureFilter"/>
+			</list>
+		</property>
+		<property name="config" ref="protobufServiceConfig"/>
+		<property name="dispatcher">
+			<bean class="bma.common.netty.protobuf.core.impl.PDispatcherSimple">
+				<property name="services">
+					<list>
+						<ref bean="handler"/>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+</beans>
