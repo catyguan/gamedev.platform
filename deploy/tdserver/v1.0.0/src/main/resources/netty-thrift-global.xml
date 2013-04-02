@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- timer -->
+	<bean id="timer" class="bma.common.langutil.concurrent.TimerManager"
+		init-method="startManager" destroy-method="stopManager"/>
+		
+	<!-- thread pool -->
+	<bean id="threadPool" class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+				<property name="threadNamePrefix" value="threadPool-" />
+				<property name="corePoolSize" value="${threadpool.coreSize}" />
+				<property name="maxPoolSize" value="${threadpool.maxSize}" />
+				<property name="keepAliveSeconds" value="${threadpool.keepAlive}" />
+	</bean>
+
+	<!-- netty client support -->
+	<bean id="nettyClientBootstrap" class="bma.common.netty.client.NettyClientBootstrap"
+		init-method="init">
+		<property name="worker" value="${nettyclient.worker}" />
+	</bean>
+
+	<!-- ip limit -->
+	<bean id="secureFilter" class="bma.common.netty.handler.ChannelHandlerIpLimit"
+		init-method="init">
+		<property name="whiteAddress">
+			<value></value>
+		</property>
+	</bean>
+	
+	<bean id="thriftConfig" class="bma.common.netty.thrift.core.NettyThriftConfig">
+		<property name="frameSize" value="${tdserver.maxFrameSize}"/>
+		<property name="executor" ref="threadPool"/>
+		<property name="timer" ref="timer"/>
+	</bean>
+	
+</beans>

@@ -1,5 +1,24 @@
 #include "CCESocket.h"
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_WIN32)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#pragma comment(lib,"WS2_32.lib")
+
+class Win32SocketInitClass  
+{  
+public:  
+	Win32SocketInitClass()  
+    {  
+		//≥ı ºªØ WS2_32.lib  
+		WSADATA   wsa;  
+		WSAStartup(MAKEWORD(2,0),&wsa);        
+	}  
+    ~Win32SocketInitClass(void)  
+	{  
+		WSACleanup();  
+    }  
+};
+Win32SocketInitClass initObject;
+
+#else
 #include <signal.h>
 #endif
 
@@ -122,7 +141,8 @@ bool CCESocket::open(const char* host,int port)
 bool CCESocket::write(const char* buf,int len)
 {
 	if(!isOpen())return false;
-	if(send(m_sockfd, buf, len, 0) <0) {
+	int w = send(m_sockfd, buf, len, 0);
+	if(w <0) {
 		CCLOG("socket send fail %d", errno);
 		close();
 		return false;

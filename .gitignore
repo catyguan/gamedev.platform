@@ -30,3 +30,4 @@ libluajni.so
 *.log
 *.pfx
 *.ipch
+/thrift-0.8.0

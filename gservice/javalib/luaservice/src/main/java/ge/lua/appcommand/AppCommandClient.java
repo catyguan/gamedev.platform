@@ -142,8 +142,8 @@ public class AppCommandClient {
 				};
 
 				try {
-					TLuaAppHostManager4AI.Client obj = client
-							.createAIObject(TLuaAppHostManager4AI.Client.class);
+					TLuaAppHostManager4AI.Client obj = client.createAIObject(
+							TLuaAppHostManager4AI.Client.class, null);
 					return obj
 							.appCommand(step2, aid.getAppId(), caseName,
 									methodName, session, params,

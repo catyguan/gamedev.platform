@@ -16,10 +16,3 @@ end
 function Class:ctor()
 	_G.director = luahost.call("application")
 end
-
-function Class:aiResponse(callId, ...)
-	local fn = function(r1,r2)
-		LOG:debug("host.BaseService", "aiResponse => "..tostring(r1).."/"..tostring(r2))
-	end
-	self:call(fn, "airesponse", callId, ...)
-end

@@ -281,8 +281,8 @@ public class TLuaAppHostManager4AI {
 
 	public static class Client extends TAIBaseServiceClient implements Iface {
 
-		public Client(AIThriftInvoker invoker) {
-			super(invoker);
+		public Client(AIThriftInvoker invoker, String module) {
+			super(invoker, module);
 		}
 
 		@Override

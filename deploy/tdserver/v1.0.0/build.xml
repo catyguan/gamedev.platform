@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="gamedev.platform" default="main" xmlns:artifact="urn:maven-artifact-ant">
+	
+	<property name="git.common.url" value="http://devuser:devuser@172.19.16.97:5000/bma.java/java_common-stable"/>	
+
+	<tstamp/>
+	<property name="public.time" value="${DSTAMP}"/>	
+	
+	<target name="init_env">
+		<available property="env.properties.present" file="../${env}.properties" type="file" />
+		<fail unless="env.properties.present" message="环境配置文件不存在" />
+		<property file="../${env}.properties" />
+		<property file="${config.version}.properties" />
+		<property name="zipfile" value="tdserver_${public.time}_${git.common.version}.${env}.zip"/>
+		<!-- ant工具 -->
+		<path id="mylib">
+			<fileset dir="${ant.libs}" includes="*.jar" />
+		</path>
+		<typedef resource="bma/ant/commons/types.properties" classpathref="mylib" />
+		<taskdef resource="bma/ant/commons/tasks.properties" classpathref="mylib" />
+	</target>
+
+	<target name="init_maven" depends="init_env">
+		<!-- maven工具 -->
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="mylib" />
+	</target>
+
+    <target name="maven_install_common" depends="init_env,init_maven">
+        <!-- checkout -->
+		<fail unless="git.bin" message="git未设置" />
+		<echo message="git = ${git.bin}" />
+		<fail unless="git.common.url" message="java.common源代码库未设置" />
+		<mkdir dir="${work.basedir}/repository/common" />
+		<exec executable="${git.bin}">
+			<arg value="clone" />
+			<arg value="-n" />
+			<arg value="${git.common.url}" />
+			<arg value="${work.basedir}/repository/common" />
+		</exec>
+		<exec executable="${git.bin}" dir="${work.basedir}/repository/common">
+			<arg value="checkout" />
+			<arg value="${git.common.version}" />
+		</exec>
+		<!-- install -->
+		<artifact:mvn pom="${work.basedir}/repository/common/pom.xml">
+		    <arg value="clean"/>
+		</artifact:mvn>
+		<artifact:mvn pom="${work.basedir}/repository/common/pom.xml">
+		    <arg value="install"/>
+		 </artifact:mvn>
+	</target>	
+	
+	<target name="maven_install" depends="init_maven,maven_install_common">
+		  <artifact:mvn pom="${basedir}/pom.xml">
+		    <arg value="install"/>
+		  </artifact:mvn>
+	</target>
+	
+	<target name="maven_clean" depends="init_maven">
+		  <artifact:mvn pom="${basedir}/pom.xml">
+		    <arg value="clean"/>
+		  </artifact:mvn>
+	</target>
+
+	<target name="cleanup" depends="init_env">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${work.basedir}" includes="**/*" defaultexcludes="false" />
+		</delete>
+	</target>
+			
+	<target name="unpack" depends="init_maven" description="解压jar包">
+	    <artifact:pom id="maven.project" file="${basedir}/pom.xml" />        
+		<echo>unpack the ${maven.project.build.finalName}.jar</echo>
+		<property name="appjarfile" value="${maven.project.build.directory}/${maven.project.build.finalName}.jar"/>
+		<unzip src="${appjarfile}" dest="${work.basedir}/jar" />
+	</target>
+
+	<target name="writeConf" depends="init_env" description="根据当前部署属性修改配置">
+		<copy todir="${work.basedir}/deploy_jar" filtering="true" encoding="UTF-8">
+			<fileset dir="${work.basedir}/jar" includes="">
+				<include name="**/*.properties"/>
+			</fileset>
+			<filterset begintoken="${" endtoken="}">
+				<filtersfile file="${deploy_env.file}" />
+			</filterset>
+		</copy>
+		<copy todir="${work.basedir}/deploy_jar" encoding="UTF-8">
+			<fileset dir="${work.basedir}/jar" />
+		</copy>		
+	</target>
+
+	<target name="repack" depends="init_maven">
+		<jar destfile="${work.basedir}/workspace/libs/${maven.project.build.finalName}.jar" basedir="${work.basedir}/deploy_jar"/>
+	</target>
+	
+	<target name="build_workspace" depends="init_env">
+		<copy todir="${work.basedir}/workspace" filtering="true" encoding="UTF-8">
+			<fileset dir="${basedir}/workspace" />
+			<filterset begintoken="$[" endtoken="]">
+				<filtersfile file="${deploy_env.file}" />
+			</filterset>
+		</copy>
+		<copy todir="${work.basedir}/workspace/libs" encoding="UTF-8">
+			<fileset dir="${basedir}/target/libs" />
+		</copy>	
+		<copy todir="${work.basedir}/workspace/classes" encoding="UTF-8">
+			<fileset dir="${work.basedir}/deploy_jar" includes="**/*" />
+		</copy>
+		<touch file="${work.basedir}/workspace/version-${git.common.version}"/>
+		<zip destfile="${basedir}/${zipfile}" basedir="${work.basedir}/workspace" />
+	</target>
+	
+	<target name="package" depends="cleanup,maven_clean,maven_install_common,maven_install,unpack,writeConf,build_workspace"/>
+	<target name="fastpackage" depends="cleanup,maven_clean,maven_install,unpack,writeConf,build_workspace"/>
+
+	<target name="main">
+		<echo message="package? fastpackage?" />
+	</target>
+
+</project>
