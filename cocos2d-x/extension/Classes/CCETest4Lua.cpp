@@ -67,5 +67,5 @@ void CCETest4LuaLayer::clickHandler(CCNode* node, const char* name, CCNodeEvent*
 {
 	CCValueArray ps;
 	ps.push_back(CCValue::stringValue(m_packageName));
-	CCELuaApplication::sharedLuaHost()->pcall("include",ps);
+	CCELuaApplication::sharedLuaHost()->pcall("include",ps,ps);
 }

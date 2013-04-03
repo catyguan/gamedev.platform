@@ -475,11 +475,11 @@ void CCELuaApplication::setvar(const char* key, const char* value)
 	m_host->setvar(key,value);
 }
 
-bool CCELuaApplication::pcall(const char* fun, CCValueArray& data)
+bool CCELuaApplication::pcall(const char* fun, CCValueArray& data, CCValueArray& result)
 {
 	CC_ASSERT(isOpen());
 	CC_ASSERT(fun!=NULL);
-	bool r = m_host->pcall(fun,data);
+	bool r = m_host->pcall(fun,data, result);
 	if(!r && data.size()>0) {
 		std::string err = data.begin()->stringValue();
 		CCLOG("pcall '%s' fail -> '%s'", fun, err.c_str());
@@ -520,7 +520,7 @@ CCELuaApplication* CCELuaApplication::sharedLuaHost(void)
 
 bool CCELuaApplication::callResponse(int callId, const char* err, CCValueArray& data)
 {	
-	return m_host->reponseLuaAInvoke(callId, err, data);
+	return m_host->reponseLuaAInvoke(callId, err, data, data);
 }
 
 void CCELuaApplication::enablePrintLog()
@@ -552,7 +552,7 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 				CCValueArray ps;
 				ps.push_back(CCValue::intValue(cit->id));
 				ps.push_back(CCValue::intValue(cit->fix));
-				bool r = host->pcall(LUA_FUNCTION_HOST_TIMER_RESPONSE, ps);
+				bool r = host->pcall(LUA_FUNCTION_HOST_TIMER_RESPONSE, ps, ps);
 				if(r) {
 					CCLOG("[LuaHost] timer[%d] => done - %s", cit->id, (ps.size()>0?ps[0].booleanValue():false)?"true":"false");
 				} else {
@@ -589,7 +589,7 @@ void CCELuaApplication::require(const char* package)
 {
 	CCValueArray ps;
 	ps.push_back(CCValue::stringValue(package));
-	pcall("require", ps);
+	pcall("require", ps, ps);
 }
 
 void CCELuaApplication::createApp(const char* appType, 
@@ -635,15 +635,20 @@ CCELuaResponseObject* CCELuaResponseObject::create(CCELuaApplication* app, int c
 }
 
 CCValue CCELuaResponseObject::invoke(CCValueArray& params)
-{
-	CCValueArray ps;
-	CCValueUtil::append(ps,m_Return);
-	CCValueUtil::append(ps,params);	
-	bool r = m_App->pcall("luaInvokeResponse", ps);
-	if(r) {
-		return ps.size()>0?ps[0]:CCValue::nullValue();
+{	
+	CCValueArray result;
+	bool r = false;
+	if(m_Return.size()>0) {
+		CCValueUtil::append(result,m_Return);
+		CCValueUtil::append(result,params);	
+		r = m_App->pcall("luaInvokeResponse", result, result);
+	} else {
+		m_App->pcall("luaInvokeResponse",params,result);
 	}
-	throw new std::string(ps.size()>0?ps[0].stringValue():"<empty message>");
+	if(r) {
+		return result.size()>0?result[0]:CCValue::nullValue();
+	}
+	throw new std::string(result.size()>0?result[0].stringValue():"<empty message>");
 }
 
 // CCELuaCallObject
@@ -675,14 +680,19 @@ CCELuaCallObject* CCELuaCallObject::create(CCELuaApplication* app, const char* f
 
 CCValue CCELuaCallObject::invoke(CCValueArray& params)
 {
-	CCValueArray ps;
-	CCValueUtil::append(ps,m_Params);
-	CCValueUtil::append(ps,params);	
-	bool r = m_App->pcall(m_csFun.c_str(), ps);
-	if(r) {
-		return ps.size()>0?ps[0]:CCValue::nullValue();
+	CCValueArray result;
+	bool r = false;
+	if(m_Params.size()>0) {
+		CCValueUtil::append(result,m_Params);
+		CCValueUtil::append(result,params);	
+		r = m_App->pcall(m_csFun.c_str(), result, result);
+	} else {
+		r = m_App->pcall(m_csFun.c_str(), params, result);
 	}
-	throw new std::string(ps.size()>0?ps[0].stringValue():"<empty message>");
+	if(r) {
+		return result.size()>0?result[0]:CCValue::nullValue();
+	}
+	throw new std::string(result.size()>0?result[0].stringValue():"<empty message>");
 }
 
 
@@ -699,7 +709,7 @@ CCELuaClosureObject::~CCELuaClosureObject()
 	if(m_App!=NULL && m_callId>0) {
 		CCValueArray ps;
 		ps.push_back(CCValue::intValue(m_callId));
-		m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_REMOVE, ps);
+		m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_REMOVE, ps, ps);
 	}
 }
 
@@ -717,7 +727,7 @@ CCValue CCELuaClosureObject::invoke(CCValueArray& params)
 	CCValueArray ps;
 	ps.push_back(CCValue::intValue(m_callId));
 	CCValueUtil::append(ps,params);	
-	bool r = m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_CALL, ps);
+	bool r = m_App->pcall(LUA_FUNCTION_HOST_CLOSURE_CALL, ps, ps);
 	if(r) {
 		return ps.size()>0?ps[0]:CCValue::nullValue();
 	}

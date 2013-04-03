@@ -113,9 +113,9 @@ public:
 	void setvar(const char* key, const char* value);
 	bool buildCallError(LuaHostArray_Ref r, const char * format, ...);
 	
-	virtual bool pcall(const char* fun, LuaHostArray_Ref params);
+	virtual bool pcall(const char* fun, LuaHostArray_Ref params, LuaHostArray_Ref result);
 	std::string eval(const char* content);
-	virtual bool reponseLuaAInvoke(int callId, const char* err, LuaHostArray_Ref data);	
+	virtual bool reponseLuaAInvoke(int callId, const char* err, LuaHostArray_Ref data, LuaHostArray_Ref result);	
 	
 public:
 	virtual int lapi_load() = 0;
@@ -466,7 +466,7 @@ void LuaHostPrototype::setvar(const char* key, const char* value)
 	::lua_setfield(m_state, LUA_GLOBALSINDEX, key);
 }
 
-bool LuaHostPrototype::pcall(const char* fname, LuaHostArray_Ref data)
+bool LuaHostPrototype::pcall(const char* fname, LuaHostArray_Ref data, LuaHostArray_Ref result)
 {
 	lua_State* L = m_state;
 	LuaHostValuePrototype* vp = valuePrototype();
@@ -478,9 +478,9 @@ bool LuaHostPrototype::pcall(const char* fname, LuaHostArray_Ref data)
 	int sz = pushStackData(L, vp, data);
 	int err = lua_pcall(L, sz, LUA_MULTRET, 0);	
 	
-	vp->resetArray(data);
+	vp->resetArray(result);
 	int ntop = lua_gettop(L);
-	popStackData(L, vp, data, ntop - top);
+	popStackData(L, vp, result, ntop - top);
 	if(err==0) {
 		return true;
 	}	
@@ -593,7 +593,7 @@ bool LuaHostPrototype::handle_lua2host_call(std::string& callType, LuaHostArray_
 	return buildCallError(data, s.c_str()); 
 }
 
-bool LuaHostPrototype::reponseLuaAInvoke(int callId, const char* err, LuaHostArray_Ref data)
+bool LuaHostPrototype::reponseLuaAInvoke(int callId, const char* err, LuaHostArray_Ref data, LuaHostArray_Ref result)
 {	
 	LuaHostValuePrototype* vp = valuePrototype();
 	if(err==NULL) {
@@ -602,7 +602,7 @@ bool LuaHostPrototype::reponseLuaAInvoke(int callId, const char* err, LuaHostArr
 		vp->arrayPushFirst(data, vp->newString(err));
 	}
 	vp->arrayPushFirst(data, vp->newInt(callId));
-	return pcall(LUA_FUNCTION_HOST_RESPONSE, data);
+	return pcall(LUA_FUNCTION_HOST_RESPONSE, data, result);
 }
 
 void LuaHostPrototype::pushUserdata(const char* flag, void* data, int size,bool canIndex, bool canCall)

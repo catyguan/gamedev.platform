@@ -36,7 +36,7 @@ public:
 
 	void addpath(const char* path);
 	void setvar(const char* key, const char* value);
-	bool pcall(const char* fun, CCValueArray& data);
+	bool pcall(const char* fun, CCValueArray& data, CCValueArray& result);
 	std::string eval(const char* content);
 
 	void setLoader(CCELuaLoader loader,void* data);

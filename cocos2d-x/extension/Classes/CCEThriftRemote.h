@@ -20,6 +20,8 @@ public:
 class CCEThriftRemoteService
 {
 public:
+	virtual ~CCEThriftRemoteService(){};
+
 	virtual bool handleRequest(int seqid, std::string module, std::string name, int type, CCValueBuilder* msg) = 0;
 };
 
@@ -34,6 +36,7 @@ public:
 	virtual ~CCEThriftRemote();
 
 	void addGate(const char* hostname, int port);
+	void clearGate();
 	void setRetryConnectTime(int time); // time<-1 disable auto retry connect
 	void setFrameMaxLength(int v){m_frameMaxLength = v;};
 	int getFrameMaxLength(){return m_frameMaxLength;};

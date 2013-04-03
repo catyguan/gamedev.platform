@@ -35,6 +35,7 @@
     <ClInclude Include="..\Classes\CCETouch.h" />
     <ClInclude Include="..\Classes\CCEUtil.h" />
     <ClInclude Include="..\Classes\CCO4File.h" />
+    <ClInclude Include="..\Classes\CCO4ThriftRemote.h" />
     <ClInclude Include="..\Classes\CCO4UserDefault.h" />
     <ClInclude Include="..\Classes\CCScale9Sprite.h" />
     <ClInclude Include="..\thrift\protocol\TBinaryProtocol.h" />
@@ -72,6 +73,7 @@
     <ClCompile Include="..\Classes\CCETouch.cpp" />
     <ClCompile Include="..\Classes\CCEUtil.cpp" />
     <ClCompile Include="..\Classes\CCO4File.cpp" />
+    <ClCompile Include="..\Classes\CCO4ThriftRemote.cpp" />
     <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
     <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
     <ClCompile Include="..\thrift\protocol\TScheme.cpp" />

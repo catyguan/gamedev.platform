@@ -48,11 +48,20 @@ CCEThriftRemote::CCEThriftRemote()
 
 CCEThriftRemote::~CCEThriftRemote()
 {
+	if(m_service!=NULL) {
+		delete m_service;
+	}
 }
 
 void CCEThriftRemote::addGate(const char* hostname, int p)
 {
 	m_gateList.push_back(std::pair<std::string,int>(hostname,p));
+}
+
+void CCEThriftRemote::clearGate()
+{
+	m_gateList.clear();
+	m_gateIndex = 0;
 }
 
 void CCEThriftRemote::setRetryConnectTime(int time)
