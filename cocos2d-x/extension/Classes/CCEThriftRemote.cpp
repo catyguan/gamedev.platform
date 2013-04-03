@@ -435,7 +435,7 @@ int CCEThriftRemoteSimple::handleData(const char* data,int len)
 
 			split(target, module, name);
 
-			TScheme* sch = TSchemeService::findScheme(module, name, true);
+			TScheme* sch = TSchemeService::findScheme(module, name, SCHEME_TYPE_ARGS);
 			if(sch==NULL) {
 				::apache::thrift::TApplicationException ex("unknow module: "+module);
 				thriftSend(seqid, target, &ex);
@@ -575,8 +575,8 @@ int CCEThriftRemoteSimple::call(std::string target,CCValue& value, CCEThriftResp
 	std::string name;
 	split(target,module,name);
 
-	TScheme* args = TSchemeService::findScheme(module,name,true);
-	TScheme* rets = TSchemeService::findScheme(module,name,false);
+	TScheme* args = TSchemeService::findScheme(module,name,SCHEME_TYPE_ARGS);
+	TScheme* rets = TSchemeService::findScheme(module,name,SCHEME_TYPE_RETURN);
 	CC_ASSERT(args!=NULL);
 	CC_ASSERT(rets!=NULL);
 	if(args==NULL || rets==NULL) {		
