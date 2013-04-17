@@ -8,6 +8,7 @@ CCEPixelNode::CCEPixelNode()
 , m_len(0)
 , m_plen(0)
 , m_pPixels(NULL)
+, m_flipX(false)
 {
     // default blend function
 	m_tBlendFunc.src = CC_BLEND_SRC;
@@ -74,10 +75,10 @@ void CCEPixelNode::setBlendFunc(ccBlendFunc var)
 	m_tBlendFunc = var;
 }
 
-CCEPixelNode * CCEPixelNode::create(int pixelSize)
+CCEPixelNode * CCEPixelNode::create(int pixelSize, CCSize& pixelContentSize)
 {
 	CCEPixelNode * node = new CCEPixelNode();
-	if( node && node->init(pixelSize))
+	if( node && node->init(pixelSize, pixelContentSize))
 	{		
 		node->autorelease();
 		return node;
@@ -86,7 +87,7 @@ CCEPixelNode * CCEPixelNode::create(int pixelSize)
 	return NULL;
 }
 
-bool CCEPixelNode::init(int pixelSize)
+bool CCEPixelNode::init(int pixelSize, CCSize& pixelContentSize)
 {	
 	m_size = pixelSize;
 
@@ -94,6 +95,9 @@ bool CCEPixelNode::init(int pixelSize)
 	m_tBlendFunc.dst = GL_ONE_MINUS_SRC_ALPHA;
 
 	setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionColor));
+
+	setPixelContentSize(pixelContentSize);
+	setAnchorPoint(ccp(0.5,0.5));
 
 	return true;
 }
@@ -187,6 +191,13 @@ void CCEPixelNode::pixel(ccePixelInfo* info, ccePixelDef* def)
 	info->square[3].x = info->square[1].x;
 	info->square[3].y = info->square[2].y;
 
+	if(m_flipX) {
+		float cx = getAnchorPointInPoints().x;
+		for(int j=0;j<4;j++) {
+			info->square[j].x = cx + cx- info->square[j].x;			
+		}		
+	}
+
 	for(int i=0;i<4;i++) {
 		if(def->rgbColor) {
 			info->color[i].r = m_tColor.r / 255.0f;
@@ -231,4 +242,26 @@ int CCEPixelNode::count(ccePixelDef* pdef)
 		if(pdef[i].type<0)return i;
 	}
 	return 0;
+}
+
+void CCEPixelNode::setPixelContentSize(CCSize& pixelContentSize)
+{
+	m_pixelContentSize = pixelContentSize;
+	setContentSize(CCSize(m_pixelContentSize.width*m_size, m_pixelContentSize.height*m_size));
+}
+
+void CCEPixelNode::setFlipX(bool v)
+{
+	bool old = m_flipX?1:0;
+	m_flipX = v;
+	if(old==(m_flipX?1:0))return;
+
+	// flip
+	float cx = getAnchorPointInPoints().x;
+	for(int i=0;i<m_len;i++) {
+		ccePixelInfo* p = m_pPixels+i;
+		for(int j=0;j<4;j++) {
+			p->square[j].x = cx + cx- p->square[j].x;			
+		}
+	}
 }

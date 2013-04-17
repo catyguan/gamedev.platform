@@ -38,14 +38,21 @@ protected:
 	int m_plen;			// m_pPixels memory len
 	ccePixelInfo* m_pPixels;
 
+	bool m_flipX;
+	CCSize m_pixelContentSize;
+
 public:
 	CCEPixelNode();
 	virtual ~CCEPixelNode();
 
 	virtual void draw();
 	
-	static CCEPixelNode* create(int pixelSize);
-	virtual bool init(int pixelSize);
+	static CCEPixelNode* create(int pixelSize,CCSize& pixelContentSize);
+	virtual bool init(int pixelSize,CCSize& pixelContentSize);
+
+	virtual void setPixelContentSize(CCSize& pixelContentSize);
+	bool isFlipX(){return m_flipX;};
+	void setFlipX(bool v);
 
 
 	/** Opacity: conforms to CCRGBAProtocol protocol */
