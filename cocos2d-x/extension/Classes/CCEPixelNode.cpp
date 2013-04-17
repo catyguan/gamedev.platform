@@ -5,10 +5,9 @@ CCEPixelNode::CCEPixelNode()
 : m_cOpacity(255)
 , m_tColor( ccc3(0,0,0) )
 , m_size(1)
-, m_len(0)
-, m_plen(0)
 , m_pPixels(NULL)
 , m_flipX(false)
+, m_flipY(false)
 {
     // default blend function
 	m_tBlendFunc.src = CC_BLEND_SRC;
@@ -17,9 +16,7 @@ CCEPixelNode::CCEPixelNode()
     
 CCEPixelNode::~CCEPixelNode()
 {	
-	if(m_pPixels!=NULL) {
-		delete[] m_pPixels;
-	}
+	clearPixels();	
 }
 
 // Opacity and RGB color protocol
@@ -50,17 +47,20 @@ void CCEPixelNode::setColor(const ccColor3B& var)
 
 void CCEPixelNode::updateColor()
 {
-	for(int i=0; i < m_len; i++ )
-	{
-		if(m_pPixels[i].hide)continue;
-		for(unsigned int j=0;j<4;j++) {
-			if(m_pPixels[i].rgbColor) {
-				m_pPixels[i].color[j].r = m_tColor.r;
-				m_pPixels[i].color[j].g = m_tColor.g;
-				m_pPixels[i].color[j].b = m_tColor.b;
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {		
+		for(int i=0; i < p->len; i++ )
+		{
+			for(unsigned int j=0;j<4;j++) {
+				if(p->pixels[i].rgbColor) {
+					p->pixels[i].color[j].r = m_tColor.r;
+					p->pixels[i].color[j].g = m_tColor.g;
+					p->pixels[i].color[j].b = m_tColor.b;
+				}
+				p->pixels[i].color[j].a = m_cOpacity;
 			}
-			m_pPixels[i].color[j].a = m_cOpacity;
 		}
+		p = p->next;
 	}
 }
 
@@ -102,80 +102,113 @@ bool CCEPixelNode::init(int pixelSize, CCSize& pixelContentSize)
 	return true;
 }
 
-void CCEPixelNode::alloc(int len)
+ccePixelPart* CCEPixelNode::part(int partId)
 {
-	if(m_plen<len) {
-		int newsize = max(m_plen+8,len);
-		ccePixelInfo* tmp = new ccePixelInfo[newsize];
-		if(m_pPixels!=NULL) {
-			memcpy(tmp, m_pPixels, sizeof(ccePixelInfo)*m_len);
-			delete[] m_pPixels;
-		}
-		m_pPixels = tmp;
-		m_plen = newsize;
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {
+		if(p->id==partId)return p;
+		p = p->next;
 	}
+	return NULL;
 }
 
-void CCEPixelNode::addPixels(ccePixelDef* pdef,int len)
+ccePixelPart* CCEPixelNode::alloc(int partId, int len)
 {
-	alloc(m_len+len);
+	removePart(partId);
+
+	ccePixelPart* r = new ccePixelPart();
+	r->hide = true;
+	r->id = partId;
+	r->len = len;
+	r->next = NULL;
+	r->pixels = new ccePixelInfo[len];
+
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {
+		if(p->next==NULL) {
+			p->next = r;
+			return r;
+		}
+	}
+	m_pPixels = r;
+	return r;
+}
+
+void CCEPixelNode::loadPart(int partId, ccePixelDef* def, int len)
+{
+	ccePixelPart* p = alloc(partId, len);
 	for(int i=0;i<len;i++) {
-		 pixel(m_pPixels+m_len, pdef+i); 
-		 m_len++;
+		pixel(p->pixels+i, def+i);		 
 	}	
-}
-
-void CCEPixelNode::setPixels(ccePixelDef* pdef,int len)
-{
-	for(int j=0;j<len;j++) {
-		ccePixelDef* def = pdef+j;
-		for(int i=0;i<m_len;i++) {
-			if(m_pPixels[i].type==def->type) {
-				pixel(m_pPixels+i, def); 
-			}
-		}
-	}
 }
 
 void CCEPixelNode::setPixelsColor(int type, ccColor3B color)
 {
-	for(int i=0; i < m_len; i++ )
-	{
-		if(m_pPixels[i].hide)continue;
-		if(m_pPixels[i].type==type) {
-			for(unsigned int j=0;j<4;j++) {
-				m_pPixels[i].color[j].r = color.r / 255.0f;
-				m_pPixels[i].color[j].g = color.g / 255.0f;
-				m_pPixels[i].color[j].b = color.b / 255.0f;
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {
+		for(int i=0; i < p->len; i++ )
+		{
+			if(p->pixels[i].type==type) {
+				for(unsigned int j=0;j<4;j++) {
+					p->pixels[i].color[j].r = color.r / 255.0f;
+					p->pixels[i].color[j].g = color.g / 255.0f;
+					p->pixels[i].color[j].b = color.b / 255.0f;
+				}
 			}
 		}
+		p = p->next;
 	}
 }
 
-void CCEPixelNode::hidePixels(int type, bool hide)
+void CCEPixelNode::showPart(int partId, bool show)
 {
-	for(int i=0;i<m_len;i++) {
-		if(m_pPixels[i].type==type) {
-			m_pPixels[i].hide = hide;
+	ccePixelPart* p = part(partId);
+	if(p!=NULL)p->hide = !show;
+}
+
+void CCEPixelNode::showPixels(int type, bool show)
+{
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {
+		for(int i=0;i<p->len;i++) {
+			if(p->pixels[i].type==type) {
+				p->pixels[i].hide = !show;
+			}
 		}
+		p = p->next;
 	}
 }
 
-void CCEPixelNode::removePixels(int type)
+void CCEPixelNode::removePart(int partId)
 {
-	for(int i=m_len-1;i>=0;i--) {
-		if(m_pPixels[i].type==type) {
-			if(i<m_len-1) {
-				memcpy(m_pPixels+i, m_pPixels+i+1, sizeof(ccePixelInfo)*(m_len-i));
+	ccePixelPart* pp = NULL;
+	ccePixelPart* p = m_pPixels;
+	while(p!=NULL) {
+		if(p->id==partId) {
+			if(pp==NULL) {
+				m_pPixels = NULL;
+			} else {
+				pp->next = p->next;
 			}
-			m_len--;
+			delete[] p->pixels;			
+			delete p;
+			return;
 		}
+		pp = p;
+		p = p->next;
 	}	
 }
 
 void CCEPixelNode::clearPixels()
 {
-	m_len = 0;
+	ccePixelPart* p = m_pPixels;
+	m_pPixels = NULL;
+	while(p!=NULL) {
+		ccePixelPart* next = p->next;
+		delete[] p->pixels;
+		delete p;
+		p = next;		
+	}
 }
 
 void CCEPixelNode::pixel(ccePixelInfo* info, ccePixelDef* def)
@@ -191,10 +224,15 @@ void CCEPixelNode::pixel(ccePixelInfo* info, ccePixelDef* def)
 	info->square[3].x = info->square[1].x;
 	info->square[3].y = info->square[2].y;
 
-	if(m_flipX) {
-		float cx = getAnchorPointInPoints().x;
+	if(m_flipX || m_flipY) {
+		CCPoint cp = getAnchorPointInPoints();
 		for(int j=0;j<4;j++) {
-			info->square[j].x = cx + cx- info->square[j].x;			
+			if(m_flipX) {
+				info->square[j].x = cp.x + cp.x - info->square[j].x;
+			}
+			if(m_flipY) {
+				info->square[j].y = cp.y + cp.y - info->square[j].y;
+			}
 		}		
 	}
 
@@ -223,13 +261,19 @@ void CCEPixelNode::draw()
     //
     // Attributes
     //
-	for(int i=0;i<m_len;i++) {
-		ccePixelInfo* p = m_pPixels+i;
-		if(p->hide)continue;
-		glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, p->square);
-		glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_FLOAT, GL_FALSE, 0, p->color);		
-		ccGLBlendFunc( m_tBlendFunc.src, m_tBlendFunc.dst );
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	ccePixelPart* pt = m_pPixels;
+	while(pt!=NULL) {
+		if(!pt->hide) {
+			for(int i=0;i<pt->len;i++) {
+				ccePixelInfo* p = pt->pixels+i;
+				if(p->hide)continue;
+				glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, p->square);
+				glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_FLOAT, GL_FALSE, 0, p->color);		
+				ccGLBlendFunc( m_tBlendFunc.src, m_tBlendFunc.dst );
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			}
+		}
+		pt = pt->next;
 	}
 
     CC_INCREMENT_GL_DRAWS(1);	
@@ -258,10 +302,34 @@ void CCEPixelNode::setFlipX(bool v)
 
 	// flip
 	float cx = getAnchorPointInPoints().x;
-	for(int i=0;i<m_len;i++) {
-		ccePixelInfo* p = m_pPixels+i;
-		for(int j=0;j<4;j++) {
-			p->square[j].x = cx + cx- p->square[j].x;			
+	ccePixelPart* pt = m_pPixels;
+	while(pt!=NULL) {
+		for(int i=0;i<pt->len;i++) {
+			ccePixelInfo* p = pt->pixels+i;
+			for(int j=0;j<4;j++) {
+				p->square[j].x = cx + cx- p->square[j].x;			
+			}
 		}
+		pt = pt->next;
+	}
+}
+
+void CCEPixelNode::setFlipY(bool v)
+{
+	bool old = m_flipY?1:0;
+	m_flipY = v;
+	if(old==(m_flipY?1:0))return;
+
+	// flip
+	float cy = getAnchorPointInPoints().y;
+	ccePixelPart* pt = m_pPixels;
+	while(pt!=NULL) {
+		for(int i=0;i<pt->len;i++) {
+			ccePixelInfo* p = pt->pixels+i;
+			for(int j=0;j<4;j++) {
+				p->square[j].y = cy + cy - p->square[j].y;
+			}
+		}
+		pt = pt->next;
 	}
 }

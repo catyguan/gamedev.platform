@@ -14,6 +14,15 @@ typedef struct _ccePixelInfo
 	bool hide;
 } ccePixelInfo;
 
+typedef struct _ccePixelPart
+{
+	int id;
+	int len;				// pixels valid len
+	ccePixelInfo* pixels;
+	bool hide;
+	_ccePixelPart* next;
+} ccePixelPart;
+
 typedef struct _ccePixelDef {
 	int type;
 	int x;	
@@ -34,11 +43,9 @@ class CCEPixelNode : public CCNode , public CCRGBAProtocol, public CCBlendProtoc
 {
 protected:
 	int m_size;			// pixel size
-	int m_len;			// m_pPixels valid len
-	int m_plen;			// m_pPixels memory len
-	ccePixelInfo* m_pPixels;
+	ccePixelPart* m_pPixels;
 
-	bool m_flipX;
+	bool m_flipX, m_flipY;
 	CCSize m_pixelContentSize;
 
 public:
@@ -53,6 +60,8 @@ public:
 	virtual void setPixelContentSize(CCSize& pixelContentSize);
 	bool isFlipX(){return m_flipX;};
 	void setFlipX(bool v);
+	bool isFlipY(){return m_flipY;};
+	void setFlipY(bool v);
 
 
 	/** Opacity: conforms to CCRGBAProtocol protocol */
@@ -69,16 +78,19 @@ public:
 public:
 	// operator
 	static int count(ccePixelDef* pdef);
+
+	void loadPart(int partId, ccePixelDef* def, int len);
+	void showPart(int partId, bool show);
+	void removePart(int partId);
 	
-	void addPixels(ccePixelDef* def, int len);
-	void setPixels(ccePixelDef* def, int len);
 	void setPixelsColor(int type, ccColor3B color);
-	void hidePixels(int type, bool hide);
-	void removePixels(int type);
+	void showPixels(int type, bool show);
+	
 	void clearPixels();
 
 protected:
-	void alloc(int len);
+	ccePixelPart* part(int partId);
+	ccePixelPart* alloc(int partId, int len);	
 	void pixel(ccePixelInfo* pinfo, ccePixelDef* def);
    
 protected:
