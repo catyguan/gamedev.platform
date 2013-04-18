@@ -5,7 +5,7 @@
 
 USING_NS_CC;
 
-class CCEContainer : public CCNode, public CCRGBAProtocol
+class CCEContainer : public CCNodeRGBA
 {
     //CCRGBAProtocol
     CC_PROPERTY(GLubyte, m_cOpacity, Opacity); 

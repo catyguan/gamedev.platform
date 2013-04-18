@@ -25,7 +25,7 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
 		if (h >= resources->size.height)
 		{ 
 			CCLOG("designSize => %f x %f resource => %s", resources->size.width, resources->size.height, resources->directory);			
-			CCFileUtils::sharedFileUtils()->setResourceDirectory(resources->directory);
+			CCFileUtils::sharedFileUtils()->addSearchPath(resources->directory);
 			CCDirector::sharedDirector()->setContentScaleFactor(MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width));
 			break;
 		}

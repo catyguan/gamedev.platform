@@ -1,6 +1,6 @@
 #include "CCO4UserDefault.h"
 
-#include "CCUserDefault.h"
+#include "support/user_default/CCUserDefault.h"
 #include "cocoa/CCValueSupport.h"
 
 CC_BEGIN_CALLS(CCO4UserDefault, CCObject)

@@ -556,7 +556,7 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 				if(r) {
 					CCLOG("[LuaHost] timer[%d] => done - %s", cit->id, (ps.size()>0?ps[0].booleanValue():false)?"true":"false");
 				} else {
-					CCLOG("[LuaHost] timer[%d] => fail - %s", cit->id, (ps.size()>0?ps[0].stringValue():CCValue::EMPTY).c_str());
+					CCLOG("[LuaHost] timer[%d] => fail - %s", cit->id, (ps.size()>0?ps[0].stringValue():std::string()).c_str());
 				}
                 if (r && cit->fix > 0)
                 {

@@ -33,7 +33,7 @@ void CCEPixelNode::setOpacity(GLubyte var)
 }
 
 /// color getter
-ccColor3B CCEPixelNode::getColor()
+const ccColor3B& CCEPixelNode::getColor()
 {
 	return m_tColor;
 }

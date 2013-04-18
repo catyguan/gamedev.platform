@@ -29,7 +29,7 @@ void CCEContainer::setColor(const ccColor3B& color)
     }
 }
 
-ccColor3B CCEContainer::getColor(void)
+const ccColor3B& CCEContainer::getColor(void)
 {
     return m_tColor;
 }
