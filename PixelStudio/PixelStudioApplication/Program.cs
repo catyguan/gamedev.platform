@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixelStudioApplication.M;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace PixelStudioApplication
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            ProjectManager.getInstance().newProject();
             Application.Run(new MainFrame());
         }
     }

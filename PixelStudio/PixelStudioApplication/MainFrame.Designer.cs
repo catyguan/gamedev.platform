@@ -74,9 +74,19 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip = new System.Windows.Forms.ToolStrip();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.manageTabControl = new System.Windows.Forms.TabControl();
+            this.resourceTabPage = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.resourceTreeView = new System.Windows.Forms.TreeView();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.manageTabControl.SuspendLayout();
+            this.resourceTabPage.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip
@@ -128,7 +138,7 @@
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
             this.openToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.openToolStripMenuItem.Text = "打开(&O)";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenFile);
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenProject);
             // 
             // toolStripSeparator3
             // 
@@ -143,13 +153,14 @@
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.saveToolStripMenuItem.Text = "保存(&S)";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveProject);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.saveAsToolStripMenuItem.Text = "导出为(&A)";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsProfile);
             // 
             // toolStripSeparator4
             // 
@@ -258,7 +269,7 @@
             this.toolBarToolStripMenuItem.CheckOnClick = true;
             this.toolBarToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.toolBarToolStripMenuItem.Name = "toolBarToolStripMenuItem";
-            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.toolBarToolStripMenuItem.Text = "工具栏(&T)";
             this.toolBarToolStripMenuItem.Click += new System.EventHandler(this.ToolBarToolStripMenuItem_Click);
             // 
@@ -268,7 +279,7 @@
             this.statusBarToolStripMenuItem.CheckOnClick = true;
             this.statusBarToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.statusBarToolStripMenuItem.Name = "statusBarToolStripMenuItem";
-            this.statusBarToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.statusBarToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.statusBarToolStripMenuItem.Text = "状态栏(&S)";
             this.statusBarToolStripMenuItem.Click += new System.EventHandler(this.StatusBarToolStripMenuItem_Click);
             // 
@@ -283,7 +294,7 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.optionsToolStripMenuItem.Text = "选项(&O)";
             // 
             // windowsMenu
@@ -412,7 +423,7 @@
             this.openToolStripButton.Name = "openToolStripButton";
             this.openToolStripButton.Size = new System.Drawing.Size(23, 22);
             this.openToolStripButton.Text = "打开";
-            this.openToolStripButton.Click += new System.EventHandler(this.OpenFile);
+            this.openToolStripButton.Click += new System.EventHandler(this.OpenProject);
             // 
             // saveToolStripButton
             // 
@@ -422,6 +433,7 @@
             this.saveToolStripButton.Name = "saveToolStripButton";
             this.saveToolStripButton.Size = new System.Drawing.Size(23, 22);
             this.saveToolStripButton.Text = "保存";
+            this.saveToolStripButton.Click += new System.EventHandler(this.SaveProject);
             // 
             // toolStripSeparator1
             // 
@@ -451,11 +463,66 @@
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "ToolStrip";
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 49);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.manageTabControl);
+            this.splitContainer1.Size = new System.Drawing.Size(632, 347);
+            this.splitContainer1.SplitterDistance = 210;
+            this.splitContainer1.TabIndex = 4;
+            // 
+            // manageTabControl
+            // 
+            this.manageTabControl.Alignment = System.Windows.Forms.TabAlignment.Bottom;
+            this.manageTabControl.Controls.Add(this.resourceTabPage);
+            this.manageTabControl.Controls.Add(this.tabPage2);
+            this.manageTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.manageTabControl.Location = new System.Drawing.Point(0, 0);
+            this.manageTabControl.Name = "manageTabControl";
+            this.manageTabControl.SelectedIndex = 0;
+            this.manageTabControl.Size = new System.Drawing.Size(210, 347);
+            this.manageTabControl.TabIndex = 0;
+            // 
+            // resourceTabPage
+            // 
+            this.resourceTabPage.Controls.Add(this.resourceTreeView);
+            this.resourceTabPage.Location = new System.Drawing.Point(4, 4);
+            this.resourceTabPage.Name = "resourceTabPage";
+            this.resourceTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.resourceTabPage.Size = new System.Drawing.Size(202, 321);
+            this.resourceTabPage.TabIndex = 0;
+            this.resourceTabPage.Text = "项目资源管理器";
+            this.resourceTabPage.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Location = new System.Drawing.Point(4, 4);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(202, 321);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // resourceTreeView
+            // 
+            this.resourceTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.resourceTreeView.Location = new System.Drawing.Point(3, 3);
+            this.resourceTreeView.Name = "resourceTreeView";
+            this.resourceTreeView.Size = new System.Drawing.Size(196, 315);
+            this.resourceTreeView.TabIndex = 0;
+            // 
             // MainFrame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(632, 418);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.menuStrip);
@@ -463,12 +530,18 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "MainFrame";
             this.Text = "MainFrame";
+            this.Load += new System.EventHandler(this.MainFrame_Load);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.manageTabControl.ResumeLayout(false);
+            this.resourceTabPage.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -520,6 +593,11 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton helpToolStripButton;
         private System.Windows.Forms.ToolStrip toolStrip;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.TabControl manageTabControl;
+        private System.Windows.Forms.TabPage resourceTabPage;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TreeView resourceTreeView;
     }
 }
 

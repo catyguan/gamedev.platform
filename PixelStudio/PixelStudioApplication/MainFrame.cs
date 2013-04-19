@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixelStudioApplication.M;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,29 +23,64 @@ namespace PixelStudioApplication
 
         private void NewProject(object sender, EventArgs e)
         {
-            
-        }
-        
-        private void OpenFile(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            openFileDialog.Filter = "文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
-            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+            if (ProjectManager.getInstance().current.isModify)
             {
-                string FileName = openFileDialog.FileName;
+                DialogResult r =  MessageBox.Show("是否保存当前项目的修改?", "确认", MessageBoxButtons.YesNoCancel);
+                if(r == DialogResult.Cancel) {
+                    return;
+                }
+                if (r == DialogResult.Yes)
+                {
+                    // a 'DialogResult.Yes' value was returned from the MessageBox
+                    // proceed with your deletion
+                    if (!doSaveProject(false))
+                    {
+                        return;
+                    }
+                }
             }
+            ProjectManager.getInstance().newProject();
         }
 
-        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        private bool doSaveProject(bool saveAs)
         {
+            ProjectManager pm = ProjectManager.getInstance();
+            if (!saveAs && pm.current.fileName != null)
+            {
+                pm.saveProject(pm.current.fileName);
+            }
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            saveFileDialog.Filter = "文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
+            saveFileDialog.Filter = "项目文件(*.psp)|*.psp|所有文件(*.*)|*.*";
             if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
             {
                 string FileName = saveFileDialog.FileName;
+                ProjectManager.getInstance().saveProject(FileName);
+                return true;
             }
+            return false;
+        }
+
+        private void SaveProject(object sender, EventArgs e)
+        {
+            doSaveProject(false);            
+        }
+        
+        private void OpenProject(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            openFileDialog.Filter = "项目文件(*.psp)|*.psp|所有文件(*.*)|*.*";
+            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                string FileName = openFileDialog.FileName;
+                ProjectManager.getInstance().openProject(FileName);
+            }
+        }
+
+        private void SaveAsProfile(object sender, EventArgs e)
+        {
+            doSaveProject(true);
         }
 
         private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
@@ -101,5 +137,33 @@ namespace PixelStudioApplication
                 childForm.Close();
             }
         }
+
+        private void MainFrame_Load(object sender, EventArgs e)
+        {
+            ProjectManager pm = ProjectManager.getInstance();
+            pm.eventHandler += new PropChangeHandler(this.ProjectManager_Change);
+
+            bindProjectToTree();
+        }
+
+        private void ProjectManager_Change(object sender, String type, String prop)
+        {
+            if (type.Equals(TYPE.NEW))
+            {
+                bindProjectToTree();
+            }
+        }
+
+        private void bindProjectToTree()
+        {
+            Project proj = ProjectManager.getInstance().current;
+
+            resourceTreeView.Nodes.Clear();
+
+            TreeNode root = new TreeNode();
+            root.Text = "Project["+(proj.Title==null?"":proj.Title)+"]";
+            resourceTreeView.Nodes.Add(root);
+        }
+       
     }
 }
