@@ -10,7 +10,7 @@ CC_END_CALLS(CCO4File, CCObject)
 CCValue CCO4File::CALLNAME(getStoreFile)(CCValueArray& params)
 {
 	std::string name = ccvpString(params,0);
-	std::string path = CCFileUtils::sharedFileUtils()->getWriteablePath();	
+	std::string path = CCFileUtils::sharedFileUtils()->getWritablePath();
 	std::string r = path+name;
 	return CCValue::stringValue(r);
 }

@@ -149,7 +149,7 @@ public:
     virtual void setDirection(CCEScrollViewDirection eDirection) { m_eDirection = eDirection; }
 
     virtual void setContentSize(const CCSize & size);
-    virtual CCSize getContentSize();
+    virtual const CCSize& getContentSize();
 
 	void updateInset();
     /**

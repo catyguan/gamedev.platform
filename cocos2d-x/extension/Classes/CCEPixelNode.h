@@ -39,7 +39,7 @@ typedef struct _ccePixelDef {
 //
 // CCEPixelNode
 //
-class CCEPixelNode : public CCNode , public CCRGBAProtocol, public CCBlendProtocol
+class CCEPixelNode : public CCNodeRGBA, public CCBlendProtocol
 {
 protected:
 	int m_size;			// pixel size

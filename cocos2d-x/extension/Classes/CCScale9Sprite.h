@@ -32,7 +32,14 @@ THE SOFTWARE.
 
 USING_NS_CC;
 
-class CCScale9Sprite : public CCNode, public CCRGBAProtocol
+/**
+ * @addtogroup GUI
+ * @{
+ * @addtogroup control_extension
+ * @{
+ */
+
+class CCScale9Sprite : public CCNodeRGBA
 {
 public:
     CCScale9Sprite();
@@ -60,11 +67,6 @@ public:
     /** Sets the bottom side inset */
     CC_PROPERTY(float, m_insetBottom, InsetBottom);
 
-    /** Opacity: conforms to CCRGBAProtocol protocol */
-    CC_PROPERTY(GLubyte, m_cOpacity, Opacity)
-    /** Color: conforms to CCRGBAProtocol protocol */
-    CC_PROPERTY_PASS_BY_REF(ccColor3B, m_tColor, Color)
-
 protected:
     bool m_bSpritesGenerated;
     CCRect m_spriteRect;
@@ -90,7 +92,8 @@ protected:
     void updateCapInset();
     void updatePositions();
 
-public:    
+public:
+    
     virtual void setContentSize(const CCSize & size);
     virtual void visit();
     
@@ -298,5 +301,9 @@ public:
 
     virtual void setSpriteFrame(CCSpriteFrame * spriteFrame);
 };
+
+// end of GUI group
+/// @}
+/// @}
 
 #endif // __CCScale9Sprite_H__
