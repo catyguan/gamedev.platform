@@ -1,4 +1,5 @@
-﻿using PixelStudioApplication.M;
+﻿using PixelStudioApplication.C;
+using PixelStudioApplication.M;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -163,6 +164,19 @@ namespace PixelStudioApplication
             TreeNode root = new TreeNode();
             root.Text = "Project["+(proj.Title==null?"":proj.Title)+"]";
             resourceTreeView.Nodes.Add(root);
+        }
+
+        private PixelEditor tester;
+        private void resourceTreeView_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (tester == null)
+            {
+                tester = new PixelEditor();
+                tester.Dock = DockStyle.Fill;
+                tester.pixelSize = new Size(12, 8);
+                tester.cellSize = 24;
+                scContainer.Panel2.Controls.Add(tester);
+            }
         }
        
     }

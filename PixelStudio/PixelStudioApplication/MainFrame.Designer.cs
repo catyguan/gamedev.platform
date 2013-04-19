@@ -74,17 +74,17 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip = new System.Windows.Forms.ToolStrip();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.scContainer = new System.Windows.Forms.SplitContainer();
             this.manageTabControl = new System.Windows.Forms.TabControl();
             this.resourceTabPage = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.resourceTreeView = new System.Windows.Forms.TreeView();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.scContainer)).BeginInit();
+            this.scContainer.Panel1.SuspendLayout();
+            this.scContainer.SuspendLayout();
             this.manageTabControl.SuspendLayout();
             this.resourceTabPage.SuspendLayout();
             this.SuspendLayout();
@@ -463,18 +463,18 @@
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "ToolStrip";
             // 
-            // splitContainer1
+            // scContainer
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 49);
-            this.splitContainer1.Name = "splitContainer1";
+            this.scContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.scContainer.Location = new System.Drawing.Point(0, 49);
+            this.scContainer.Name = "scContainer";
             // 
-            // splitContainer1.Panel1
+            // scContainer.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.manageTabControl);
-            this.splitContainer1.Size = new System.Drawing.Size(632, 347);
-            this.splitContainer1.SplitterDistance = 210;
-            this.splitContainer1.TabIndex = 4;
+            this.scContainer.Panel1.Controls.Add(this.manageTabControl);
+            this.scContainer.Size = new System.Drawing.Size(632, 347);
+            this.scContainer.SplitterDistance = 210;
+            this.scContainer.TabIndex = 4;
             // 
             // manageTabControl
             // 
@@ -499,6 +499,15 @@
             this.resourceTabPage.Text = "项目资源管理器";
             this.resourceTabPage.UseVisualStyleBackColor = true;
             // 
+            // resourceTreeView
+            // 
+            this.resourceTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.resourceTreeView.Location = new System.Drawing.Point(3, 3);
+            this.resourceTreeView.Name = "resourceTreeView";
+            this.resourceTreeView.Size = new System.Drawing.Size(196, 315);
+            this.resourceTreeView.TabIndex = 0;
+            this.resourceTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.resourceTreeView_AfterSelect);
+            // 
             // tabPage2
             // 
             this.tabPage2.Location = new System.Drawing.Point(4, 4);
@@ -509,20 +518,12 @@
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // resourceTreeView
-            // 
-            this.resourceTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.resourceTreeView.Location = new System.Drawing.Point(3, 3);
-            this.resourceTreeView.Name = "resourceTreeView";
-            this.resourceTreeView.Size = new System.Drawing.Size(196, 315);
-            this.resourceTreeView.TabIndex = 0;
-            // 
             // MainFrame
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(632, 418);
-            this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.scContainer);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.menuStrip);
@@ -537,9 +538,9 @@
             this.statusStrip.PerformLayout();
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
+            this.scContainer.Panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.scContainer)).EndInit();
+            this.scContainer.ResumeLayout(false);
             this.manageTabControl.ResumeLayout(false);
             this.resourceTabPage.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -593,7 +594,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton helpToolStripButton;
         private System.Windows.Forms.ToolStrip toolStrip;
-        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.SplitContainer scContainer;
         private System.Windows.Forms.TabControl manageTabControl;
         private System.Windows.Forms.TabPage resourceTabPage;
         private System.Windows.Forms.TabPage tabPage2;

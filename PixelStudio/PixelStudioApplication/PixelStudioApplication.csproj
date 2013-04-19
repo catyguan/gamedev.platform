@@ -45,6 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="C\PixelEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="C\PixelEditor.Designer.cs">
+      <DependentUpon>PixelEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -58,10 +64,14 @@
       <DependentUpon>MainFrame.cs</DependentUpon>
     </Compile>
     <Compile Include="M\Events.cs" />
+    <Compile Include="M\PixelInfo.cs" />
     <Compile Include="M\Project.cs" />
     <Compile Include="M\ProjectManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="C\PixelEditor.resx">
+      <DependentUpon>PixelEditor.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainFrame.resx">
       <DependentUpon>MainFrame.cs</DependentUpon>
     </EmbeddedResource>
