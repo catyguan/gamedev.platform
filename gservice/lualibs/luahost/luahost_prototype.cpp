@@ -47,9 +47,11 @@ typedef void* LuaHostValue_Ref;
 typedef void* LuaHostArray;
 typedef void* LuaHostArray_Ref;
 typedef void* LuaHostArrayIterator;
+typedef void* LuaHostArrayIterator_Ref;
 typedef void* LuaHostMap;
 typedef void* LuaHostMap_Ref;
 typedef void* LuaHostMapIterator;
+typedef void* LuaHostMapIterator_Ref;
 */
 class LuaHostPrototype;
 class LuaHostValuePrototype
@@ -60,9 +62,9 @@ public:
 	virtual LuaHostArray newArray() = 0;
 	virtual int arraySize(LuaHostArray_Ref array) = 0;
 	virtual LuaHostArrayIterator arrayBegin(LuaHostArray_Ref array) = 0;
-	virtual bool arrayValid(LuaHostArray_Ref array, LuaHostArrayIterator& it) =0;
-	virtual bool arrayNext(LuaHostArray_Ref array, LuaHostArrayIterator& it) = 0;
-	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, LuaHostArrayIterator it) = 0;
+	virtual bool arrayValid(LuaHostArray_Ref array, LuaHostArrayIterator_Ref it) =0;
+	virtual bool arrayNext(LuaHostArray_Ref array, LuaHostArrayIterator_Ref it) = 0;
+	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, LuaHostArrayIterator_Ref it) = 0;
 	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, int idx) = 0;
 	virtual void arrayAdd(LuaHostArray_Ref array, LuaHostValue_Ref v) = 0;
 	virtual LuaHostValue arrayPopFirst(LuaHostArray_Ref array) = 0;
@@ -72,10 +74,10 @@ public:
 	
 	virtual LuaHostMap newMap() = 0;
 	virtual LuaHostMapIterator mapBegin(LuaHostMap_Ref map) = 0;
-	virtual bool mapValid(LuaHostMap_Ref map, LuaHostMapIterator& it) = 0;
-	virtual bool mapNext(LuaHostMap_Ref map, LuaHostMapIterator& it) = 0;
-	virtual std::string mapGetKey(LuaHostMap_Ref map, LuaHostMapIterator it) = 0;
-	virtual LuaHostValue_Ref mapGetValue(LuaHostMap_Ref map, LuaHostMapIterator it) = 0;
+	virtual bool mapValid(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) = 0;
+	virtual bool mapNext(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) = 0;
+	virtual std::string mapGetKey(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) = 0;
+	virtual LuaHostValue_Ref mapGetValue(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) = 0;
 	virtual void mapSet(LuaHostMap_Ref map, const char* key, LuaHostValue_Ref v) = 0;
 	virtual void releaseMap(LuaHostMap_Ref map) = 0;
 	
@@ -111,7 +113,7 @@ public:
 	
 	void addpath(const char* path);
 	void setvar(const char* key, const char* value);
-	bool buildCallError(LuaHostArray_Ref r, const char * format, ...);
+	bool buildCallError(LuaHostArray_Ref r, std::string msg);
 	
 	virtual bool pcall(const char* fun, LuaHostArray_Ref params, LuaHostArray_Ref result);
 	std::string eval(const char* content);
@@ -323,7 +325,7 @@ static int pushStackData(lua_State* L, LuaHostValuePrototype* vp,LuaHostArray_Re
 		pushLuaValue(L, vp, v2);		
 		vp->arrayNext(o, it);
 	}
-	return o.size();
+	return vp->arraySize(o);
 }
 
 static LuaHostValue popLuaValue(lua_State* L, LuaHostValuePrototype* vp, int idx) {
@@ -499,17 +501,11 @@ std::string LuaHostPrototype::eval(const char* content)
 	return std::string("");
 }
 
-bool LuaHostPrototype::buildCallError(LuaHostArray_Ref r, const char * format, ...)
-{
-	char buf[1024];
-	va_list arglist;
-	va_start(arglist, format);
-	_vsnprintf(buf, 1024, format, arglist);
-	va_end(arglist);
-	
+bool LuaHostPrototype::buildCallError(LuaHostArray_Ref r, std::string msg)
+{	
 	LuaHostValuePrototype* vp = valuePrototype();
 	vp->resetArray(r);
-	vp->arrayAdd(r, vp->newString(buf));
+	vp->arrayAdd(r, vp->newString(msg.c_str()));
     return false;
 }
 
@@ -548,23 +544,27 @@ bool LuaHostPrototype::handle_lua2host_call(std::string& callType, LuaHostArray_
 		std::string method = vp->stringValue(v_method);
 		
 		if(cid<=0) {
-			return buildCallError(data, "invalid syn call '%s[%d]'", method.c_str(), cid);
+			char buf[1024];
+			sprintf(buf,"invalid syn call '%s[%d]'", method.c_str(), cid);
+			return buildCallError(data, buf);
 		}
 		
 		return lcall_ainvoke(cid, method.c_str(), data);
 	} else if (callType.compare("timer")==0) {
         if (vp->arraySize(data) < 3)
         {
-            return buildCallError(data, "invalid param (timerId,fix,delay)");
+			return buildCallError(data, "invalid param (timerId,fix,delay)");
         }
 		LuaHostValue v_tid = vp->arrayGetAt(data,1);
 		int tid = vp->intValue(v_tid);
 		if(tid<=0) {
-			return buildCallError(data, "invalid timerId '%d'", tid);
+			char buf[1024];
+			sprintf(buf,"invalid timerId '%d'", tid);
+			return buildCallError(data, buf);
 		}
 
-		LuaHostValue t_fix = vp->arrayGetAt(data,2);
-		LuaHostValue t_delay = vp->arrayGetAt(data,3);
+		LuaHostValue t_delay = vp->arrayGetAt(data,2);
+		LuaHostValue t_fix = vp->arrayGetAt(data,3);		
 			
 		int fix = vp->intValue(t_fix);
 		int delay = vp->intValue(t_delay);

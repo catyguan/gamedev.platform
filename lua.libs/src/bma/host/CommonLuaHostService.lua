@@ -161,6 +161,7 @@ end
 -- return timerId:int 定时器的编号
 function Class:setFixTimer(fun, fixTime, delayTime)
 	if not delayTime then delayTime = fixTime end 
+	if delayTime<=0 then delayTime = fixTime end
 	local tid = self:nextTimerId()
 	self.timers[tid] = {fun,fixTime}
 	luahost.call("timer", tid, delayTime, fixTime)
@@ -202,11 +203,11 @@ function _API_host_timer_response(timerId)
 		if fix then
 			if not r1 then
 				HS.timers[timerId] = nil
-			end
+			end			
 			return r1
 		else
 			HS.timers[timerId] = nil
-			return true;
+			return false
 		end
 	else
 		if LDEBUG and CFG.LogTimer then

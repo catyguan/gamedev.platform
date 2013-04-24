@@ -1,8 +1,10 @@
 require("bma.test.bootstrap")
 
 if true then
-	local HSS = class.forName("bma.host.CommonLuaHostService")
-	HSS.install()
+	if not class.hasInstance("bma.host.Service") then
+		local HSS = class.forName("bma.host.CommonLuaHostService")
+		HSS.install()
+	end
 end
 
 print(">>> luahost common functions testcase start")
@@ -13,6 +15,13 @@ if false then
     print("invoke -- say")
     local r = HS:invoke("say", "hello world")
     print("invoke -- response --", r)
+end
+
+-- invoke fail(exception)
+if false then
+	print("invoke -- fail")
+    local r = HS:invoke("fail")
+    print("invoke -- fail --", r)
 end
 
 -- ainvoke & response
@@ -66,7 +75,7 @@ if false then
     	call:error(function(err) print("error====",err) end):run()
     end
     
-    if true then
+    if false then
 		print("AICall -- asyn nested fail")	
 		local call = aicall("asyn","hello word-aicall")
 	    call:error(

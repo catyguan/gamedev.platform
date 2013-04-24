@@ -480,8 +480,8 @@ bool CCELuaApplication::pcall(const char* fun, CCValueArray& data, CCValueArray&
 	CC_ASSERT(isOpen());
 	CC_ASSERT(fun!=NULL);
 	bool r = m_host->pcall(fun,data, result);
-	if(!r && data.size()>0) {
-		std::string err = data.begin()->stringValue();
+	if(!r && result.size()>0) {
+		std::string err = result.begin()->stringValue();
 		CCLOG("pcall '%s' fail -> '%s'", fun, err.c_str());
 	}
 	return r;
