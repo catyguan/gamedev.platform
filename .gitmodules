@@ -1,0 +1,3 @@
+[submodule "bma.dotnet.common"]
+	path = bma.dotnet.common
+	url = https://catyguan@github.com/catyguan/bma.dotnet.common.git
