@@ -649,6 +649,21 @@ namespace luanet {
 		}	
 	}
 
+	Object^ LuaApp::createObject(String^ type, LuaHostArray_Ref ps)
+	{
+		if(m_creators!=nullptr) {
+			System::Collections::Generic::IEnumerator<LuaObjectCreator^>^ it = m_creators->GetEnumerator();
+			while(it->MoveNext()) {
+				Object^ o = it->Current->createObject(this,type,ps);
+				if(o!=nullptr) {
+					return o;
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	// LuaAppRealm
 	String^ LuaAppRealm::lapi_load(String^ name)
 	{
 		if(m_loader==nullptr) {

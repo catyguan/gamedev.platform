@@ -250,6 +250,11 @@ namespace luanet {
 	public:
 		String^ load(LuaApp^ app, String^ name);
 	};
+	public interface class LuaObjectCreator
+	{
+	public:
+		Object^ createObject(LuaApp^ app, String^ name, LuaHostArray_Ref ps);
+	};
 	public interface class LuaCall
 	{
 	public:
@@ -296,8 +301,17 @@ namespace luanet {
 			System::Collections::Generic::IList<String^>^ pathList, 
 			System::Collections::Generic::IList<String^>^ bootstrapList);
 
+		virtual Object^ createObject(String^ type, LuaHostArray_Ref ps);
+		virtual void addObject(String^ name, CCObject* obj);
+		CCObject* getObject(const char* id){return findChildById(id);};
+		virtual void removeObject(const char* id);
+		void removeObject(CCNode* node){removeObject(node->getId().c_str());};
+
+		void addObjectCreator(LuaObjectCreator^ loc);
+
 	protected:
 		LuaLoader^ m_loader;	
+		System::Collections::Generic::IList<LuaObjectCreator^>^ m_creators;
 		System::Collections::Generic::Dictionary<String^,LuaCall^>^ m_calls;
 	
 		LuaHost* m_host;		
