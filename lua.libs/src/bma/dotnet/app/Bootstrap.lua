@@ -6,5 +6,6 @@ local boot = require("bma.bootstrap")
 boot.config = "app."..LUA_APP_TYPE..".config"
 boot.run()
 
+require("bma.dotnet.app.Application")
 require("bma.dotnet.app.API")
 

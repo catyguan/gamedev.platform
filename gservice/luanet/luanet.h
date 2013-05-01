@@ -264,9 +264,11 @@ namespace luanet {
 	{
 	public:
 		bool canCall();
-		bool canInvoke(String^ name);
 		bool call(LuaApp^ app, LuaHostArray_Ref ctx);
+		bool canInvoke(String^ name);
 		bool invoke(LuaApp^ app, String^ name, LuaHostArray_Ref ctx);
+		bool canGetValue(String^ name);
+		LuaValue^ getValue(LuaApp^ app, String^ name);
 		void discard(LuaApp^ app);
 	};
 	
@@ -302,10 +304,9 @@ namespace luanet {
 			System::Collections::Generic::IList<String^>^ bootstrapList);
 
 		virtual Object^ createObject(String^ type, LuaHostArray_Ref ps);
-		virtual void addObject(String^ name, CCObject* obj);
-		CCObject* getObject(const char* id){return findChildById(id);};
-		virtual void removeObject(const char* id);
-		void removeObject(CCNode* node){removeObject(node->getId().c_str());};
+		virtual void addObject(String^ id, Object^ obj);
+		virtual Object^ getObject(String^ id);
+		virtual void removeObject(String^ id);
 
 		void addObjectCreator(LuaObjectCreator^ loc);
 
@@ -313,6 +314,7 @@ namespace luanet {
 		LuaLoader^ m_loader;	
 		System::Collections::Generic::IList<LuaObjectCreator^>^ m_creators;
 		System::Collections::Generic::Dictionary<String^,LuaCall^>^ m_calls;
+		System::Collections::Generic::Dictionary<String^,Object^>^ m_objects;
 	
 		LuaHost* m_host;		
 	};
@@ -324,7 +326,7 @@ namespace luanet {
 		bool crreateTimer(LuaAppRealm^ app, int timerId, int delayTime,int fixTime);
 	};
 
-	public ref class LuaAppRealm : public LuaApp
+	public ref class LuaAppRealm : public LuaApp, LuaObject
 	{
 	public:
 		LuaAppRealm(){};
@@ -335,9 +337,40 @@ namespace luanet {
 		String^ lapi_load(String^ name);
 		bool lapi_invoke(String^ method, int callId, LuaHostArray_Ref params);
 		int lapi_doTimer(int timerId, int fixTime);
+
+	public:
+		virtual bool canCall();
+		virtual bool call(LuaApp^ app, LuaHostArray_Ref ctx);
+		virtual bool canInvoke(String^ name);
+		virtual bool invoke(LuaApp^ app, String^ name, LuaHostArray_Ref ctx);
+		virtual bool canGetValue(String^ name);
+		virtual LuaValue^ getValue(LuaApp^ app, String^ name);
+		virtual void discard(LuaApp^ app);
 	};
 
-	public ref class LuaObjectClosure : public LuaObject
+	public ref class LuaObjectAbstract abstract : public LuaObject
+	{
+	public:
+		virtual bool canCall() {return false;};
+		virtual bool call(LuaApp^ app, LuaHostArray_Ref ctx){
+			return false;
+		}
+		virtual bool canInvoke(String^ name){return false;};
+		virtual bool invoke(LuaApp^ app, String^ name, LuaHostArray_Ref ctx) {
+			return false;
+		}
+		
+		virtual void discard(LuaApp^ app) {			
+		}
+		virtual bool canGetValue(String^ name) {
+			return false;
+		}
+		virtual LuaValue^ getValue(LuaApp^ app, String^ name) {
+			return nullptr;
+		}
+	};
+
+	public ref class LuaObjectClosure : public LuaObjectAbstract
 	{
 	public:
 		LuaObjectClosure(int callId){
@@ -345,15 +378,13 @@ namespace luanet {
 		};
 		~LuaObjectClosure(){};
 
-		virtual bool canCall() {return true;};
-		virtual bool canInvoke(String^ name){return false;};
-		virtual bool call(LuaApp^ app, LuaHostArray_Ref ctx) {
+		virtual bool canCall() override {
+			return true;
+		}
+		virtual bool call(LuaApp^ app, LuaHostArray_Ref ctx) override {
 			return app->closureCall(m_callId, ctx);
-		}
-		virtual bool invoke(LuaApp^ app, String^ name, LuaHostArray_Ref ctx) {
-			return false;
-		}
-		virtual void discard(LuaApp^ app) {
+		}		
+		virtual void discard(LuaApp^ app) override {
 			app->closureRemove(m_callId);
 		}
 

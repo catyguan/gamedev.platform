@@ -66,8 +66,15 @@ namespace simC2DX.core
             Form form = new SimC2DXFrame();
             AppThread.instance.start(form.Handle);
 
-            // create luaRealm
+            // create luaRealm            
             createLuaRealm();
+
+            SimC2DXDirector director = createDirector();
+            director._luaApp = this.luaRealm;
+            director._mainFrame = form;
+            SimC2DXDirector._instance = director;
+
+            form.Load += mainform_Load;
 
             try
             {
@@ -75,8 +82,14 @@ namespace simC2DX.core
             }
             finally
             {
+                director.endDirector();
                 clear();
             }
+        }
+
+        private void mainform_Load(object sender, EventArgs e)
+        {
+            SimC2DXDirector._instance.startDirector();
         }
 
         private void clear()
@@ -121,6 +134,17 @@ namespace simC2DX.core
             luaRealm.enablePrintLog();
 
             luaRealm.createApp(_appType, _pathList, _bootList);
+
+            initLuaRealm(luaRealm);
+        }
+
+        protected virtual void initLuaRealm(LuaAppRealm lua)
+        {
+        }
+
+        protected virtual SimC2DXDirector createDirector()
+        {
+            return new SimC2DXDirector();
         }
     }
 }

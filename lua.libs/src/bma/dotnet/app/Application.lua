@@ -3,6 +3,7 @@ require("bma.lang.ext.Core")
 require("bma.lang.ext.String")
 
 local Class = class.define("bma.dotnet.app.Application",{})
+AppClass = Class
 
 function Class.instance()
 	return class.instance("application")

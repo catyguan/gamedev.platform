@@ -10,11 +10,7 @@ using System.Windows.Forms;
 
 namespace simC2DX.core
 {
-    public interface SimScene
-    {
-        void onEnter();
-        void onExit();
-    }
+    
 
     public partial class SimC2DXFrame : Form
     {
@@ -22,28 +18,7 @@ namespace simC2DX.core
         {
             InitializeComponent();
         }
-
-        public void runScene(Control scene)
-        {
-            
-        }
-
-        public Control currentScene
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public void pushScene(Control scene)
-        {
-        }
-
-        public Control popScene()
-        {
-            return null;
-        }
+        
 
     }
 }

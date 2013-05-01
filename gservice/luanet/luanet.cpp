@@ -362,6 +362,11 @@ int LuaHost::lapi_ud_index(const char* flag, void* userdata, const char* key)
 			pushUserdata(FLAG_OCALL, &p, sizeof(p), false, true);			
 			return 1;
 		}
+		if(lo->canGetValue(name)) {
+			LuaValue^ v = lo->getValue(m_app, name);
+			pushLuaValue(L,valuePrototype(),v);			
+			return 1;
+		}
 	}
 	lua_pushnil(L);	
 	return 1;
@@ -502,6 +507,7 @@ namespace luanet {
 
 	LuaValue^ LuaValue::objectValue(Object^ v)
 	{
+		if(v==nullptr)return nullValue();
 		LuaValue^ r = gcnew LuaValue();
 		r->m_type = LuaValueType::Object;
 		r->m_valueObject = v;
@@ -663,6 +669,45 @@ namespace luanet {
 		return nullptr;
 	}
 
+	void LuaApp::addObject(String^ id, Object^ obj)
+	{
+		if(m_objects==nullptr)
+			m_objects = gcnew System::Collections::Generic::Dictionary<String^,Object^>();
+		if(m_objects->ContainsKey(id)) 
+		{
+			m_objects->Remove(id);
+		}
+		m_objects->Add(id, obj);
+	}
+
+	Object^ LuaApp::getObject(String^ id)
+	{
+		if(m_objects!=nullptr) {
+			if(m_objects->ContainsKey(id)) {
+				return m_objects[id];
+			}
+		}
+		return nullptr;
+	}
+		
+	void LuaApp::removeObject(String^ id)
+	{
+		if(m_objects!=nullptr) {
+			if(m_objects->ContainsKey(id)) {
+				m_objects->Remove(id);
+			}
+		}
+	}
+
+	void LuaApp::addObjectCreator(LuaObjectCreator^ loc)
+	{
+		if(m_creators!=nullptr)
+		{
+			m_creators = gcnew System::Collections::Generic::List<LuaObjectCreator^>();
+		}
+		m_creators->Add(loc);
+	}
+
 	// LuaAppRealm
 	String^ LuaAppRealm::lapi_load(String^ name)
 	{
@@ -715,6 +760,72 @@ namespace luanet {
 			}
         }
 		return -1;
+	}
+
+	bool LuaAppRealm::canCall()
+	{
+		return false;
+	}
+	bool LuaAppRealm::canInvoke(String^ name)
+	{
+		if(name!=nullptr) {
+			if(name->Equals("createObject")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool LuaAppRealm::call(LuaApp^ app, LuaHostArray_Ref ctx)
+	{		
+		ctx->Clear();
+		return false;
+	}
+	
+	bool LuaAppRealm::invoke(LuaApp^ app, String^ name, LuaHostArray_Ref ctx)
+	{
+		if(name!=nullptr) {
+			if(name->Equals("createObject")) {
+				String^ type = "";
+				if(ctx->Count>0) {
+					type = ctx[0]->stringValue();
+					ctx->RemoveAt(0);
+				}
+				Object^ o = createObject(type,ctx);
+				ctx->Clear();
+				ctx->Add(LuaValue::objectValue(o));
+				return true;
+			}
+		}
+		ctx->Clear();
+		ctx->Add(LuaValue::stringValue("not support '"+name+"'"));
+		return false;
+	}
+
+	void LuaAppRealm::discard(LuaApp^ app)
+	{
+
+	}
+
+	bool LuaAppRealm::canGetValue(String^ name)
+	{
+		if(name!=nullptr) {
+			if(m_objects!=nullptr && m_objects->ContainsKey(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	LuaValue^ LuaAppRealm::getValue(LuaApp^ app, String^ name)
+	{
+		if(name!=nullptr) {
+			if(m_objects!=nullptr && m_objects->ContainsKey(name)) {
+				Object^ o = m_objects[name];
+				return LuaValue::objectValue(o);
+			}
+		}
+		return LuaValue::nullValue();
 	}
 	
 
