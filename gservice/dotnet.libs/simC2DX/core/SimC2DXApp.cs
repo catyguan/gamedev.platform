@@ -74,6 +74,8 @@ namespace simC2DX.core
             director._mainFrame = form;
             SimC2DXDirector._instance = director;
 
+            luaRealm.addObject("director", director);
+
             form.Load += mainform_Load;
 
             try
