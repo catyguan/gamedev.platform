@@ -14,5 +14,5 @@ function Class.install()
 end
 
 function Class:ctor()
-	_G.director = luahost.call("application")
+	_G.application = luahost.call("application")
 end

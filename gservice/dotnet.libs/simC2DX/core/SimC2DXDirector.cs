@@ -42,6 +42,7 @@ namespace simC2DX.core
         private void onEnter(Control scene)
         {
             _currentScene = scene;
+            scene.Dock = DockStyle.Fill;
             scene.Size = new Size(960, 640);
             _mainFrame.Controls.Add(scene);
             if (scene is SimC2DXScene)

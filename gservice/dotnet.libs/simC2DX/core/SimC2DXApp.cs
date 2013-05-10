@@ -75,6 +75,7 @@ namespace simC2DX.core
             SimC2DXDirector._instance = director;
 
             luaRealm.addObject("director", director);
+            luaRealm.addObject("file", new LuaObject4File());
 
             form.Load += mainform_Load;
 

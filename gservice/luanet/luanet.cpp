@@ -52,6 +52,7 @@ public:
 	
 public:
 	virtual int getLuaType(LuaHostValue_Ref v) {
+		if(v==nullptr)return LUA_TNIL;
 		LuaValueType t = v->getType();
 		return getLuaType(t);
 	};
