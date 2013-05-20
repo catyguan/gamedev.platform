@@ -36,7 +36,6 @@
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(944, 601);
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Name = "SimC2DXFrame";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SimC2DXFrame";

@@ -300,7 +300,7 @@ int LuaHost::lapi_userdataCall(const char* flag, void* userdata, LuaHostArray_Re
 								r = params[0];
 							}
 						} else {
-							String^ err = params->Count>0?params[0]->stringValue():"<error>";
+							String^ err = params->Count>0?params[0]->stringValue():"<error LuaObject call>";
 							lua_pushstring(L, marshalString(err).c_str());
 							lua_error(L);
 						}
@@ -325,7 +325,7 @@ int LuaHost::lapi_userdataCall(const char* flag, void* userdata, LuaHostArray_Re
 								r = params[0];
 							}
 						} else {
-							String^ err = params->Count>0?params[0]->stringValue():"<error>";
+							String^ err = params->Count>0?params[0]->stringValue():"<error at '"+name+"'>";
 							lua_pushstring(L, marshalString(err).c_str());
 							lua_error(L);
 						}

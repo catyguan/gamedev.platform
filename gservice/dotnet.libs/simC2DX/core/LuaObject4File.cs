@@ -17,7 +17,7 @@ namespace simC2DX.core
             {
                 if(_rootDir!=null)
                     return _rootDir;
-                return System.Environment.CurrentDirectory + "\\datafile";
+                return System.Environment.CurrentDirectory + "\\appdata";
             }
             set
             {
@@ -83,8 +83,17 @@ namespace simC2DX.core
                 bool r = false;
                 if (vfile != "")
                 {
+                    VPath vpfile = VPath.create(vfile);
+                    VPath vpdir = vpfile.getParent();
+
+                    String dir = vpdir.bindRootFile(rootdir);
+                    if (!File.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
                     String content = ctx.Count() > 1 ? ctx[1].stringValue() : "";
-                    String file = VPath.create(vfile).bindRootFile(rootdir);
+                    String file = vpfile.bindRootFile(rootdir);
                     File.WriteAllText(file, content, Encoding.UTF8);
                     r = true;
                 }
@@ -97,7 +106,7 @@ namespace simC2DX.core
                 bool r = true;
                 if (vfile != "")
                 {
-                    String file = VPath.create(vfile).bindRootFile(rootdir);
+                    String file = VPath.create(vfile).bindRootFile(rootdir);                    
                     if (File.Exists(file))
                     {
                         File.Delete(file);

@@ -179,6 +179,12 @@ namespace luanet {
 			}
 			return nullptr;
 		}
+		LuaHostMap_Ref mapValueNotNull() {
+			if(isMap()) {
+				return m_valueMap;
+			}
+			return gcnew System::Collections::Generic::Dictionary<String^,LuaValue^>();
+		}
 
 		bool isArray() {
 			return m_type==LuaValueType::Array;
@@ -188,6 +194,12 @@ namespace luanet {
 				return m_valueArray;
 			}
 			return nullptr;
+		}
+		LuaHostArray_Ref arrayValueNotNull() {
+			if(isArray()) {
+				return m_valueArray;
+			}
+			return gcnew System::Collections::Generic::List<LuaValue^>();
 		}
 
 		bool isObject() {
@@ -224,6 +236,51 @@ namespace luanet {
 			m_valueMap = v->m_valueMap;
 			m_valueArray = v->m_valueArray;
 			m_valueObject = v->m_valueObject;
+		}
+
+		String^ dumpValue() {
+			switch (m_type)
+			{
+			case LuaValueType::Null:
+				return "<null>";
+			case LuaValueType::Int:
+				return String::Format("{0}", m_valueInt);
+			case LuaValueType::Number:
+				return String::Format("{0}", m_valueNumber);
+			case LuaValueType::Boolean:
+				return String::Format("{0}", m_valueInt!=0);
+			case LuaValueType::String:
+				return m_valueString;
+			case LuaValueType::Array: {
+				System::Text::StringBuilder^ sb = gcnew System::Text::StringBuilder();
+				sb->Append("[");
+				for(int i=0;i<m_valueArray->Count;i++) {
+					if(i!=0)sb->Append(",");
+					sb->Append(m_valueArray[i]->dumpValue());
+				}
+				sb->Append("]");
+				return sb->ToString();
+				};
+			case LuaValueType::Map:
+				 {
+				System::Text::StringBuilder^ sb = gcnew System::Text::StringBuilder();
+				sb->Append("{");
+				System::Collections::Generic::Dictionary<String^,LuaValue^>::Enumerator^ it = m_valueMap->GetEnumerator();
+				bool first = true;
+				while(it->MoveNext()) {				
+					if(!first)sb->Append(",");
+					first = false;
+					sb->Append(it->Current.Key);
+					sb->Append(":");					
+					sb->Append(it->Current.Value->dumpValue());					
+				}
+				sb->Append("}");
+				return sb->ToString();
+				};
+			default:
+				break;
+			}
+			return "";
 		}
 
 	private:		

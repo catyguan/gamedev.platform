@@ -12,7 +12,15 @@ namespace simC2DX.core
     public interface SimC2DXScene
     {
         void onEnter();
+        void onActive();
         void onExit();
+    }
+    public interface SimC2DXSceneMaster
+    {
+        Control control
+        {
+            get;
+        }
     }
 
     public class SimC2DXDirector : LuaObjectAbstract
@@ -27,8 +35,8 @@ namespace simC2DX.core
         internal static SimC2DXDirector _instance;
 
         internal Form _mainFrame;
-        Control _currentScene;
-        Stack<Control> _sceneStack = new Stack<Control>();
+        Object _currentScene;
+        Stack<Object> _sceneStack = new Stack<Object>();
         internal LuaApp _luaApp;
 
         public LuaApp luaApp
@@ -39,21 +47,30 @@ namespace simC2DX.core
             }
         }
 
-        private void onEnter(Control scene)
+        protected Control control(Object s)
+        {
+            if (s is Control) return s as Control;
+            if (s is SimC2DXSceneMaster) return (s as SimC2DXSceneMaster).control;
+            return null;
+        }
+
+        private void onEnter(Object scene)
         {
             _currentScene = scene;
-            scene.Dock = DockStyle.Fill;
-            scene.Size = new Size(960, 640);
-            _mainFrame.Controls.Add(scene);
+            Control s = control(scene);
+            s.Dock = DockStyle.Fill;
+            s.Size = new Size(960, 640);
+            _mainFrame.Controls.Add(s);
             if (scene is SimC2DXScene)
             {
                 (scene as SimC2DXScene).onEnter();
             }
+            s.Focus();
         }
 
         private Control onExit()
         {
-            Control c = _currentScene;
+            Control c = control(_currentScene);
             if (c != null)
             {
                 _mainFrame.Controls.Remove(c);
@@ -66,13 +83,13 @@ namespace simC2DX.core
             return c;
         }
 
-        protected void runScene(Control scene)
+        protected void runScene(Object scene)
         {
             onExit();
             onEnter(scene);
         }
 
-        protected Control currentScene
+        protected Object currentScene
         {
             get
             {
@@ -80,9 +97,9 @@ namespace simC2DX.core
             }
         }
 
-        protected void pushScene(Control scene)
+        protected void pushScene(Object scene)
         {
-            Control c = _currentScene;
+            Control c = control(_currentScene);
             if(c!=null) {
                 _mainFrame.Controls.Remove(c);
                 _sceneStack.Push(c);
@@ -95,9 +112,16 @@ namespace simC2DX.core
             Control c = onExit();
             if (_sceneStack.Count > 0)
             {
-                Control s = _sceneStack.Pop();
+                Object o = _sceneStack.Pop();
+                Control s = control(o);
                 _mainFrame.Controls.Add(s);
-                _currentScene = s;
+                s.Focus();
+                _currentScene = o;
+
+                if (o is SimC2DXScene)
+                {
+                    (o as SimC2DXScene).onActive();
+                }
             }
             return c;
         }
@@ -110,7 +134,7 @@ namespace simC2DX.core
             }
         }
 
-        protected LuaValue apiCall(String name, IList<LuaValue> ps)
+        public LuaValue apiCall(String name, IList<LuaValue> ps)
         {
             if (ps == null) ps = new List<LuaValue>();
             if (!luaApp.pcall(name, ps, ps))
@@ -121,9 +145,72 @@ namespace simC2DX.core
                     err = ps[0].stringValue();
                 }
                 MessageBox.Show(err, "LUA ERROR");
-                return null;
+                return LuaValue.nullValue();
             }
-            return ps.Count > 0 ? ps[0] : null;
+            return ps.Count > 0 ? ps[0] : LuaValue.nullValue();
+        }
+
+        public bool apiStartup()
+        {
+            LuaValue r = apiCall("_API_application_startup", null);
+            return r.booleanValue();
+        }
+
+        public void apiShutdown()
+        {
+            apiCall("_API_application_shutdown", null);
+        }
+
+        public LuaValue apiObjectCall(String name, IList<LuaValue> ps)
+        {
+            if (ps == null) ps = new List<LuaValue>();
+            ps.Insert(0, LuaValue.stringValue(name));
+            return apiCall("_API_application_objectcall", ps);
+        }
+        public LuaValue apiObjectCall(String name)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            return apiCall("_API_application_objectcall", ps);
+        }
+        public LuaValue apiObjectCall(String name, LuaValue p1)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            ps.Add(p1);
+            return apiCall("_API_application_objectcall", ps);
+        }
+        public LuaValue apiObjectCall(String name, LuaValue p1,LuaValue p2)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            ps.Add(p1);
+            ps.Add(p2);
+            return apiCall("_API_application_objectcall", ps);
+        }
+        public LuaValue apiObjectCall(String name, LuaValue p1, LuaValue p2, LuaValue p3)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            ps.Add(p1);
+            ps.Add(p2);
+            ps.Add(p3);
+            return apiCall("_API_application_objectcall", ps);
+        }
+
+        public LuaValue apiDataGet(String name)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            return apiCall("_API_application_dataget", ps);
+        }
+        public bool apiDataGet(String name, LuaValue val)
+        {
+            var ps = new List<LuaValue>();
+            ps.Add(LuaValue.stringValue(name));
+            ps.Add(val);
+            LuaValue r = apiCall("_API_application_dataset", ps);
+            return r.booleanValue();
         }
 
         public void endDirector()

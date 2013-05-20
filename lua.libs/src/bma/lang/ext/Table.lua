@@ -1,4 +1,4 @@
--- bma/lang/Table.lua
+-- bma/lang/ext/Table.lua
 
 table.empty = function(t)
 	return not next(t)
@@ -142,6 +142,40 @@ table.sub = function(t,i,j)
 		table.insert(r,t[idx])
 	end
 	return r
+end
+
+table.pathGet = function(o, name, sp)
+	if not o then return nil end
+	if not sp then sp = "." end
+	local namepath = name:split(sp)
+	local l = #namepath
+	for i = 1, l-1 do
+		local n = namepath[i];
+		local child = o[n]
+		if child then
+			o = child
+		else
+			return nil
+		end
+	end
+	return o[namepath[l]]
+end
+
+table.pathSet = function(o,name,v,sp)
+	if not o then return end
+	if not sp then sp = "." end
+	local namepath = name:split(sp)
+	local l = #namepath
+	for i = 1, l-1 do
+		local n = namepath[i];
+		local child = o[n]
+		if not child then
+			child = {}
+			o[n] = child			
+		end
+		o = child
+	end
+	o[namepath[l]] = v
 end
 
 if table.filter==nil then table.filter = {} end
