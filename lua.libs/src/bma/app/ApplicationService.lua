@@ -15,21 +15,18 @@ function Class:install()
 	end
 	app.services[self.id] = self
 	
-	local c
 	if self.createControl then
-		c = self.createControl()
-	end
-	if c then
-		app.objects[self.id] = c
-	end
-	
-	local helper
-	if self.createDataHelper then
-		helper = self:createDataHelper()
-	end
-	if helper then		
-		app.datas[self.id] = DATAHELPER(helper)
-	end
+		local c = self:createControl()
+		if c then
+			app.objects[self.id] = c
+		end	
+	end	
+	if self.createData then
+		local data = self:createData()
+		if data then		
+			app.datas[self.id] = data
+		end
+	end	
 end
 
 function Class:uninstall()

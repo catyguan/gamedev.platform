@@ -120,7 +120,7 @@ function Class:dispatchDataSet(name, val)
 	local v = o[n]
 	local t = type(v)
 	if t=="function" then
-		v(val)
+		v(true, val)
 	else
 		o[n] = val
 	end	
