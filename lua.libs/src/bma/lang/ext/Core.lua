@@ -48,7 +48,7 @@ class.extendClass = function(cls,super)
 	for _,v in ipairs(super) do
 		if type(v)=="string" then v = class.forName(v) end
 		if v==nil then
-			error("[%s] invalid super class", cls.className)
+			error(string.format("[%s] invalid super class", cls.className))
 		end
 		table.insert(csuper,v)
 	end
