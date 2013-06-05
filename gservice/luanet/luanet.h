@@ -185,6 +185,14 @@ namespace luanet {
 			}
 			return gcnew System::Collections::Generic::Dictionary<String^,LuaValue^>();
 		}
+		static LuaValue^ getField(LuaHostMap_Ref map,String^ name)
+		{
+			if(map->ContainsKey(name))
+			{
+				return map[name];
+			}
+			return nullValue();
+		}
 
 		bool isArray() {
 			return m_type==LuaValueType::Array;
