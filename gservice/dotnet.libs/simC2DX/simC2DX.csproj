@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="core\LuaObject4File.cs" />
+    <Compile Include="core\ShellScene.cs" />
     <Compile Include="core\SimC2DXDirector.cs" />
     <Compile Include="core\SimC2DXFrame.cs">
       <SubType>Form</SubType>

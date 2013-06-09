@@ -203,6 +203,13 @@ function StdObject:removeAttr(n)
 	self:_access(self._attr,n,nil)
 end
 
+function StdObject:initAttr(n, v)
+	if self._attr~=nil and self._attr[n]~=nil then
+		return
+	end
+	self:attr(n, v)
+end
+
 function StdObject:attr(p1,p2)
 	if p2==nil then
 		if self._attr == nil then return nil end
@@ -313,6 +320,44 @@ function StdObject:loadObject(data)
 	if data.prop~=nil then
 		self._prop = class.deserializeValue(data.prop)
 	end
+	if self.afterLoadObject then
+		self:afterLoadObject()
+	end
+end
+
+function StdObject:_getter(n)
+	if n==nil then return nil end
+	if n:byte(1)==95 then
+		n = n:sub(2)
+		return self:attr(n)
+	else
+		return self:prop(n)
+	end	
+end
+
+function StdObject:_setter(n, v)
+	if n==nil then return nil end
+	if n:byte(1)==127 then
+		n = n:sub(2)
+		self:attr(n, v)
+	else
+		self:prop(n, v)
+	end	
+end
+
+function StdObject:_pairs()
+	local r = {}
+	if self._prop then
+		for k, v in pairs(self._prop) do
+			r[k] = v
+		end
+	end
+	if self._attr then
+		for k, v in pairs(self._attr) do
+			r["_"..k] = v
+		end
+	end	
+	return r
 end
 
 if table.filter==nil then table.filter = {} end

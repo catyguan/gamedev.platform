@@ -8,13 +8,12 @@ end
 
 READONLY = function(t)
 	local r = {}
+	for k,v in pairs(t) do
+		r[k] = v
+	end
 	setmetatable(r, {
 		__newindex=
-			function(_,_) end,
-		__index=
-			function(_,k)
-				return t[k]
-			end
+			function(_,_) end,		
 	})
 	return r
 end

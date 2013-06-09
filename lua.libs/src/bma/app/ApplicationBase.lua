@@ -77,9 +77,13 @@ copyv = function(v)
 	end
 end
 copyt = function(r, o)
-	for k,v in pairs(o) do
-		r[k] = copyv(v)
+	local data = o
+	if o._pairs~=nil then
+		data = o:_pairs()
 	end
+	for k,v in pairs(data) do
+		r[k] = copyv(v)
+	end	
 end
 
 function Class:dispatchDataGet(name)
@@ -93,7 +97,12 @@ function Class:dispatchDataGet(name)
 		end
 		
 		local n = namepath[i];
-		child = o[n]		
+		local child
+		if o._getter then
+			child = o:_getter(n)
+		else
+			child = o[n]		
+		end
 		if type(child)=="function" then child = child() end
 		if not child then return nil end
 		o = child
@@ -108,7 +117,12 @@ function Class:dispatchDataSet(name, val)
 	local l = #namepath
 	for i = 1, l-1 do
 		local n = namepath[i];		
-		child = o[n]		
+		local child
+		if o._getter~=nil then
+			child = o:_getter(n)
+		else
+			child = o[n]		
+		end
 		if type(child)=="function" then 
 			child = child()			
 		end
@@ -117,13 +131,17 @@ function Class:dispatchDataSet(name, val)
 	end
 	
 	local n = namepath[l]
-	local v = o[n]
-	local t = type(v)
-	if t=="function" then
-		v(true, val)
+	if o._setter~=nil then
+		o:_setter(n, val)
 	else
-		o[n] = val
-	end	
+		local v = o[n]
+		local t = type(v)
+		if t=="function" then
+			v(true, val)
+		else
+			o[n] = val
+		end	
+	end
 	return true
 end
 
