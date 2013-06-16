@@ -10,6 +10,17 @@ class.getMethod = function(o,name)
 	return nil
 end
 
+class.shortClassName = function(o)
+	local s = o.className
+	local len = s:len()
+	for i=len,1,-1 do
+		if s:byte(i)==46 then
+			return s:sub(i+1)
+		end
+	end
+	return s
+end
+
 class.serializeValue = function(v)
 	if type(v) == "table" then
 		if v.className~=nil then
@@ -181,6 +192,19 @@ function StdObject:prop(p1,p2)
 	end
 end
 
+function StdObject:addProp(n,v,maxv,minv)
+	local old = self:prop(n)
+	local nv = old+v
+	if maxv~=nil then
+		if nv>maxv then nv=maxv end
+	end
+	if minv~=nil then
+		if nv<minv then nv=minv end
+	end
+	self:prop(n, nv)
+	return nv-old
+end
+
 function StdObject:allProp()
 	if self._prop then return READONLY(self._prop) end
 	return EMPTY_TABLE
@@ -231,6 +255,34 @@ function StdObject:attrArray(p1)
 		return self:attr(p1, {})
 	end
 	return self:attr(p1)
+end
+
+function StdObject:hasConst(n)
+	if self._const == nil then return false end
+	return self._const[n]~=nil
+end
+
+function StdObject:const(p1,p2)
+	if p2==nil then
+		if self._const == nil then return nil end
+		return self._const[p1]
+	else
+		if self._const == nil then self._const = {} end
+		self:_access(self._const,p1,p2)
+		return p2
+	end
+end
+
+function StdObject:allConst()
+	if self._const then return READONLY(self._const) end
+	return EMPTY_TABLE
+end
+
+function StdObject:constArray(p1)
+	if self._const[p1]==nil then
+		return self:const(p1, {})
+	end
+	return self:const(p1)
 end
 
 function StdObject:hasRunv(n)
