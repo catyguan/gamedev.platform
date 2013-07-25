@@ -9,9 +9,11 @@ typedef CCValue& LuaHostValue_Ref;
 typedef CCValueArray LuaHostArray;
 typedef CCValueArray& LuaHostArray_Ref;
 typedef CCValueArrayIterator LuaHostArrayIterator;
+typedef LuaHostArrayIterator& LuaHostArrayIterator_Ref;
 typedef CCValueMap LuaHostMap;
 typedef CCValueMap& LuaHostMap_Ref;
 typedef CCValueMapIterator LuaHostMapIterator;
+typedef CCValueMapIterator& LuaHostMapIterator_Ref;
 
 #include "../lualibs/luahost/luahost_prototype.cpp"
 
@@ -68,7 +70,7 @@ public:
 		}
 		return it!=array.end();
 	};
-	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, LuaHostArrayIterator it) {
+	virtual LuaHostValue_Ref arrayGetAt(LuaHostArray_Ref array, LuaHostArrayIterator_Ref it) {
 		if(it!=array.end()) {
 			return (LuaHostValue_Ref) *it;
 		}
@@ -118,10 +120,10 @@ public:
 		}
 		return it!=map.end();
 	};
-	virtual std::string mapGetKey(LuaHostMap_Ref map, LuaHostMapIterator it) {
+	virtual std::string mapGetKey(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) {
 		return it->first;
 	};
-	virtual LuaHostValue_Ref mapGetValue(LuaHostMap_Ref map, LuaHostMapIterator it) {
+	virtual LuaHostValue_Ref mapGetValue(LuaHostMap_Ref map, LuaHostMapIterator_Ref it) {
 		return (LuaHostValue_Ref) it->second;
 	};
 	virtual void mapSet(LuaHostMap_Ref map, const char* key, LuaHostValue_Ref v) {
@@ -398,7 +400,8 @@ bool CCELuaHost::lcall_invoke(const char* method, LuaHostArray_Ref data)
 {
 	std::map<std::string, CCELuaCallItem>::const_iterator it = m_app->m_calls.find(method);
 	if(it==m_app->m_calls.end()) {
-		return buildCallError(data, "invalid method '%s'", method); 
+		std::string emsg = StringUtil::format("invalid method '%s'", method);
+		return buildCallError(data, emsg); 
 	}
 	return it->second.call(m_app, it->second.data, 0, data);
 }
@@ -407,7 +410,8 @@ bool CCELuaHost::lcall_ainvoke(int callId, const char* method, LuaHostArray_Ref 
 {
 	std::map<std::string, CCELuaCallItem>::const_iterator it = m_app->m_calls.find(method);
 	if(it==m_app->m_calls.end()) {
-		return buildCallError(data, "invalid method '%s'", method); 
+		std::string emsg = StringUtil::format("invalid method '%s'", method);
+		return buildCallError(data, emsg); 
 	}
 	return it->second.call(m_app, it->second.data, callId, data);
 }
