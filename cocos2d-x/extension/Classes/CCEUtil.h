@@ -9,6 +9,7 @@ class StringUtil
 {
 public:
 	static std::string format(const char* format, ...);
+	static void split(std::string& s, std::string& delim, std::vector<std::string>* ret);
 };
 
 class RectUtil

@@ -9,7 +9,10 @@ class CCO4File : public CCObject
 {
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN
-	CC_DECLARE_CALL(getStoreFile)
+	CC_DECLARE_CALL(exists)
+	CC_DECLARE_CALL(load)
+	CC_DECLARE_CALL(save)
+	CC_DECLARE_CALL(delete)
 	CC_DECLARE_CALLS_END
 };
 
