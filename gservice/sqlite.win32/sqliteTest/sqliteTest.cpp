@@ -18,7 +18,7 @@ static int _callback_exec(void * notused,int argc, char ** argv, char ** aszColN
     return 0;
 }
 
-#define NEW_DB	1
+#define NEW_DB	0
 
 int _tmain(int argc, _TCHAR* argv[])
 {

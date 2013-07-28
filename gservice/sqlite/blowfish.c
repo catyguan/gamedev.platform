@@ -612,11 +612,11 @@ int Decrypt(Blowfish *blowfish, const unsigned char* in, size_t siz_i, unsigned 
 {
 	unsigned char *byte_buf;
 	int nLen, nRet;
-	if (siz_i%2 != 0) return -1;
-	nLen = siz_i/2;
+	nLen = siz_i;
 	if (siz_o < (size_t) nLen) return -1;
 	byte_buf  = (unsigned char *)malloc(sizeof(unsigned char)*nLen);
 	memset(byte_buf,  0x00, sizeof(unsigned char)*nLen);
+	memcpy(byte_buf, in, siz_i);
 	nRet = DecryptByte(blowfish, byte_buf, nLen, out, iMode);
 	free(byte_buf);
 	return nRet;
