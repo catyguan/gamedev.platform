@@ -591,39 +591,33 @@ int BlowFishInit(Blowfish *blowfish, unsigned char *ucKey, size_t keysize)
   Returns false if n is multiple of 8*/
 int Encrypt(Blowfish *blowfish, const unsigned char* in, size_t siz_i, unsigned char* out, size_t siz_o, int iMode)
 {
-	unsigned char *byte_in;
-	unsigned char *byte_out;
+	unsigned char *byte_buf;
 	int nLen, nRet;
 	if (siz_i%8 == 0) {
 		nLen = siz_i;
 	} else {
 		nLen = siz_i + 8 - siz_i%8;
 	}
-	if (siz_o < (size_t) nLen*2) return -1;
-	byte_in  = (unsigned char *)malloc(sizeof(unsigned char)*nLen+1);
-	byte_out  = (unsigned char *)malloc(sizeof(unsigned char)*nLen+1);
-	memset(byte_in,  0x00, sizeof(unsigned char)*nLen+1);
-	memset(byte_out,  0x00, sizeof(unsigned char)*nLen+1);
-	memcpy(byte_in, in, siz_i);
-	nRet = EncryptByte(blowfish, byte_in, nLen, byte_out, iMode);
-	CharStr2HexStr(byte_out, nLen, out);
-	free(byte_in);
-	free(byte_out);
+	if (siz_o < (size_t) nLen) return -1;
+	byte_buf  = (unsigned char *)malloc(sizeof(unsigned char)*nLen);
+	memset(byte_buf,  0x00, sizeof(unsigned char)*nLen);
+	memcpy(byte_buf, in, siz_i);
+	nRet = EncryptByte(blowfish, byte_buf, nLen, out, iMode);
+	free(byte_buf);
 	return nRet;
 }
 /*Decrypt from Input Buffer to Output Buffer
   Returns false if n is multiple of 8*/
 int Decrypt(Blowfish *blowfish, const unsigned char* in, size_t siz_i, unsigned char* out, size_t siz_o, int iMode)
 {
-	unsigned char *byte_in;
+	unsigned char *byte_buf;
 	int nLen, nRet;
 	if (siz_i%2 != 0) return -1;
 	nLen = siz_i/2;
 	if (siz_o < (size_t) nLen) return -1;
-	byte_in  = (unsigned char *)malloc(sizeof(unsigned char)*nLen+1);
-	memset(byte_in,  0x00, sizeof(unsigned char)*nLen+1);
-	HexStr2CharStr((unsigned char*) in, siz_i, byte_in);
-	nRet = DecryptByte(blowfish, byte_in, nLen, out, iMode);
-	free(byte_in);
+	byte_buf  = (unsigned char *)malloc(sizeof(unsigned char)*nLen);
+	memset(byte_buf,  0x00, sizeof(unsigned char)*nLen);
+	nRet = DecryptByte(blowfish, byte_buf, nLen, out, iMode);
+	free(byte_buf);
 	return nRet;
 }

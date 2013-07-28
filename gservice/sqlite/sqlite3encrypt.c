@@ -13,36 +13,31 @@
 
 void* ext_createCodec(const void *pKey, int nKeyLen)
 {
-	unsigned char * hKey = NULL;
-    int j;
-
+	Blowfish* codec = NULL;
 	if (pKey == NULL || nKeyLen == 0)
     {
 		return NULL;
     }
 
-	hKey = (unsigned char*) sqlite3_malloc(DB_KEY_LENGTH_BYTE + 1);
-    if (hKey == NULL)
+	codec = (Blowfish*) sqlite3_malloc(sizeof(Blowfish));
+    if (codec == NULL)
     {
 		return NULL;
     }
 	
-	hKey[DB_KEY_LENGTH_BYTE] = 0;
-	if (nKeyLen < DB_KEY_LENGTH_BYTE)
-    {
-		memcpy(hKey, pKey, nKeyLen);
-		j = DB_KEY_LENGTH_BYTE - nKeyLen;
-		memset(hKey + nKeyLen, DB_KEY_PADDING, j);
+	if(BlowFishInit(codec, (unsigned char*) pKey, nKeyLen)<=0) {
+		sqlite3_free(codec);
+		return NULL;
 	}
-    else
-    {
-		memcpy(hKey, pKey, DB_KEY_LENGTH_BYTE);
-	}
-	return hKey;
+	return codec;
 }
 
-int ext_encrypt(void * pData, unsigned int data_len, void* key)
+// #define CONFUSION
+
+int ext_encrypt(void * pData, unsigned int data_len, void* codec)
 {
+	Blowfish* bf = (Blowfish*) codec;
+#ifdef CONFUSION
 	unsigned char* p = (unsigned char*) pData;
 	unsigned int i;
 	unsigned char val;
@@ -52,11 +47,15 @@ int ext_encrypt(void * pData, unsigned int data_len, void* key)
 		*p = val;
 		p++;
 	}
+#endif
+	Encrypt(bf, (unsigned char*) pData, data_len, (unsigned char*) pData, data_len, 0);
 	return 0;
 }
 
-int ext_decrypt(void * pData, unsigned int data_len, void* key)
+int ext_decrypt(void * pData, unsigned int data_len, void* codec)
 {
+	Blowfish* bf = (Blowfish*) codec;
+#ifdef CONFUSION
 	unsigned char* p = (unsigned char*) pData;
 	unsigned int i;
 	unsigned char val;
@@ -66,5 +65,7 @@ int ext_decrypt(void * pData, unsigned int data_len, void* key)
 		*p = val;
 		p++;
 	}
+#endif
+	Decrypt(bf, (unsigned char*) pData, data_len, (unsigned char*) pData, data_len, 0);
 	return 0;
 }
