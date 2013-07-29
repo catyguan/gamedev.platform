@@ -5,21 +5,38 @@
 
 #define BLOWFISH_MODE	0
 
+static void ext_createKey(unsigned char* key, int nkey)
+{	
+	int i;
+	for(i=0;i<nkey;i++) {
+		*key = *key+i+1;
+	}
+	return;
+}
+
 void* ext_createCodec(const void *pKey, int nKeyLen)
 {
 	Blowfish* codec = NULL;
+	unsigned char key[MAX_KEY_SIZE];
+
+	if(nKeyLen>MAX_KEY_SIZE)
+	{
+		return NULL;	
+	}
 	if (pKey == NULL || nKeyLen == 0)
     {
 		return NULL;
     }
-
+	memcpy(key, pKey, nKeyLen);
+	ext_createKey(key, nKeyLen);
+	
 	codec = (Blowfish*) sqlite3_malloc(sizeof(Blowfish));
     if (codec == NULL)
     {
 		return NULL;
     }
 	
-	if(BlowFishInit(codec, (unsigned char*) pKey, nKeyLen)<=0) {
+	if(BlowFishInit(codec, key, nKeyLen)<=0) {
 		sqlite3_free(codec);
 		return NULL;
 	}
