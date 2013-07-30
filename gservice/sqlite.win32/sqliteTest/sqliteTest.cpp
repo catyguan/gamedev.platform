@@ -39,18 +39,29 @@ void test(int newdb)
 	}
 	
     //在内存数据库中创建表
-    sSQL = "create table class(name varchar(20), student);";
+    sSQL = "create table files(path TEXT PRIMARY KEY, content BLOB, time INTEGER);";
     sqlite3_exec( db, sSQL, _callback_exec, 0, &pErrMsg );
-    //插入数据
-    sSQL = "insert into class values('mem_52911', 'zhaoyun');";
-    sqlite3_exec( db, sSQL, _callback_exec, 0, &pErrMsg );
+	if(newdb) {
+		//插入数据
+		sSQL = "insert into files values(?,?,?);";
+		sqlite3_stmt* stmt;
+		int src;
+		src = sqlite3_prepare_v2(db, sSQL, strlen(sSQL), &stmt, NULL);
+		src = sqlite3_bind_text(stmt,1, "/global.dat", -1, SQLITE_STATIC);
+		src = sqlite3_bind_blob(stmt,2, "zhaoyun", 7, SQLITE_STATIC);
+		src = sqlite3_bind_int(stmt, 3, 100);
+		src = sqlite3_step(stmt);
+		src = sqlite3_total_changes(db);
+		sqlite3_finalize(stmt);
+		// sqlite3_exec( db, sSQL, _callback_exec, 0, &pErrMsg );
+	}
 
 	if(newdb) {
 		ret = sqlite3_rekey( db, "abc", 3);
 	}
 
     //取得数据并显示
-    sSQL = "select * from class;";
+    sSQL = "select * from files;";
     sqlite3_exec( db, sSQL, _callback_exec, 0, &pErrMsg );
 
     //关闭数据库
@@ -69,7 +80,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("[load db]\n");
 		test(0);
 	}
-	if(1) {
+	if(0) {
 		::DeleteFileA("encrypt.db");	    
 	}
 
