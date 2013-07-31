@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.panelSQLite = new System.Windows.Forms.Panel();
+            this.buttonNewDB = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.textKey = new System.Windows.Forms.TextBox();
             this.buttonBrowse = new System.Windows.Forms.Button();
@@ -43,31 +44,30 @@
             this.colTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel1 = new System.Windows.Forms.Panel();
             this.buttonRefresh = new System.Windows.Forms.Button();
+            this.pagePackage = new System.Windows.Forms.TabPage();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.listDirs = new System.Windows.Forms.CheckedListBox();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.buttonPackage = new System.Windows.Forms.Button();
+            this.buttonSaveDirs = new System.Windows.Forms.Button();
+            this.buttonLoadDirs = new System.Windows.Forms.Button();
+            this.buttonDownDir = new System.Windows.Forms.Button();
+            this.buttonUpDir = new System.Windows.Forms.Button();
+            this.buttonDelDir = new System.Windows.Forms.Button();
+            this.buttonAddDir = new System.Windows.Forms.Button();
             this.pageRekey = new System.Windows.Forms.TabPage();
             this.buttonRekey = new System.Windows.Forms.Button();
             this.textNewKey = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.buttonNewDB = new System.Windows.Forms.Button();
-            this.pagePackage = new System.Windows.Forms.TabPage();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.buttonAddDir = new System.Windows.Forms.Button();
-            this.listDirs = new System.Windows.Forms.CheckedListBox();
-            this.buttonDelDir = new System.Windows.Forms.Button();
-            this.buttonUpDir = new System.Windows.Forms.Button();
-            this.buttonDownDir = new System.Windows.Forms.Button();
-            this.buttonLoadDirs = new System.Windows.Forms.Button();
-            this.buttonSaveDirs = new System.Windows.Forms.Button();
-            this.buttonPackage = new System.Windows.Forms.Button();
             this.panelSQLite.SuspendLayout();
             this.tabTool.SuspendLayout();
             this.pageList.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
-            this.pageRekey.SuspendLayout();
             this.pagePackage.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.panel4.SuspendLayout();
+            this.panel3.SuspendLayout();
+            this.pageRekey.SuspendLayout();
             this.SuspendLayout();
             // 
             // panelSQLite
@@ -83,6 +83,16 @@
             this.panelSQLite.Name = "panelSQLite";
             this.panelSQLite.Size = new System.Drawing.Size(661, 76);
             this.panelSQLite.TabIndex = 0;
+            // 
+            // buttonNewDB
+            // 
+            this.buttonNewDB.Location = new System.Drawing.Point(525, 9);
+            this.buttonNewDB.Name = "buttonNewDB";
+            this.buttonNewDB.Size = new System.Drawing.Size(75, 23);
+            this.buttonNewDB.TabIndex = 5;
+            this.buttonNewDB.Text = "新建";
+            this.buttonNewDB.UseVisualStyleBackColor = true;
+            this.buttonNewDB.Click += new System.EventHandler(this.buttonNewDB_Click);
             // 
             // label2
             // 
@@ -168,6 +178,7 @@
             this.colSize,
             this.colTime});
             this.listviewDBFiles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listviewDBFiles.FullRowSelect = true;
             this.listviewDBFiles.Location = new System.Drawing.Point(0, 0);
             this.listviewDBFiles.Name = "listviewDBFiles";
             this.listviewDBFiles.Size = new System.Drawing.Size(647, 313);
@@ -209,6 +220,121 @@
             this.buttonRefresh.UseVisualStyleBackColor = true;
             this.buttonRefresh.Click += new System.EventHandler(this.buttonRefresh_Click);
             // 
+            // pagePackage
+            // 
+            this.pagePackage.BackColor = System.Drawing.SystemColors.Control;
+            this.pagePackage.Controls.Add(this.panel4);
+            this.pagePackage.Controls.Add(this.panel3);
+            this.pagePackage.Location = new System.Drawing.Point(4, 22);
+            this.pagePackage.Name = "pagePackage";
+            this.pagePackage.Size = new System.Drawing.Size(653, 355);
+            this.pagePackage.TabIndex = 2;
+            this.pagePackage.Text = "打包";
+            // 
+            // panel4
+            // 
+            this.panel4.Controls.Add(this.listDirs);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel4.Location = new System.Drawing.Point(0, 0);
+            this.panel4.Name = "panel4";
+            this.panel4.Padding = new System.Windows.Forms.Padding(8);
+            this.panel4.Size = new System.Drawing.Size(408, 355);
+            this.panel4.TabIndex = 1;
+            // 
+            // listDirs
+            // 
+            this.listDirs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listDirs.FormattingEnabled = true;
+            this.listDirs.Location = new System.Drawing.Point(8, 8);
+            this.listDirs.Name = "listDirs";
+            this.listDirs.Size = new System.Drawing.Size(392, 339);
+            this.listDirs.TabIndex = 0;
+            // 
+            // panel3
+            // 
+            this.panel3.Controls.Add(this.buttonPackage);
+            this.panel3.Controls.Add(this.buttonSaveDirs);
+            this.panel3.Controls.Add(this.buttonLoadDirs);
+            this.panel3.Controls.Add(this.buttonDownDir);
+            this.panel3.Controls.Add(this.buttonUpDir);
+            this.panel3.Controls.Add(this.buttonDelDir);
+            this.panel3.Controls.Add(this.buttonAddDir);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel3.Location = new System.Drawing.Point(408, 0);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(245, 355);
+            this.panel3.TabIndex = 0;
+            // 
+            // buttonPackage
+            // 
+            this.buttonPackage.Location = new System.Drawing.Point(15, 245);
+            this.buttonPackage.Name = "buttonPackage";
+            this.buttonPackage.Size = new System.Drawing.Size(75, 23);
+            this.buttonPackage.TabIndex = 6;
+            this.buttonPackage.Text = "打包";
+            this.buttonPackage.UseVisualStyleBackColor = true;
+            this.buttonPackage.Click += new System.EventHandler(this.buttonPackage_Click);
+            // 
+            // buttonSaveDirs
+            // 
+            this.buttonSaveDirs.Location = new System.Drawing.Point(15, 216);
+            this.buttonSaveDirs.Name = "buttonSaveDirs";
+            this.buttonSaveDirs.Size = new System.Drawing.Size(75, 23);
+            this.buttonSaveDirs.TabIndex = 5;
+            this.buttonSaveDirs.Text = "保存目录";
+            this.buttonSaveDirs.UseVisualStyleBackColor = true;
+            this.buttonSaveDirs.Click += new System.EventHandler(this.buttonSaveDirs_Click);
+            // 
+            // buttonLoadDirs
+            // 
+            this.buttonLoadDirs.Location = new System.Drawing.Point(15, 187);
+            this.buttonLoadDirs.Name = "buttonLoadDirs";
+            this.buttonLoadDirs.Size = new System.Drawing.Size(75, 23);
+            this.buttonLoadDirs.TabIndex = 4;
+            this.buttonLoadDirs.Text = "加载目录";
+            this.buttonLoadDirs.UseVisualStyleBackColor = true;
+            this.buttonLoadDirs.Click += new System.EventHandler(this.buttonLoadDirs_Click);
+            // 
+            // buttonDownDir
+            // 
+            this.buttonDownDir.Location = new System.Drawing.Point(15, 124);
+            this.buttonDownDir.Name = "buttonDownDir";
+            this.buttonDownDir.Size = new System.Drawing.Size(75, 23);
+            this.buttonDownDir.TabIndex = 3;
+            this.buttonDownDir.Text = "向下移动";
+            this.buttonDownDir.UseVisualStyleBackColor = true;
+            this.buttonDownDir.Click += new System.EventHandler(this.buttonDownDir_Click);
+            // 
+            // buttonUpDir
+            // 
+            this.buttonUpDir.Location = new System.Drawing.Point(15, 94);
+            this.buttonUpDir.Name = "buttonUpDir";
+            this.buttonUpDir.Size = new System.Drawing.Size(75, 23);
+            this.buttonUpDir.TabIndex = 2;
+            this.buttonUpDir.Text = "向上移动";
+            this.buttonUpDir.UseVisualStyleBackColor = true;
+            this.buttonUpDir.Click += new System.EventHandler(this.buttonUpDir_Click);
+            // 
+            // buttonDelDir
+            // 
+            this.buttonDelDir.Location = new System.Drawing.Point(15, 44);
+            this.buttonDelDir.Name = "buttonDelDir";
+            this.buttonDelDir.Size = new System.Drawing.Size(75, 23);
+            this.buttonDelDir.TabIndex = 1;
+            this.buttonDelDir.Text = "删除";
+            this.buttonDelDir.UseVisualStyleBackColor = true;
+            this.buttonDelDir.Click += new System.EventHandler(this.buttonDelDir_Click);
+            // 
+            // buttonAddDir
+            // 
+            this.buttonAddDir.Location = new System.Drawing.Point(15, 15);
+            this.buttonAddDir.Name = "buttonAddDir";
+            this.buttonAddDir.Size = new System.Drawing.Size(75, 23);
+            this.buttonAddDir.TabIndex = 0;
+            this.buttonAddDir.Text = "添加";
+            this.buttonAddDir.UseVisualStyleBackColor = true;
+            this.buttonAddDir.Click += new System.EventHandler(this.buttonAddDir_Click);
+            // 
             // pageRekey
             // 
             this.pageRekey.BackColor = System.Drawing.SystemColors.Control;
@@ -248,131 +374,6 @@
             this.label3.TabIndex = 0;
             this.label3.Text = "新密码";
             // 
-            // buttonNewDB
-            // 
-            this.buttonNewDB.Location = new System.Drawing.Point(525, 9);
-            this.buttonNewDB.Name = "buttonNewDB";
-            this.buttonNewDB.Size = new System.Drawing.Size(75, 23);
-            this.buttonNewDB.TabIndex = 5;
-            this.buttonNewDB.Text = "新建";
-            this.buttonNewDB.UseVisualStyleBackColor = true;
-            this.buttonNewDB.Click += new System.EventHandler(this.buttonNewDB_Click);
-            // 
-            // pagePackage
-            // 
-            this.pagePackage.BackColor = System.Drawing.SystemColors.Control;
-            this.pagePackage.Controls.Add(this.panel4);
-            this.pagePackage.Controls.Add(this.panel3);
-            this.pagePackage.Location = new System.Drawing.Point(4, 22);
-            this.pagePackage.Name = "pagePackage";
-            this.pagePackage.Size = new System.Drawing.Size(653, 355);
-            this.pagePackage.TabIndex = 2;
-            this.pagePackage.Text = "打包";
-            // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.buttonPackage);
-            this.panel3.Controls.Add(this.buttonSaveDirs);
-            this.panel3.Controls.Add(this.buttonLoadDirs);
-            this.panel3.Controls.Add(this.buttonDownDir);
-            this.panel3.Controls.Add(this.buttonUpDir);
-            this.panel3.Controls.Add(this.buttonDelDir);
-            this.panel3.Controls.Add(this.buttonAddDir);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel3.Location = new System.Drawing.Point(408, 0);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(245, 355);
-            this.panel3.TabIndex = 0;
-            // 
-            // panel4
-            // 
-            this.panel4.Controls.Add(this.listDirs);
-            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel4.Location = new System.Drawing.Point(0, 0);
-            this.panel4.Name = "panel4";
-            this.panel4.Padding = new System.Windows.Forms.Padding(8);
-            this.panel4.Size = new System.Drawing.Size(408, 355);
-            this.panel4.TabIndex = 1;
-            // 
-            // buttonAddDir
-            // 
-            this.buttonAddDir.Location = new System.Drawing.Point(15, 15);
-            this.buttonAddDir.Name = "buttonAddDir";
-            this.buttonAddDir.Size = new System.Drawing.Size(75, 23);
-            this.buttonAddDir.TabIndex = 0;
-            this.buttonAddDir.Text = "添加";
-            this.buttonAddDir.UseVisualStyleBackColor = true;
-            this.buttonAddDir.Click += new System.EventHandler(this.buttonAddDir_Click);
-            // 
-            // listDirs
-            // 
-            this.listDirs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listDirs.FormattingEnabled = true;
-            this.listDirs.Location = new System.Drawing.Point(8, 8);
-            this.listDirs.Name = "listDirs";
-            this.listDirs.Size = new System.Drawing.Size(392, 339);
-            this.listDirs.TabIndex = 0;
-            // 
-            // buttonDelDir
-            // 
-            this.buttonDelDir.Location = new System.Drawing.Point(15, 44);
-            this.buttonDelDir.Name = "buttonDelDir";
-            this.buttonDelDir.Size = new System.Drawing.Size(75, 23);
-            this.buttonDelDir.TabIndex = 1;
-            this.buttonDelDir.Text = "删除";
-            this.buttonDelDir.UseVisualStyleBackColor = true;
-            this.buttonDelDir.Click += new System.EventHandler(this.buttonDelDir_Click);
-            // 
-            // buttonUpDir
-            // 
-            this.buttonUpDir.Location = new System.Drawing.Point(15, 94);
-            this.buttonUpDir.Name = "buttonUpDir";
-            this.buttonUpDir.Size = new System.Drawing.Size(75, 23);
-            this.buttonUpDir.TabIndex = 2;
-            this.buttonUpDir.Text = "向上移动";
-            this.buttonUpDir.UseVisualStyleBackColor = true;
-            this.buttonUpDir.Click += new System.EventHandler(this.buttonUpDir_Click);
-            // 
-            // buttonDownDir
-            // 
-            this.buttonDownDir.Location = new System.Drawing.Point(15, 124);
-            this.buttonDownDir.Name = "buttonDownDir";
-            this.buttonDownDir.Size = new System.Drawing.Size(75, 23);
-            this.buttonDownDir.TabIndex = 3;
-            this.buttonDownDir.Text = "向下移动";
-            this.buttonDownDir.UseVisualStyleBackColor = true;
-            this.buttonDownDir.Click += new System.EventHandler(this.buttonDownDir_Click);
-            // 
-            // buttonLoadDirs
-            // 
-            this.buttonLoadDirs.Location = new System.Drawing.Point(15, 187);
-            this.buttonLoadDirs.Name = "buttonLoadDirs";
-            this.buttonLoadDirs.Size = new System.Drawing.Size(75, 23);
-            this.buttonLoadDirs.TabIndex = 4;
-            this.buttonLoadDirs.Text = "加载目录";
-            this.buttonLoadDirs.UseVisualStyleBackColor = true;
-            this.buttonLoadDirs.Click += new System.EventHandler(this.buttonLoadDirs_Click);
-            // 
-            // buttonSaveDirs
-            // 
-            this.buttonSaveDirs.Location = new System.Drawing.Point(15, 216);
-            this.buttonSaveDirs.Name = "buttonSaveDirs";
-            this.buttonSaveDirs.Size = new System.Drawing.Size(75, 23);
-            this.buttonSaveDirs.TabIndex = 5;
-            this.buttonSaveDirs.Text = "保存目录";
-            this.buttonSaveDirs.UseVisualStyleBackColor = true;
-            this.buttonSaveDirs.Click += new System.EventHandler(this.buttonSaveDirs_Click);
-            // 
-            // buttonPackage
-            // 
-            this.buttonPackage.Location = new System.Drawing.Point(15, 245);
-            this.buttonPackage.Name = "buttonPackage";
-            this.buttonPackage.Size = new System.Drawing.Size(75, 23);
-            this.buttonPackage.TabIndex = 6;
-            this.buttonPackage.Text = "打包";
-            this.buttonPackage.UseVisualStyleBackColor = true;
-            this.buttonPackage.Click += new System.EventHandler(this.buttonPackage_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -388,11 +389,11 @@
             this.pageList.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
+            this.pagePackage.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             this.pageRekey.ResumeLayout(false);
             this.pageRekey.PerformLayout();
-            this.pagePackage.ResumeLayout(false);
-            this.panel3.ResumeLayout(false);
-            this.panel4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

@@ -129,6 +129,7 @@ namespace SQLiteToolApp
                     listviewDBFiles.Items.Add(item);
                 }
                 db.closeStmt();
+                MessageBox.Show("操作成功");
             }
             catch (Exception err)
             {
@@ -213,12 +214,17 @@ namespace SQLiteToolApp
             {
                 db.prepare("SELECT * FROM dirs ORDER BY orderkey");
                 var rs = new Dictionary<String, Object>();
-                while(db.queryNext(rs,false))                
+                while (db.queryNext(rs, false))
                 {
                     listDirs.Items.Add(rs["path"].ToString());
                     rs.Clear();
                 }
                 db.closeStmt();
+                MessageBox.Show("操作成功");
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show("fail: "+err.Message);
             }
             finally
             {
@@ -243,6 +249,11 @@ namespace SQLiteToolApp
                     db.reset();
                 }
                 db.closeStmt();
+                MessageBox.Show("操作成功");
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show("fail: " + err.Message);
             }
             finally
             {
@@ -250,16 +261,36 @@ namespace SQLiteToolApp
             }
         }
 
-        private void packageDir(string dir,string pdir)
+        private void packageDir(SQLite db, string dir,string pdir)
         {
-            var files = Directory.EnumerateFiles(dir.ToString());
-            foreach (var fileName in files)
-            {                
-                // db.bindString(1, dir.ToString());
-                // db.bindInt(2, okey++);
-                // db.execute();
-                // db.reset();
-            }
+            var files = Directory.EnumerateFileSystemEntries(dir.ToString());
+            foreach (var fileName in files)            
+            {
+                FileInfo finfo = new FileInfo(fileName);
+                string vpath = pdir + "/" + finfo.Name;
+                
+                if (finfo.Attributes.HasFlag(FileAttributes.Directory))
+                {
+                    packageDir(db, fileName, vpath);
+                }
+                else
+                {
+                    Console.WriteLine("package "+ fileName + " >> " + vpath);
+                    int len = (int) finfo.Length;
+                    byte[] buf;
+                    using (var fs = finfo.OpenRead())
+                    {          
+                        buf = new byte[len];
+                        fs.Read(buf, 0, len);
+                    }
+
+                    db.bindString(1, vpath.ToString());
+                    db.bindBlob(2, buf);
+                    db.bindLong(3, timestamp(finfo.LastWriteTime));
+                    db.execute();
+                    db.reset();
+                }
+            }            
         }
 
         private void buttonPackage_Click(object sender, EventArgs e)
@@ -269,12 +300,17 @@ namespace SQLiteToolApp
             try
             {
                 db.doExec("DELETE FROM files;");
-                db.prepare("INSERT INTO files VALUES(?, ?, ?);");
+                db.prepare("INSERT OR REPLACE INTO files VALUES(?, ?, ?);");
                 foreach (var dir in listDirs.Items)
                 {
-                    packageDir(dir.ToString(), "");
+                    packageDir(db, dir.ToString(), "");
                 }
                 db.closeStmt();
+                MessageBox.Show("操作成功");
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show("fail: " + err.Message);
             }
             finally
             {

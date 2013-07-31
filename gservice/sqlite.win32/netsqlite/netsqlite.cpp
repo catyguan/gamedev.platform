@@ -129,10 +129,10 @@ namespace netsqlite {
 			bindNull(idx);
 			return;
 		}
-		int size = Marshal::SizeOf(v);
+		int size = v->Length;
 		IntPtr intPtr = Marshal::AllocHGlobal(size);
 		Marshal::Copy(v, 0, intPtr, size);
-		int rc = sqlite3_bind_text(m_stmt,idx, (const char*) (void*) intPtr, size, SQLITE_TRANSIENT);
+		int rc = sqlite3_bind_blob(m_stmt,idx, (const char*) (void*) intPtr, size, SQLITE_TRANSIENT);
 		Marshal::FreeHGlobal(intPtr);
 		if(rc!=SQLITE_OK) {
 			throw gcnew IOException(error(rc));
@@ -154,7 +154,7 @@ namespace netsqlite {
 			throw gcnew IOException(error(rc));
 		}
 	}
-	void SQLite::bindLong(int idx, long v)
+	void SQLite::bindLong(int idx, Int64 v)
 	{
 		int rc = sqlite3_bind_int64(m_stmt,idx, v);
 		if(rc!=SQLITE_OK) {
@@ -208,7 +208,7 @@ namespace netsqlite {
 					switch(sqlite3_column_type(m_stmt,i))
 					{
 					case SQLITE_INTEGER:
-						rs->Add(name, sqlite3_column_int(m_stmt,i));
+						rs->Add(name, sqlite3_column_int64(m_stmt,i));
 						break;
 					case SQLITE_FLOAT:
 						rs->Add(name, sqlite3_column_double(m_stmt,i));

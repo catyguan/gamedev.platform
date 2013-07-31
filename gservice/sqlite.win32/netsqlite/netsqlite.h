@@ -27,7 +27,7 @@ namespace netsqlite {
 		void bindBlob(int idx, array<unsigned char,1>^ v);
 		void bindDouble(int idx,double v);
 		void bindInt(int idx, int v);
-		void bindLong(int idx, long v);
+		void bindLong(int idx, Int64 v);
 		void bindNull(int idx);
 		void bindString(int idx, String^ v);
 		void bindText(int idx, String^ v);
