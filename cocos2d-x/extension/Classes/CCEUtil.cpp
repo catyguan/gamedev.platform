@@ -27,6 +27,22 @@ void StringUtil::split(std::string& s, std::string& delim,std::vector< std::stri
 	}
 }
 
+int StringUtil::replaceAll(std::string& str,  const std::string& pattern,  const std::string& newpat) 
+{ 
+	int count = 0; 
+	const size_t nsize = newpat.size(); 
+	const size_t psize = pattern.size(); 
+ 
+	for(size_t pos = str.find(pattern, 0);  
+		pos != std::string::npos; 
+		pos = str.find(pattern,pos + nsize)) 
+	{ 
+		str.replace(pos, psize, newpat); 
+		count++; 
+	} 
+	return count; 
+}
+
 CCRect RectUtil::rectUnion(const CCRect& src1, const CCRect& src2) 
 {
     CCRect result;

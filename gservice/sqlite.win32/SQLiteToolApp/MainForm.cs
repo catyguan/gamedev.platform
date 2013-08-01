@@ -300,7 +300,7 @@ namespace SQLiteToolApp
             try
             {
                 db.doExec("DELETE FROM files;");
-                db.prepare("INSERT OR REPLACE INTO files VALUES(?, ?, ?);");
+                db.prepare("INSERT OR IGNORE INTO files VALUES(?, ?, ?);");
                 foreach (var dir in listDirs.Items)
                 {
                     packageDir(db, dir.ToString(), "");

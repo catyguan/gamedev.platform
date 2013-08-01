@@ -3,6 +3,8 @@
 
 #include "cocos2d.h"
 
+USING_NS_CC;
+
 class CCELuaApplication;
 class CCEDirector
 {
