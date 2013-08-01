@@ -5,6 +5,7 @@
 
 #include "CCEUtil.h"
 
+// CCO4File
 CC_BEGIN_CALLS(CCO4File, CCObject)
 	CC_DEFINE_CALL(CCO4File, exists)
 	CC_DEFINE_CALL(CCO4File, load)
@@ -54,6 +55,7 @@ CCValue CCO4File::CALLNAME(load)(CCValueArray& params)
         std::string msg = "file.load(";
         msg.append(name).append(") failed!");        
         CCLOG("%s", msg.c_str());
+		return CCValue::stringValue("");
     }
     
 	std::string r(buf, size);
@@ -90,4 +92,67 @@ CCValue CCO4File::CALLNAME(delete)(CCValueArray& params)
 	name = vpath(name);
 	BOOL r = ::DeleteFileA(name.c_str());
 	return CCValue::booleanValue(r==TRUE);
+}
+
+// CCO4VFSFile
+#include "../sqlite/SQLiteVFS.h"
+
+CC_BEGIN_CALLS(CCO4VFSFile, CCObject)
+	CC_DEFINE_CALL(CCO4VFSFile, exists)
+	CC_DEFINE_CALL(CCO4VFSFile, load)
+	CC_DEFINE_CALL(CCO4VFSFile, save)
+	CC_DEFINE_CALL(CCO4VFSFile, delete)
+CC_END_CALLS(CCO4VFSFile, CCObject)
+
+void CCO4VFSFile::init(SQLiteVFS* vfs)
+{
+	m_vfs = vfs;
+}
+
+CCValue CCO4VFSFile::CALLNAME(exists)(CCValueArray& params)
+{
+	std::string name = ccvpString(params,0);	
+	bool r = m_vfs->fileExists(name.c_str());
+	return CCValue::booleanValue(r);
+}
+
+CCValue CCO4VFSFile::CALLNAME(load)(CCValueArray& params)
+{
+	std::string name = ccvpString(params,0);
+		
+	int size = 0;
+	byte* buf = m_vfs->fileRead(name.c_str(), &size);
+    if (!buf)
+    {
+        std::string msg = "file.load(";
+        msg.append(name).append(") failed!");        
+        CCLOG("%s", msg.c_str());
+		return CCValue::stringValue("");
+    }
+    
+	std::string r((char*) buf, size);
+	delete[] buf;
+	return CCValue::stringValue(r);
+}
+
+CCValue CCO4VFSFile::CALLNAME(save)(CCValueArray& params)
+{
+	std::string name = ccvpString(params,0);
+	std::string content = ccvpString(params, 1);
+	
+	bool r = m_vfs->fileWrite(name.c_str(),(byte*) content.c_str(), content.length(), 0)>=0;
+
+	if(!r) {
+		std::string msg = "file.save(";
+        msg.append(name).append(") failed!");
+        CCLOG("%s", msg.c_str());
+	}
+	return CCValue::booleanValue(r);
+}
+
+CCValue CCO4VFSFile::CALLNAME(delete)(CCValueArray& params)
+{
+	std::string name = ccvpString(params,0);
+	bool r = m_vfs->fileDelete(name.c_str(), false);
+	return CCValue::booleanValue(r);
 }
