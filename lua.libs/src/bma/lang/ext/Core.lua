@@ -137,6 +137,14 @@ class.forName = function(name)
 	return _class[name]
 end
 
+class.unset = function(name)
+	local r = _class[name]
+	_class[name] = nil
+	if r~=nil and r.unsetClass then
+		r.unsetClass()
+	end
+end
+
 class.new = function(name)
 	local cls = class.forName(name)
 	if cls == nil then
@@ -305,6 +313,10 @@ end
 function include(name)
 	package.loaded[name] = nil
 	return require(name)
+end
+
+function unrequire(name)
+	package.loaded[name] = nil
 end
 
 if not topointer then
