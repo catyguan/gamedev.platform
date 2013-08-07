@@ -10,11 +10,14 @@ if TC==1 then
 	obj1:position({x=200,y=200})
 	obj1:opacity(128)
 	
-	local label = application:createObject("CCLabelTTF", "Hello World\nIt's my first day to come in\nLet's go", "Arial", 64)
+	-- local str = "Hello World\nIt's my first day to come in\nLet's go"
+	local str = "诗，言其志也；\n歌，咏其声也；\n舞，动其容也；\n三者本于心，然后乐器从之。"
+	str = str .. "\n凤额绣帘高卷，兽镮朱户频摇。\n两竿红日上花梢，春睡恹恹难觉。\n好梦枉随飞絮，闲愁浓胜香醪。\n不成雨暮与云朝，又是韶光过了。"
+	local label = application:createObject("CCLabelTTF", str, "Arial", 36)
 	label:alignLeft()
 	
-	local obj2 = application:createObject("CCENarrate", label, 740, 150,0, 1)
-	obj2:pagePauseTime(0)
+	local obj2 = application:createObject("CCENarrate", label, 740, 150,0, 0.75)
+	-- obj2:pagePauseTime(0)
 	obj2:position({x=200,y=200})	
 	
 	local s = application.director:scene()
@@ -23,7 +26,13 @@ if TC==1 then
 	-- print("create = ",s)
 	-- director:pushScene(s)	
 	
-	obj2:process(function(isEnd)
-		print("hello", isEnd)
-	end)
+	local cb
+	cb = function(isEnd)		
+		print("callback", isEnd)
+		if not isEnd then
+			print("continue")
+			obj2:process(cb)
+		end
+	end	
+	obj2:process(cb)
 end

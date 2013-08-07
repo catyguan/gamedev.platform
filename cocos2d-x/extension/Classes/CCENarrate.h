@@ -10,7 +10,7 @@ USING_NS_CC;
 #define NARRATE_MODE_PAGE		2
 
 // how many MS to display a line(page)
-#define NARRATE_DEFAULT_SPEED	0.5
+#define NARRATE_DEFAULT_SPEED	0.75
 
 class CCENarrate: public CCNodeRGBA
 {

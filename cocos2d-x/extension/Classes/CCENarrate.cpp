@@ -73,7 +73,7 @@ void CCENarrate::build()
 	m_pageNum = 0;
 	m_pageLine = 0;
 	m_currentLine = 1;
-	m_currentPage = 1;
+	m_currentPage = 0;
 
 	CCSize labelSize = m_label->getContentSize();
 	std::string str = m_label->getString();
@@ -102,11 +102,13 @@ void CCENarrate::build()
 CCAction* CCENarrate::createAction()
 {	
 	if(m_pagePauseTime==0) {
+		m_currentPage = 1;
 		float d = (float) (m_speed*m_lineNum);
 		CCFiniteTimeAction* a1 = CCECallInterval::create(d, this, "updateNarrate", CCValue::numberValue(d), CCValue::numberValue(0));
 		CCFiniteTimeAction* a2 = CCECall::create(this, "endNarrate");
 		return CCSequence::createWithTwoActions(a1,a2);
 	} else if(m_pagePauseTime>0) {
+		m_currentPage = 1;
 		CCArray* a = CCArray::create();
 		float pd = m_speed*m_pageLine;
 		for(int i=0;i<m_pageNum;i++) {			
@@ -119,9 +121,22 @@ CCAction* CCENarrate::createAction()
 		a->addObject(CCECall::create(this, "endNarrate"));
 		return CCSequence::create(a);		
 	} else {
-
+		m_currentPage++;
+		for(int i=1;i<=m_pageLine;i++) {
+			CCNode* node = getChildByTag(i);
+			if(node!=NULL)node->setVisible(false);
+		}
+		float d = 0;
+		if(m_currentPage==m_pageNum) {
+			d = (float) (m_speed*(m_lineNum-(m_currentPage-1)*m_pageLine));
+		} else {
+			d = (float) (m_speed*m_pageLine);
+		}
+		float bt = (float) (m_speed*m_pageLine*(m_currentPage-1));
+		CCFiniteTimeAction* a1 = CCECallInterval::create(d, this, "updateNarrate", CCValue::numberValue(d), CCValue::numberValue(bt));
+		CCFiniteTimeAction* a2 = CCECall::create(this, m_currentPage==m_pageNum?"endNarrate":"pauseNarrate");
+		return CCSequence::createWithTwoActions(a1,a2);
 	}
-	return NULL;
 }
 
 void CCENarrate::showLine(int line, int tag, float width)
@@ -222,7 +237,11 @@ CCValue CCENarrate::CALLNAME(updateNarrate)(CCValueArray& params) {
 	return CCValue::nullValue();
 }
 CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {		
-	m_currentLine = m_pageNum+1;
+	if(m_callback.canCall()) {
+		CCValueArray ps;
+		ps.push_back(CCValue::booleanValue(false));
+		m_callback.call(ps,false);
+	}
 	return CCValue::nullValue();
 }
 CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {		
