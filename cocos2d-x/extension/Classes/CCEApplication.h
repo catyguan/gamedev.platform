@@ -43,9 +43,7 @@ protected:
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN
 	CC_DECLARE_CALL(createObject)
-	CC_DECLARE_CALL(pushScene)
-	CC_DECLARE_CALL(replaceScene)
-	CC_DECLARE_CALL(popScene)
+	CC_DECLARE_CALL(director)	
 	CC_DECLARE_CALLS_END
 
 };

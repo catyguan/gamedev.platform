@@ -112,7 +112,7 @@ end
 function _API_host_closure_call(callId, ...)
 	if LDEBUG then
 		LOG:debug(LTAG,"_host_closure_call - callId="..callId)
-		print(...)
+		print("call params => ", ...)
 	end
 	local HS = class.instance("bma.host.Service")
 	local f = HS.closures[callId]

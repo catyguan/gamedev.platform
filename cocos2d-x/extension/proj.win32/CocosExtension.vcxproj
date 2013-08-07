@@ -27,6 +27,7 @@
     <ClInclude Include="..\Classes\CCELayerTouch.h" />
     <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
+    <ClInclude Include="..\Classes\CCENarrate.h" />
     <ClInclude Include="..\Classes\CCEPixelNode.h" />
     <ClInclude Include="..\Classes\CCEScrollView.h" />
     <ClInclude Include="..\Classes\CCESocket.h" />
@@ -71,6 +72,7 @@
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
     <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
+    <ClCompile Include="..\Classes\CCENarrate.cpp" />
     <ClCompile Include="..\Classes\CCEPixelNode.cpp" />
     <ClCompile Include="..\Classes\CCEScrollView.cpp" />
     <ClCompile Include="..\Classes\CCESocket.cpp" />

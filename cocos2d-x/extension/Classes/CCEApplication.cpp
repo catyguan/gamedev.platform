@@ -71,10 +71,7 @@ void CCEApplication::cleanup()
 }
 
 CC_BEGIN_CALLS(CCEApplication, CCObject)
-	CC_DEFINE_CALL(CCEApplication, createObject)
-	CC_DEFINE_CALL(CCEApplication, pushScene)
-	CC_DEFINE_CALL(CCEApplication, replaceScene)
-	CC_DEFINE_CALL(CCEApplication, popScene)	
+	CC_DEFINE_CALL(CCEApplication, createObject)	
 CC_END_CALLS(CCEApplication, CCObject)
 
 CCValue CCEApplication::CALLNAME(createObject)(CCValueArray& params) {	
@@ -91,48 +88,7 @@ CCValue CCEApplication::CALLNAME(createObject)(CCValueArray& params) {
 	return CCValue::objectValue(obj);
 }
 
-static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
-{
-	if(params.size()<=idx)return NULL;
-	CCValue& v = params[0];
-	if(!v.isObject()) {
-		return NULL;
-	}
-	CCObject* o = v.objectValue();
-	CCScene* r = dynamic_cast<CCScene*>(o);
-	if(r!=NULL) {
-		return r;
-	}
-	CCNode* node = dynamic_cast<CCNode*>(o);
-	if(node!=NULL) {
-		r = CCScene::create();
-		r->addChild(node);
-		return r;
-	}
-	return NULL;
-}
-
-CCValue CCEApplication::CALLNAME(pushScene)(CCValueArray& params) {
-	CCScene* s = toSceneObject(params,0);	
-	if(s==NULL) {
-		throw new std::string("param 1 except CCScene");
-	}	
-	CCDirector::sharedDirector()->pushScene(s);
-	return CCValue::booleanValue(true);
-}
-
-CCValue CCEApplication::CALLNAME(replaceScene)(CCValueArray& params)
-{
-	CCScene* s = toSceneObject(params,0);	
-	if(s==NULL) {
-		throw new std::string("param 1 except CCScene");
-	}
-	CCDirector::sharedDirector()->replaceScene(s);
-	return CCValue::booleanValue(true);
-}
-
-CCValue CCEApplication::CALLNAME(popScene)(CCValueArray& params)
-{	
-	CCDirector::sharedDirector()->popScene();
-	return CCValue::nullValue();
+#include "CCEDirector.h"
+CCValue CCEApplication::CALLNAME(director)(CCValueArray& params) {	
+	return CCValue::objectValue(CCEDirector::sharedDirector());
 }
