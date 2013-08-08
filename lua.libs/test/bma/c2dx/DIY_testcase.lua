@@ -1,7 +1,7 @@
 require("bma.lang.ext.Dump")
 require("bma.c2dx.Common")
 
-local TC = 1
+local TC = 2
 
 if TC==1 then
 	print("DIY", TC)
@@ -35,4 +35,28 @@ if TC==1 then
 		end
 	end	
 	obj2:process(cb)
+end
+
+
+if TC==2 then
+	print("DIY", TC)
+	
+	local obj1 = application:createObject("CCLayerColor", {r=255}, 740, 170)
+	obj1:position({x=200,y=200})
+	obj1:opacity(128)
+	
+	local str = "Hello World\nIt's my first day to come in\nLet's go"	
+	local obj2 = application:createObject("CCEDialogue")	
+	obj2:position({x=200,y=200})	
+	
+	local s = application.director:scene()
+	s:addChild(obj1)
+	s:addChild(obj2)
+	
+	obj2:show({
+		text = str,
+		size = {width=740, height=170},
+		fontSize = 64,
+		frameImage = "dialog.png",
+	})
 end

@@ -213,7 +213,7 @@ uint32_t TSchemeBase::readI64(TProtocol* iprot, cocos2d::CCValueBuilder* builder
 {
 	int64_t val;
 	uint32_t r = iprot->readI64(val);
-	builder->beNumber(val);
+	builder->beNumber((double) val);
 	builder->addMap(name);
 	return r;
 }

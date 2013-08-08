@@ -786,3 +786,52 @@ void CCScale9Sprite::visit()
     }
     CCNode::visit();
 }
+
+
+CCRect CCScale9Sprite::getClientRect(float space)
+{
+	CCSize cs = getContentSize();
+	CCSize sz;
+	float x1,y1,x2,y2;
+	x1 = y1 = 0;
+	x2 = cs.width;
+	y2 = cs.height;
+
+	if(topLeft!=NULL) {
+		sz = topLeft->getContentSize();
+		x1 = max(x1, sz.width);
+		y1 = max(y1, sz.height);
+	}
+	if(top!=NULL) {
+		sz = top->getContentSize();
+		y1 = max(y1, sz.height);
+	}
+	if(topRight!=NULL) {
+		sz = topRight->getContentSize();
+		x2 = min(x2, cs.width-sz.width);
+		y1 = max(y1, sz.height);
+	}
+	if(left!=NULL) {
+		sz = left->getContentSize();
+		x1 = max(x1, sz.width);
+	}
+	if(right!=NULL) {
+		sz = right->getContentSize();
+		x2 = min(x2, cs.width-sz.width);
+	}
+	if(bottomLeft!=NULL) {
+		sz = bottomLeft->getContentSize();
+		x1 = max(x1, sz.width);
+		y2 = min(y2, cs.height-sz.height);
+	}
+	if(bottom!=NULL) {
+		sz = bottom->getContentSize();
+		y2 = min(y2, cs.height-sz.height);
+	}
+	if(bottomRight!=NULL) {
+		sz = bottomRight->getContentSize();
+		x2 = min(x2, cs.width-sz.width);
+		y2 = min(y2, cs.height-sz.height);
+	}
+	return CCRectMake(x1+space,y1+space, x2-x1-space, y2-y1-space);
+}

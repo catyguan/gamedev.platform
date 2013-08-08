@@ -93,6 +93,8 @@ protected:
     void updatePositions();
 
 public:
+
+	CCRect getClientRect(float space);
     
     virtual void setContentSize(const CCSize & size);
     virtual void visit();

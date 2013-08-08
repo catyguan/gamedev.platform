@@ -12,6 +12,9 @@ USING_NS_CC;
 // how many MS to display a line(page)
 #define NARRATE_DEFAULT_SPEED	0.75
 
+#define NODE_EVENT_NARRATE_PAUSE	"narratePause"
+#define NODE_EVENT_NARRATE_END		"narrateEnd"
+
 class CCENarrate: public CCNodeRGBA
 {
 public:

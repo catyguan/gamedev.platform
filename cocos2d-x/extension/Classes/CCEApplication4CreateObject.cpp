@@ -1,6 +1,8 @@
 #include "CCEApplication.h"
 #include "cocoa/CCValueSupport.h"
+#include "CCELayerTouch.h"
 #include "CCENarrate.h"
+#include "CCEDialogue.h"
 
 USING_NS_CC;
 
@@ -22,11 +24,17 @@ CCObject* CCEApplication::createObject(const char* type, CCValueArray& ps)
 			return CCLayerColor::create(color);
 		}
 	}
+	if(strcmp(type,"CCELayerTouch")==0) {
+		return CCELayerTouch::create();		
+	}
 	if(strcmp(type,"CCLabelTTF")==0) {
 		std::string content = ccvpString(ps,0);
 		std::string fontName = ccvpString(ps,1);
 		float fontSize = ccvpFloat(ps,2);
 		return CCLabelTTF::create(content.c_str(),fontName.c_str(),fontSize);
+	}
+	if(strcmp(type,"CCEDialogue")==0) {
+		return CCEDialogue::create();
 	}
 	if(strcmp(type,"CCENarrate")==0) {
 		CCLabelTTF* label = ccvpObject(ps,0,CCLabelTTF);

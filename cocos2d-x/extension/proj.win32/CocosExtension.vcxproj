@@ -21,6 +21,7 @@
     <ClInclude Include="..\Classes\CCEContainer.h" />
     <ClInclude Include="..\Classes\CCEControl.h" />
     <ClInclude Include="..\Classes\CCEDialog.h" />
+    <ClInclude Include="..\Classes\CCEDialogue.h" />
     <ClInclude Include="..\Classes\CCEDirector.h" />
     <ClInclude Include="..\Classes\CCEFileUtilsVFS.h" />
     <ClInclude Include="..\Classes\CCELabelButton.h" />
@@ -66,6 +67,7 @@
     <ClCompile Include="..\Classes\CCEContainer.cpp" />
     <ClCompile Include="..\Classes\CCEControl.cpp" />
     <ClCompile Include="..\Classes\CCEDialog.cpp" />
+    <ClCompile Include="..\Classes\CCEDialogue.cpp" />
     <ClCompile Include="..\Classes\CCEDirector.cpp" />
     <ClCompile Include="..\Classes\CCEFileUtilsVFS.cpp" />
     <ClCompile Include="..\Classes\CCELabelButton.cpp" />

@@ -40,7 +40,7 @@ public:
     CCELayerTouch();
     virtual ~CCELayerTouch();
 
-    /** creates an empty CCMenu */
+    /** creates an empty CCELayerTouch */
     static CCELayerTouch* create();
 
     /** initializes */

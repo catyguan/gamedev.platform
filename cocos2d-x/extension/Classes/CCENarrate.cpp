@@ -241,6 +241,8 @@ CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {
 		CCValueArray ps;
 		ps.push_back(CCValue::booleanValue(false));
 		m_callback.call(ps,false);
+	} else {
+		raiseEvent(NODE_EVENT_NARRATE_PAUSE,NULL);
 	}
 	return CCValue::nullValue();
 }
@@ -250,6 +252,8 @@ CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {
 		CCValueArray ps;
 		ps.push_back(CCValue::booleanValue(true));
 		m_callback.call(ps,false);
+	} else {
+		raiseEvent(NODE_EVENT_NARRATE_END, NULL);
 	}
 	return CCValue::nullValue();
 }
