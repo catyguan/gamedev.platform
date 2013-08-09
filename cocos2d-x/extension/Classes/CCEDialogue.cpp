@@ -26,6 +26,8 @@ struct DialogueInfo {
 	// pauseNode
 	CCSize pauseNodeSize;
 	CCPoint pauseNodePoint;
+	// callback
+	CCValue callback;
 };
 
 CCEDialogue::CCEDialogue()
@@ -39,6 +41,19 @@ CCEDialogue::CCEDialogue()
 CCEDialogue::~CCEDialogue()
 {
     clear();
+}
+
+void CCEDialogue::onEnter()
+{
+	CCLayer::onEnter();
+
+	CCELayerTouch* touch = CCELayerTouch::getTouchLayer(this);
+	if(touch!=NULL) {
+		CCETouchBuilder b;
+		b.bind(this).onTap(this, nodeevent_selector(CCEDialogue::onPauseNodeClick)).createTouch(touch);		
+	} else {
+		CCLOG("CCEDialogue::onEnter - getTouchLayer is null");
+	}	
 }
 
 void CCEDialogue::cleanup()
@@ -80,20 +95,23 @@ CCEDialogue* CCEDialogue::create()
 
 void CCEDialogue::build(DialogueInfo* info, DialogueInfo* old)
 {
-	setVisible(false);
-	removeAllChildren();	
+	setVisible(false);	
 	CCSize size = info->size;
 	CCRect rect = CCRectMake(0,0,size.width,size.height);
 	setContentSize(size);	
 		
 	if(info->frameImage.size()>0) {		
-		if(old==NULL || old->frameImage.compare(info->frameImage)!=0) {
-			CC_SAFE_RELEASE_NULL(m_frame);
+		if(m_frame==NULL || old==NULL || old->frameImage.compare(info->frameImage)!=0) {			
+			if(m_frame!=NULL) {
+				removeChildByTag(1);
+			}
 			m_frame = CCScale9Sprite::create(info->frameImage.c_str());
 			m_frame->setAnchorPoint(CCPointZero);
 		}
 		m_frame->setContentSize(size);
-		addChild(m_frame);
+		if(m_frame->getParent()==NULL) {
+			addChild(m_frame,0,1);
+		}
 
 		rect = m_frame->getClientRect(0);
 	}
@@ -107,13 +125,14 @@ void CCEDialogue::build(DialogueInfo* info, DialogueInfo* old)
 
 	if(m_narrate!=NULL) {
 		m_narrate->removeEventHandler(NULL,	this);
+		removeChildByTag(2);
 	}
 
-	m_narrate = CCENarrate::create(label, (int) rect.size.width, (int) rect.size.height,0,info->speed);
-	m_narrate->setPagePauseTime(info->pauseTime);
+	m_narrate = CCENarrate::create(label, (int) rect.size.width, (int) rect.size.height,info->speed);
 	m_narrate->setPosition(CCPointMake(rect.origin.x, rect.origin.y));
-	addChild(m_narrate,1);
+	addChild(m_narrate,1,2);
 	m_narrate->onEvent(NODE_EVENT_NARRATE_PAUSE, this, nodeevent_selector(CCEDialogue::onNarratePause));
+	m_narrate->onEvent(NODE_EVENT_NARRATE_END, this, nodeevent_selector(CCEDialogue::onNarrateEnd));
 
 	setVisible(true);
 	m_narrate->process(CCValue::nullValue());
@@ -121,6 +140,10 @@ void CCEDialogue::build(DialogueInfo* info, DialogueInfo* old)
 
 bool CCEDialogue::showDialogue(CCValue& properties, CCValue call)
 {
+	if(getParent()==NULL) {
+		throw new std::string("add to scene before show dialogue");
+	}
+
 	CCValueReader r(&properties);
 	DialogueInfo* info = new DialogueInfo();
 	// init
@@ -189,27 +212,45 @@ bool CCEDialogue::showDialogue(CCValue& properties, CCValue call)
 		if(v!=NULL)info->verticalAlignment = v->intValue();
 	}
 
-	// buildup	
-	build(info,m_info);
-	CC_SAFE_DELETE(m_info);
+	// buildup
+	DialogueInfo* old = m_info;
 	m_info = info;
+	m_info->callback = call;
+	m_info->callback.retain();
+	if(m_info->text.size()>0) {
+		build(m_info,old);
+	}
+	CC_SAFE_DELETE(old);
 
 	return true;
 }
 
-void CCEDialogue::onPauseNodeClick(CCNode* node, const char* name, CCNodeEvent*)
+void CCEDialogue::endNarrate()
 {
-
+	if(m_info->callback.canCall()) {
+		CCValueArray ps;
+		m_info->callback.call(ps, false);
+	}
 }
 
-void CCEDialogue::onNarratePause(CCNode* node, const char* name, CCNodeEvent*)
+void CCEDialogue::nextPage()
 {
 	m_narrate->process(CCValue::nullValue());
 }
 
+void CCEDialogue::onPauseNodeClick(CCNode* node, const char* name, CCNodeEvent*)
+{
+	nextPage();
+}
+
+void CCEDialogue::onNarratePause(CCNode* node, const char* name, CCNodeEvent*)
+{
+	// nextPage();	
+}
+
 void CCEDialogue::onNarrateEnd(CCNode* node, const char* name, CCNodeEvent*)
 {
-	
+	endNarrate();
 }
 
 void CCEDialogue::updatePauseNode()

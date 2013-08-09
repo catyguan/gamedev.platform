@@ -34,6 +34,7 @@ protected:
 
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(winSize)
 	CC_DECLARE_CALL(scene)
 	CC_DECLARE_CALL(pushScene)
 	CC_DECLARE_CALL(replaceScene)

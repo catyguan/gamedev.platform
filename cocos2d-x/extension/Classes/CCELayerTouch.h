@@ -81,10 +81,12 @@ public:
 	void checkItems(CCPoint* pt);	
 
 protected:
+	void removeItem(std::list<CCELayerTouchItem*>::const_iterator it);
 	void sortItems(std::list<CCELayerTouchItem*>& ret);
 	void recognized(CCPoint pt, CCELayerTouchItem* item);
 	void addActiveItem(CCELayerTouchItem* item);
 	void removeActiveItem(CCELayerTouchItem* item,bool except);
+	void _travel(int type, CCPoint pt);
 	void travel(int type, CCPoint pt);
 
 	// config
@@ -94,6 +96,8 @@ protected:
 	std::list<CCELayerTouchItem*> m_touchItems;
 	std::list<CCELayerTouchItem*> m_activedItems;
 	CCPoint m_lastTouch;
+	bool m_traveling;
+	std::list<CCELayerTouchItem*> m_removedItems;
 };
 
 class CCETouchBuilder

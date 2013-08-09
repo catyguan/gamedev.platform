@@ -23,6 +23,7 @@ public:
 	virtual bool showDialogue(CCValue& properties, CCValue call);	
 
 public:
+	virtual void onEnter();
 	virtual void cleanup();
 	
 public:
@@ -38,7 +39,10 @@ public:
 
 protected:
 	void clear();
-	void build(DialogueInfo* info, DialogueInfo* old);
+	void build(DialogueInfo* info, DialogueInfo* old);	
+	void nextPage();
+	void endNarrate();
+
 	virtual void updatePauseNode();
 
 protected:
@@ -46,6 +50,7 @@ protected:
 	CCENarrate* m_narrate;
 	CCNode* m_pauseNode;
 	DialogueInfo* m_info;
+
 };
 
 #endif

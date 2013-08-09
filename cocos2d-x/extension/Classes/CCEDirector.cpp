@@ -125,11 +125,17 @@ static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
 }
 
 CC_BEGIN_CALLS(CCEDirector, CCObject)
+	CC_DEFINE_CALL(CCEDirector, winSize)
 	CC_DEFINE_CALL(CCEDirector, scene)
 	CC_DEFINE_CALL(CCEDirector, pushScene)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
 	CC_DEFINE_CALL(CCEDirector, popScene)	
 CC_END_CALLS(CCEDirector, CCObject)
+
+CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
+	CCSize sz = CCDirector::sharedDirector()->getWinSize();
+	return CCValueUtil::size(sz.width, sz.height);
+}
 
 CCValue CCEDirector::CALLNAME(scene)(CCValueArray& params) {
 	CCScene* s = CCDirector::sharedDirector()->currentScene();

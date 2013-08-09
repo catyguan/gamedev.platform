@@ -25,7 +25,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValueArray& ps)
 		}
 	}
 	if(strcmp(type,"CCELayerTouch")==0) {
-		return CCELayerTouch::create();		
+		return CCELayerTouch::create();
 	}
 	if(strcmp(type,"CCLabelTTF")==0) {
 		std::string content = ccvpString(ps,0);
@@ -46,9 +46,8 @@ CCObject* CCEApplication::createObject(const char* type, CCValueArray& ps)
 		if(height<=0) {
 			throw new std::string("invalid param 3 - height");
 		}
-		int mode = ccvpInt(ps,3);
-		float speed = ccvpFloat(ps, 4);
-		return CCENarrate::create(label, width, height,mode,speed);
+		float speed = ccvpFloat(ps, 3);
+		return CCENarrate::create(label, width, height,speed);
 	}
 	
 	return  NULL;

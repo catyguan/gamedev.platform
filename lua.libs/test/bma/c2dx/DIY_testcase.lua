@@ -16,8 +16,7 @@ if TC==1 then
 	local label = application:createObject("CCLabelTTF", str, "Arial", 36)
 	label:alignLeft()
 	
-	local obj2 = application:createObject("CCENarrate", label, 740, 150,0, 0.75)
-	-- obj2:pagePauseTime(0)
+	local obj2 = application:createObject("CCENarrate", label, 740, 150, 0.75)
 	obj2:position({x=200,y=200})	
 	
 	local s = application.director:scene()
@@ -41,22 +40,33 @@ end
 if TC==2 then
 	print("DIY", TC)
 	
-	local obj1 = application:createObject("CCLayerColor", {r=255}, 740, 170)
-	obj1:position({x=200,y=200})
-	obj1:opacity(128)
+	local sz = application.director:winSize()
+	print("winSize", sz.width, sz.height)
+		
+	local touch = application:createObject("CCELayerTouch")
 	
 	local str = "Hello World\nIt's my first day to come in\nLet's go"	
 	local obj2 = application:createObject("CCEDialogue")	
-	obj2:position({x=200,y=200})	
+	obj2:position({x=0,y=200})
+	touch:addChild(obj2)
 	
 	local s = application.director:scene()
-	s:addChild(obj1)
-	s:addChild(obj2)
+	-- s:addChild(obj1)
+	s:addChild(touch)
+	-- s:addChild(obj2)
 	
 	obj2:show({
-		text = str,
-		size = {width=740, height=170},
+		size = {width=sz.width, height=170},
 		fontSize = 64,
 		frameImage = "dialog.png",
 	})
+	
+	obj2:show({text=str}, function()
+		print("show 1 end")
+		local str = "诗，言其志也；\n歌，咏其声也；\n舞，动其容也；\n三者本于心，然后乐器从之。"
+		obj2:show({text=str}, function()
+			print("show 2 end")
+			obj2:visible(false)
+		end)
+	end)
 end

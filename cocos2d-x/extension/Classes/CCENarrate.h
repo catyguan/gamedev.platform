@@ -5,10 +5,6 @@
 
 USING_NS_CC;
 
-#define NARRATE_MODE_WORD		0
-#define NARRATE_MODE_LINE		1
-#define NARRATE_MODE_PAGE		2
-
 // how many MS to display a line(page)
 #define NARRATE_DEFAULT_SPEED	0.75
 
@@ -25,26 +21,19 @@ public:
 	virtual void cleanup();
 	
 public:
-	virtual bool init(CCLabelTTF* label, int width, int height, int mode, float speed);
-	static CCENarrate* create(CCLabelTTF* label, int width, int height,int mode, float speed);
-
-	float getPagePauseTime();
-	void setPagePauseTime(float t);
+	virtual bool init(CCLabelTTF* label, int width, int height, float speed);
+	static CCENarrate* create(CCLabelTTF* label, int width, int height, float speed);
 
 	void build();
 
-	CCAction* createAction();	
-
 	bool process(CCValue callback);
+	void fastForward();
 	bool isEnd();
-	bool isPause();
 
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN	
-	CC_DECLARE_CALL(pagePauseTime)
 	CC_DECLARE_CALL(process)
 	CC_DECLARE_CALL(isEnd)
-	CC_DECLARE_CALL(isPause)
 	CC_DECLARE_CALL(updateNarrate)
 	CC_DECLARE_CALL(pauseNarrate)
 	CC_DECLARE_CALL(endNarrate)
@@ -52,23 +41,25 @@ public:
 	// end cc_call
 
 protected:
-	void updateNarrate(float t, float duration, float basetime);
+	CCAction* nextPageShowAction();		
+	void updateNarrate(float t);
+	void pauseNarrate();
+	void endNarrate();
 	void showLine(int line, int tag, float width);
 
 protected:
 	CCLabelTTF* m_label;
 	
-	int m_mode;
 	float m_speed;
-	float m_pagePauseTime;
 
 	int m_lineNum;
 	int m_lineHeight;
 	int m_pageLine;
 	int m_pageNum;
 
-	int m_currentLine;
+	float m_duration;
 	int m_currentPage;
+	int m_currentLine;
 
 	CCValue m_callback;
 };

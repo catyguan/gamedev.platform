@@ -21,7 +21,7 @@ void CCENarrate::cleanup()
 	CC_SAFE_RELEASE_NULL(m_label);
 }
 
-bool CCENarrate::init(CCLabelTTF* label, int width, int height, int mode, float speed)
+bool CCENarrate::init(CCLabelTTF* label, int width, int height, float speed)
 {
 	CC_ASSERT(label);
 	CC_ASSERT(height>0);
@@ -32,19 +32,17 @@ bool CCENarrate::init(CCLabelTTF* label, int width, int height, int mode, float 
 	m_label = label;
 	CC_SAFE_RETAIN(m_label);
 	setContentSize(CCSizeMake(width, height));
-	m_mode = mode;
 	m_speed = (float) (speed>0?speed:NARRATE_DEFAULT_SPEED);
-	m_pagePauseTime = -1;
 	
 	build();
 
 	return true;
 }
 
-CCENarrate* CCENarrate::create(CCLabelTTF* label, int width, int height, int mode, float speed)
+CCENarrate* CCENarrate::create(CCLabelTTF* label, int width, int height, float speed)
 {	
     CCENarrate *pRet = new CCENarrate();
-	if (pRet && pRet->init(label, width, height, mode, speed))
+	if (pRet && pRet->init(label, width, height, speed))
     {
         pRet->autorelease();
     }
@@ -55,16 +53,6 @@ CCENarrate* CCENarrate::create(CCLabelTTF* label, int width, int height, int mod
     return pRet;
 }
 
-float CCENarrate::getPagePauseTime()
-{
-	return m_pagePauseTime;
-}
-
-void CCENarrate::setPagePauseTime(float t)
-{
-	m_pagePauseTime = t;
-}
-
 void CCENarrate::build()
 {
 	CC_ASSERT(m_label);
@@ -72,8 +60,9 @@ void CCENarrate::build()
 	m_lineHeight = 0;
 	m_pageNum = 0;
 	m_pageLine = 0;
-	m_currentLine = 1;
+	m_currentLine = 0;
 	m_currentPage = 0;
+	m_duration = 0;
 
 	CCSize labelSize = m_label->getContentSize();
 	std::string str = m_label->getString();
@@ -99,29 +88,15 @@ void CCENarrate::build()
 	}
 }
 
-CCAction* CCENarrate::createAction()
+CCAction* CCENarrate::nextPageShowAction()
 {	
-	if(m_pagePauseTime==0) {
-		m_currentPage = 1;
-		float d = (float) (m_speed*m_lineNum);
-		CCFiniteTimeAction* a1 = CCECallInterval::create(d, this, "updateNarrate", CCValue::numberValue(d), CCValue::numberValue(0));
-		CCFiniteTimeAction* a2 = CCECall::create(this, "endNarrate");
-		return CCSequence::createWithTwoActions(a1,a2);
-	} else if(m_pagePauseTime>0) {
-		m_currentPage = 1;
-		CCArray* a = CCArray::create();
-		float pd = m_speed*m_pageLine;
-		for(int i=0;i<m_pageNum;i++) {			
-			float d = (float)((i==m_pageNum-1)?(m_speed*(m_lineNum-i*m_pageLine)):pd);
-			float bt = (float) (pd*i);
-			CCECallInterval* a1 = CCECallInterval::create(d, this, "updateNarrate", CCValue::numberValue(d), CCValue::numberValue(bt));
-			a->addObject(a1);			
-			a->addObject(CCDelayTime::create(m_pagePauseTime));
-		}
-		a->addObject(CCECall::create(this, "endNarrate"));
-		return CCSequence::create(a);		
+	m_currentPage++;
+	m_currentLine=1;
+	m_duration = 0;
+
+	if(isEnd()) {
+		return CCECall::create(this, "endNarrate");
 	} else {
-		m_currentPage++;
 		for(int i=1;i<=m_pageLine;i++) {
 			CCNode* node = getChildByTag(i);
 			if(node!=NULL)node->setVisible(false);
@@ -132,9 +107,9 @@ CCAction* CCENarrate::createAction()
 		} else {
 			d = (float) (m_speed*m_pageLine);
 		}
-		float bt = (float) (m_speed*m_pageLine*(m_currentPage-1));
-		CCFiniteTimeAction* a1 = CCECallInterval::create(d, this, "updateNarrate", CCValue::numberValue(d), CCValue::numberValue(bt));
-		CCFiniteTimeAction* a2 = CCECall::create(this, m_currentPage==m_pageNum?"endNarrate":"pauseNarrate");
+		m_duration = d;
+		CCFiniteTimeAction* a1 = CCECallInterval::create(d, this, "updateNarrate");
+		CCFiniteTimeAction* a2 = CCECall::create(this, "pauseNarrate");
 		return CCSequence::createWithTwoActions(a1,a2);
 	}
 }
@@ -145,38 +120,27 @@ void CCENarrate::showLine(int line, int tag, float width)
 	CCSprite* sp = (CCSprite*) getChildByTag(tag);
 	CC_ASSERT(sp);
 	int h = (line-1)*m_lineHeight;
-	CCSize sz = m_label->getContentSize();
 	sp->initWithTexture(m_label->getTexture(), CCRectMake(0,h,width,m_lineHeight));
 	sp->setAnchorPoint(CCPointZero);
 	sp->setVisible(true);
 }
 
-void CCENarrate::updateNarrate(float t, float duration, float basetime)
+void CCENarrate::updateNarrate(float t)
 {
 	if(isEnd())return;
 
-	t = t*duration+basetime;
-	CCLOG("updateNarrate %f", t);
+	t = t*m_duration;
+	// CCLOG("updateNarrate %f", t);
 	if(t==0)return;
 	int uline = (int) ceil(t/m_speed);
 	if(uline==0)uline = 1;
-	int upage = (int) ceil(uline*1.0/m_pageLine);
 
-	if(upage>m_currentPage) {
-		// page down
-		m_currentPage = upage;
-		if(isEnd())return;
-		// CCLOG("page down %d", upage);
-		for(int i=1;i<=m_pageLine;i++) {
-			CCNode* node = getChildByTag(i);
-			if(node!=NULL)node->setVisible(false);
-		}
-	}
-	float width = min(m_label->getContentSize().width, getContentSize().width);
+	CCSize labelSize = m_label->getContentSize();
+	float width = min(labelSize.width, getContentSize().width);
 	float lt = m_speed;
-	int pagehold = (m_currentPage-1)*m_pageLine;
+	
+	int linebase = (m_currentPage-1)*m_pageLine;
 	for(int l=m_currentLine;l<=uline;l++) {
-		if(l<=pagehold)continue;
 		float w;
 		float ts = (l-1)*lt;
 		float tw = (t-ts)/m_speed;
@@ -186,57 +150,29 @@ void CCENarrate::updateNarrate(float t, float duration, float basetime)
 			w = (int) width*tw;
 		}
 		int tag = (l-1)%m_pageLine+1;
-		showLine(l,tag,w);
+		showLine(l+linebase,tag,w);
 	}
 	m_currentLine = uline;
 }
 
-bool CCENarrate::process(CCValue callback)
+void CCENarrate::fastForward()
 {
-	if(isEnd())return false;
-	m_callback.cleanup();
-	m_callback = callback;
-	m_callback.retain();
-	runAction(createAction());
-	return true;
-}
-
-bool CCENarrate::isEnd()
-{	
-	return m_currentPage>m_pageNum;
-}
-
-bool CCENarrate::isPause()
-{
-	return false;
-}
-
-// cc_call
-CC_BEGIN_CALLS(CCENarrate, CCNodeRGBA)
-	CC_DEFINE_CALL(CCENarrate, updateNarrate)
-	CC_DEFINE_CALL(CCENarrate, pauseNarrate)
-	CC_DEFINE_CALL(CCENarrate, endNarrate)
-	CC_DEFINE_CALL(CCENarrate, pagePauseTime)
-	CC_DEFINE_CALL(CCENarrate, process)
-	CC_DEFINE_CALL(CCENarrate, isEnd)
-	CC_DEFINE_CALL(CCENarrate, isPause)
-CC_END_CALLS(CCENarrate, CCNodeRGBA)
-
-CCValue CCENarrate::CALLNAME(pagePauseTime)(CCValueArray& params) {	
-	if(params.size()>0) {
-		float t = ccvpFloat(params, 0);
-		setPagePauseTime(t);
+	this->stopAllActions();
+	if(isEnd()) {
+		endNarrate();
+		return;
 	}
-	return CCValue::numberValue(getPagePauseTime());
+
+	updateNarrate(1);
+	if(m_currentPage==m_pageNum) {
+		endNarrate();
+	} else {
+		pauseNarrate();
+	}
 }
-CCValue CCENarrate::CALLNAME(updateNarrate)(CCValueArray& params) {		
-	float d = ccvpFloat(params,0);
-	float bt = ccvpFloat(params, 1);
-	float t = ccvpFloat(params, 2);
-	updateNarrate(t,d,bt);
-	return CCValue::nullValue();
-}
-CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {		
+
+void CCENarrate::pauseNarrate()
+{
 	if(m_callback.canCall()) {
 		CCValueArray ps;
 		ps.push_back(CCValue::booleanValue(false));
@@ -244,9 +180,10 @@ CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {
 	} else {
 		raiseEvent(NODE_EVENT_NARRATE_PAUSE,NULL);
 	}
-	return CCValue::nullValue();
 }
-CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {		
+
+void CCENarrate::endNarrate()
+{	
 	m_currentLine = m_pageNum+1;
 	if(m_callback.canCall()) {
 		CCValueArray ps;
@@ -255,6 +192,43 @@ CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {
 	} else {
 		raiseEvent(NODE_EVENT_NARRATE_END, NULL);
 	}
+}
+
+bool CCENarrate::process(CCValue callback)
+{
+	if(isEnd())return false;
+	m_callback.cleanup();
+	m_callback = callback;
+	m_callback.retain();
+	runAction(nextPageShowAction());
+	return true;
+}
+
+bool CCENarrate::isEnd()
+{	
+	return m_currentPage>m_pageNum;
+}
+
+// cc_call
+CC_BEGIN_CALLS(CCENarrate, CCNodeRGBA)
+	CC_DEFINE_CALL(CCENarrate, updateNarrate)
+	CC_DEFINE_CALL(CCENarrate, pauseNarrate)
+	CC_DEFINE_CALL(CCENarrate, endNarrate)
+	CC_DEFINE_CALL(CCENarrate, process)
+	CC_DEFINE_CALL(CCENarrate, isEnd)
+CC_END_CALLS(CCENarrate, CCNodeRGBA)
+
+CCValue CCENarrate::CALLNAME(updateNarrate)(CCValueArray& params) {		
+	float t = ccvpFloat(params,0);
+	updateNarrate(t);
+	return CCValue::nullValue();
+}
+CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {		
+	pauseNarrate();
+	return CCValue::nullValue();
+}
+CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {		
+	endNarrate();
 	return CCValue::nullValue();
 }
 CCValue CCENarrate::CALLNAME(process)(CCValueArray& params) {	
@@ -266,8 +240,5 @@ CCValue CCENarrate::CALLNAME(process)(CCValueArray& params) {
 }
 CCValue CCENarrate::CALLNAME(isEnd)(CCValueArray& params) {
 	return CCValue::booleanValue(isEnd());
-}
-CCValue CCENarrate::CALLNAME(isPause)(CCValueArray& params) {
-	return CCValue::booleanValue(isPause());
 }
 // end cc_call

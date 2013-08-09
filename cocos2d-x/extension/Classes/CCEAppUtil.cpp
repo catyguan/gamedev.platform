@@ -6,6 +6,7 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
 {
 	CCSize frameSize = view->getFrameSize();
 	float h = frameSize.height;
+	CCLOG("frameSize => %f x %f, designSize => %f x %f",frameSize.width, frameSize.height, designResolutionSize.width, designResolutionSize.height);
 	if(frameSize.height>frameSize.width) {
 		// ÊúÆÁ
 		h = frameSize.width;
@@ -24,9 +25,10 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
 		// if the frame's height is larger than the height of medium resource size, select large resource.
 		if (h >= resources->size.height)
 		{ 
-			CCLOG("designSize => %f x %f resource => %s", resources->size.width, resources->size.height, resources->directory);			
+			float scaleFactor = MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width);
+			CCLOG("resourceSize => %f x %f, resource => %s, scaleFactor => %f", resources->size.width, resources->size.height, resources->directory, scaleFactor);			
 			CCFileUtils::sharedFileUtils()->addSearchPath(resources->directory);
-			CCDirector::sharedDirector()->setContentScaleFactor(MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width));
+			CCDirector::sharedDirector()->setContentScaleFactor(scaleFactor);
 			break;
 		}
 		resources++;
