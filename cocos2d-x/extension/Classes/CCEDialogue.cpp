@@ -11,7 +11,7 @@ struct DialogueInfo {
 	// frame
 	std::string frameImage;
 	// narrate
-	CCSize narrateSize;
+	float marginTop,marginLeft,marginBottom,marginRight;	
 	float speed;
 	float pauseTime;
 	// label
@@ -24,8 +24,7 @@ struct DialogueInfo {
 	int fontSize;
 	std::string fontName;
 	// pauseNode
-	CCSize pauseNodeSize;
-	CCPoint pauseNodePoint;
+	CCPoint pauseNodePos;
 	// callback
 	CCValue callback;
 };
@@ -115,6 +114,12 @@ void CCEDialogue::build(DialogueInfo* info, DialogueInfo* old)
 
 		rect = m_frame->getClientRect(0);
 	}
+	float x1 = rect.origin.x+info->marginLeft;
+	float y1 = rect.origin.y+info->marginTop;
+	float x2 = rect.getMaxX()-info->marginRight;
+	float y2 = rect.getMaxY()-info->marginBottom;
+	rect = CCRectMake(x1,y1,x2-x1,y2-y1);
+
 	CCSize dm(0,0);
 	CCLabelTTF* label = CCLabelTTF::create(
 		info->text.c_str(), 
@@ -152,9 +157,11 @@ bool CCEDialogue::showDialogue(CCValue& properties, CCValue call)
 	info->fontSize = m_info!=NULL?m_info->fontSize:32;
 	info->frameImage = m_info!=NULL?m_info->frameImage:"";	
 	info->horizontalAlignment = m_info!=NULL?m_info->horizontalAlignment:0;	
-	info->narrateSize = m_info!=NULL?m_info->narrateSize:CCSizeMake(-1,-1);
-	info->pauseNodePoint = m_info!=NULL?m_info->pauseNodePoint:CCPointMake(-1,-1);
-	info->pauseNodeSize = m_info!=NULL?m_info->pauseNodeSize:CCSizeMake(-1,-1);
+	info->marginLeft = m_info!=NULL?m_info->marginLeft:0;
+	info->marginTop= m_info!=NULL?m_info->marginTop:0;
+	info->marginBottom = m_info!=NULL?m_info->marginBottom:0;
+	info->marginRight = m_info!=NULL?m_info->marginRight:0;
+	info->pauseNodePos = m_info!=NULL?m_info->pauseNodePos:CCPointMake(-1,-1);
 	info->pauseTime = m_info!=NULL?m_info->pauseTime:-1;
 	info->shadow = m_info!=NULL?m_info->shadow:-1;
 	info->size = m_info!=NULL?m_info->size:CCSizeMake(-1,-1);
@@ -181,14 +188,21 @@ bool CCEDialogue::showDialogue(CCValue& properties, CCValue call)
 		v = r.getNull("horizontalAlignment");
 		if(v!=NULL)info->horizontalAlignment = v->intValue();
 
-		v = r.getNull("narrateSize");
-		if(v!=NULL)info->narrateSize = CCValueUtil::size(*v);
+		if(r.beMap("margin")) {
+			v = r.getNull("left");
+			if(v!=NULL)info->marginLeft= v->floatValue();
+			v = r.getNull("top");
+			if(v!=NULL)info->marginTop= v->floatValue();
+			v = r.getNull("right");
+			if(v!=NULL)info->marginRight= v->floatValue();
+			v = r.getNull("bottom");
+			if(v!=NULL)info->marginBottom= v->floatValue();
 
-		v = r.getNull("pauseNodePoint");
-		if(v!=NULL)info->pauseNodePoint = CCValueUtil::point(*v);
+			r.pop();
+		}
 
-		v = r.getNull("pauseNodeSize");
-		if(v!=NULL)info->pauseNodeSize = CCValueUtil::size(*v);
+		v = r.getNull("pauseNodePos");
+		if(v!=NULL)info->pauseNodePos = CCValueUtil::point(*v);
 
 		v = r.getNull("pauseTime");
 		if(v!=NULL)info->pauseTime = v->floatValue();
@@ -213,6 +227,8 @@ bool CCEDialogue::showDialogue(CCValue& properties, CCValue call)
 	}
 
 	// buildup
+	m_paused = false;
+
 	DialogueInfo* old = m_info;
 	m_info = info;
 	m_info->callback = call;
@@ -235,17 +251,24 @@ void CCEDialogue::endNarrate()
 
 void CCEDialogue::nextPage()
 {
+	m_paused = false;
 	m_narrate->process(CCValue::nullValue());
 }
 
 void CCEDialogue::onPauseNodeClick(CCNode* node, const char* name, CCNodeEvent*)
 {
-	nextPage();
+	if(m_paused) {
+		nextPage();
+	} else {
+		if(m_narrate!=NULL) {
+			m_narrate->fastForward();
+		}
+	}
 }
 
 void CCEDialogue::onNarratePause(CCNode* node, const char* name, CCNodeEvent*)
 {
-	// nextPage();	
+	m_paused = true;
 }
 
 void CCEDialogue::onNarrateEnd(CCNode* node, const char* name, CCNodeEvent*)

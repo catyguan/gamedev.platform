@@ -164,11 +164,8 @@ void CCENarrate::fastForward()
 	}
 
 	updateNarrate(1);
-	if(m_currentPage==m_pageNum) {
-		endNarrate();
-	} else {
-		pauseNarrate();
-	}
+	CCAction* act = CCECall::create(this,"pauseNarrate");	
+	runAction(act);
 }
 
 void CCENarrate::pauseNarrate()

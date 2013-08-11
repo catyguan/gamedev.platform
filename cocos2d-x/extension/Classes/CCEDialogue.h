@@ -51,6 +51,8 @@ protected:
 	CCNode* m_pauseNode;
 	DialogueInfo* m_info;
 
+	bool m_paused;
+
 };
 
 #endif

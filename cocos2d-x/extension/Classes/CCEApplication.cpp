@@ -44,9 +44,6 @@ void CCEApplication::addObject(const char* id, CCObject* obj)
 
 CCObject* CCEApplication::findChildById(const char* id)
 {
-	if(strcmp(id,"SCENE")==0) {
-		return CCDirector::sharedDirector()->getRunningScene();
-	}
 	CCObject* obj = objects.objectForKey(id);
 	if(obj!=NULL) {
 		return obj;
@@ -68,27 +65,4 @@ void CCEApplication::cleanup()
 {
 	objects.removeAllObjects();
 	coFunctionList.clear();
-}
-
-CC_BEGIN_CALLS(CCEApplication, CCObject)
-	CC_DEFINE_CALL(CCEApplication, createObject)	
-CC_END_CALLS(CCEApplication, CCObject)
-
-CCValue CCEApplication::CALLNAME(createObject)(CCValueArray& params) {	
-	std::string type;
-	if(params.size()<1) {
-		throw new std::string("miss type");
-	}
-	type = params[0].stringValue();
-	params.erase(params.begin());
-	CCObject* obj = createObject(type.c_str(), params);
-	if(obj==NULL) {
-		return CCValue::nullValue();
-	}
-	return CCValue::objectValue(obj);
-}
-
-#include "CCEDirector.h"
-CCValue CCEApplication::CALLNAME(director)(CCValueArray& params) {	
-	return CCValue::objectValue(CCEDirector::sharedDirector());
 }

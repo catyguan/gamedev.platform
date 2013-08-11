@@ -6,38 +6,34 @@
 
 USING_NS_CC;
 
-CCObject* CCEApplication::createObject(const char* type, CCValueArray& ps)
+CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 {
 	for(std::list<CCE_CREATE_OBJECT>::const_iterator it = coFunctionList.begin();it!=coFunctionList.end();it++) {
-		CCObject* r = (*it)(type, ps);
+		CCObject* r = (*it)(type, cfg);
 		if(r!=NULL) {
 			return r;
 		}
 	}
 	if(strcmp(type,"CCLayerColor")==0) {
-		ccColor4B color = ccvpColor(ps,0);
-		int width = ccvpInt(ps,1);
-		int height = ccvpInt(ps,2);
-		if(width>0 && height>0) {
-			return CCLayerColor::create(color,(GLfloat) width, (GLfloat) height);
-		} else {
-			return CCLayerColor::create(color);
-		}
+		CCLayerColor* o = CCLayerColor::create();
+		o->setup(cfg);
+		return o;
 	}
 	if(strcmp(type,"CCELayerTouch")==0) {
 		return CCELayerTouch::create();
 	}
 	if(strcmp(type,"CCLabelTTF")==0) {
-		std::string content = ccvpString(ps,0);
-		std::string fontName = ccvpString(ps,1);
-		float fontSize = ccvpFloat(ps,2);
-		return CCLabelTTF::create(content.c_str(),fontName.c_str(),fontSize);
+		CCLabelTTF* o = CCLabelTTF::create();
+		o->setup(cfg);
+		return o;
 	}
 	if(strcmp(type,"CCEDialogue")==0) {
-		return CCEDialogue::create();
+		CCEDialogue* o = CCEDialogue::create();
+		o->setup(cfg);
+		return o;
 	}
 	if(strcmp(type,"CCENarrate")==0) {
-		CCLabelTTF* label = ccvpObject(ps,0,CCLabelTTF);
+		/*CCLabelTTF* label = ccvpObject(ps,0,CCLabelTTF);
 		if(label==NULL) {
 			throw new std::string("invalid param 1 - CCLabelTTF");
 		}
@@ -47,7 +43,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValueArray& ps)
 			throw new std::string("invalid param 3 - height");
 		}
 		float speed = ccvpFloat(ps, 3);
-		return CCENarrate::create(label, width, height,speed);
+		return CCENarrate::create(label, width, height,speed);*/
 	}
 	
 	return  NULL;

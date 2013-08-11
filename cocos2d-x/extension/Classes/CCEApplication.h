@@ -6,7 +6,7 @@
 
 USING_NS_CC;
 
-typedef CCObject* (*CCE_CREATE_OBJECT)(const char* type, CCValueArray& params);
+typedef CCObject* (*CCE_CREATE_OBJECT)(const char* type, CCValue& cfg);
 
 class CCEApplication : public CCObject
 {
@@ -15,7 +15,7 @@ public:
     virtual ~CCEApplication();
 
 public:
-	virtual CCObject* createObject(const char* type, CCValueArray& ps);
+	virtual CCObject* createObject(const char* type, CCValue& cfg);
 
 	void addObject(CCNode* node){addObject(node->getId().c_str(), node);}
 	virtual void addObject(const char* id, CCObject* obj);
@@ -38,13 +38,7 @@ protected:
 
 protected:
 	CCDictionary objects;
-	std::list<CCE_CREATE_OBJECT> coFunctionList;	
-
-	// cc_call
-	CC_DECLARE_CALLS_BEGIN
-	CC_DECLARE_CALL(createObject)
-	CC_DECLARE_CALL(director)	
-	CC_DECLARE_CALLS_END
+	std::list<CCE_CREATE_OBJECT> coFunctionList;
 
 };
 

@@ -59,6 +59,7 @@ if TC==2 then
 		size = {width=sz.width, height=170},
 		fontSize = 64,
 		frameImage = "dialog.png",
+		margin = {left=64, right=64},
 	})
 	
 	obj2:show({text=str}, function()

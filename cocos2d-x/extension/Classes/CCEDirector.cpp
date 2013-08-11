@@ -124,8 +124,43 @@ static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
 	return NULL;
 }
 
-CC_BEGIN_CALLS(CCEDirector, CCObject)
+CCObject* CCEDirector::buildObject(CCValue& cfg)
+{
+	if(cfg.isMap()) {
+		CCValueMap* map = cfg.mapValue();
+		CCValueMapIterator it = map->begin();
+		CCValueMap tmp;
+		std::string type;
+		for(;it!=map->end();it++) {
+			if(it->second.isMap()) {
+				const CCValue& v = it->second;
+				CCObject* obj = buildObject((CCValue&) v);
+				if(obj!=NULL) {
+					tmp[it->first] = CCValue::objectValue(obj);
+				}
+			} else {
+				if(it->first.compare("_type")==0) {
+					type = it->first;
+				}
+			}
+		}
+		it = tmp.begin();
+		for(;it!=tmp.end();it++) {
+			(*map)[it->first] = it->second;
+		}
+
+		if(type.size()>0) {
+			map->erase(map->find("_type"));
+			return CCEApplication::sharedApp()->createObject(type.c_str(), cfg);
+		}
+	}
+	return NULL;
+}
+
+CC_BEGIN_CALLS(CCEDirector, CCObject)	
 	CC_DEFINE_CALL(CCEDirector, winSize)
+	CC_DEFINE_CALL(CCEDirector,createObject)
+	CC_DEFINE_CALL(CCEDirector,buildObject)
 	CC_DEFINE_CALL(CCEDirector, scene)
 	CC_DEFINE_CALL(CCEDirector, pushScene)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
@@ -136,7 +171,30 @@ CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
 	CCSize sz = CCDirector::sharedDirector()->getWinSize();
 	return CCValueUtil::size(sz.width, sz.height);
 }
-
+CCValue CCEDirector::CALLNAME(createObject)(CCValueArray& params) {
+	std::string type;
+	if(params.size()<1) {
+		throw new std::string("miss type");
+	}
+	type = params[0].stringValue();
+	CCObject* obj;
+	if(params.size()>1 && params[1].isMap()) {
+		obj = CCEApplication::sharedApp()->createObject(type.c_str(), params[1]);
+	} else {
+		CCValue tmp;
+		obj = CCEApplication::sharedApp()->createObject(type.c_str(), tmp);
+	}
+	if(obj==NULL) {
+		return CCValue::nullValue();
+	}
+	return CCValue::objectValue(obj);
+}
+CCValue CCEDirector::CALLNAME(buildObject)(CCValueArray& params) {
+	if(params.size()>0) {
+		return CCValue::objectValue(buildObject(params[0]));
+	}
+	return CCValue::nullValue();
+}
 CCValue CCEDirector::CALLNAME(scene)(CCValueArray& params) {
 	CCScene* s = CCDirector::sharedDirector()->currentScene();
 	return CCValue::objectValue(s);
