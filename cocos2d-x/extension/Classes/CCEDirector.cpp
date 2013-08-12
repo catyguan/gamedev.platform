@@ -140,7 +140,7 @@ CCObject* CCEDirector::buildObject(CCValue& cfg)
 				}
 			} else {
 				if(it->first.compare("_type")==0) {
-					type = it->first;
+					type = it->second.stringValue();
 				}
 			}
 		}

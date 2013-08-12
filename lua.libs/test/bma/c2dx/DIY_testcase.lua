@@ -1,7 +1,27 @@
 require("bma.lang.ext.Dump")
 require("bma.c2dx.Common")
 
-local TC = 2
+local TC = -1
+
+if TC==-1 then
+	print("DIY", TC)
+	local cfg = {
+		_type="CCLayerColor",
+		color={r=255},
+		x=200,y=200,width=740,height=150,
+		opacity=128,
+		children={
+			_type="CCLabelTTF",
+			content="Hello world",
+			fontName="Arial",
+			fontSize=36,
+		},
+	}
+	local obj1 = director:buildObject(cfg)
+	
+	local s = director:scene()
+	s:addChild(obj1)
+end
 
 if TC==1 then
 	print("DIY", TC)
