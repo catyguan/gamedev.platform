@@ -6,6 +6,7 @@
 #include "touch_dispatcher/CCTouch.h"
 #include "base_nodes/CCNode_Events.h"
 #include "CCEAppUtil.h"
+#include "cocoa\CCValueSupport.h"
 
 //
 //CCELayerTouchItem
@@ -400,6 +401,48 @@ CCELayerTouch* CCELayerTouch::getTouchLayer(CCNode* node)
 		node = node->getParent();
 	}
 	return NULL;
+}
+
+CC_BEGIN_CALLS(CCELayerTouch, CCLayer)	
+	CC_DEFINE_CALL(CCELayerTouch, enableTouch)
+	CC_DEFINE_CALL(CCELayerTouch, disableTouch)
+CC_END_CALLS(CCELayerTouch, CCLayer)
+
+CCValue CCELayerTouch::CALLNAME(enableTouch)(CCValueArray& params) {
+	CCNode* node = NULL;
+	if(params.size()>0) {
+		if(params[0].isString()) {
+			node = (CCNode*) findChildById(params[0].stringValue().c_str());
+		} else {
+			node = ccvpObject(params,0,CCNode);
+		}
+	}
+	std::string ename = ccvpString(params, 1);
+
+	if(node==NULL) {
+		throw new std::string("param 1 expect CCNode");
+	}
+	if(ename.size()==0) {
+		throw new std::string("param 2 event name");
+	} else if(ename.compare("tap")==0) {
+		CCEGestureRecognizer4Tap* rec = CCEGestureRecognizer4Tap::create(node);
+		createTouch(rec);
+	}	
+	return CCValue::nullValue();
+}
+CCValue CCELayerTouch::CALLNAME(disableTouch)(CCValueArray& params) {
+	CCNode* node = NULL;
+	if(params.size()>0) {
+		if(params[0].isString()) {
+			node = (CCNode*) findChildById(params[0].stringValue().c_str());
+		} else {
+			node = ccvpObject(params,0,CCNode);
+		}
+	}
+	if(node!=NULL) {
+		removeTouchByNode(node);
+	}	
+	return CCValue::nullValue();
 }
 
 //

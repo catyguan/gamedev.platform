@@ -7,13 +7,12 @@ USING_NS_CC;
 
 class CCEContainer : public CCNodeRGBA
 {
-    //CCRGBAProtocol
-    CC_PROPERTY(GLubyte, m_cOpacity, Opacity); 
-    CC_PROPERTY_PASS_BY_REF(ccColor3B, m_tColor, Color);
-	
+protected:
     bool m_bIsOpacityModifyRGB;
-    bool isOpacityModifyRGB();
-    void setOpacityModifyRGB(bool bOpacityModifyRGB);
+
+public:
+    virtual bool isOpacityModifyRGB();
+    virtual void setOpacityModifyRGB(bool bOpacityModifyRGB);
 
 public:
     CCEContainer();    

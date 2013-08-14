@@ -31,6 +31,7 @@
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
     <ClInclude Include="..\Classes\CCENarrate.h" />
     <ClInclude Include="..\Classes\CCEPixelNode.h" />
+    <ClInclude Include="..\Classes\CCEScene.h" />
     <ClInclude Include="..\Classes\CCEScrollView.h" />
     <ClInclude Include="..\Classes\CCESocket.h" />
     <ClInclude Include="..\Classes\CCESpriteFrameUtil.h" />
@@ -71,6 +72,7 @@
     <ClCompile Include="..\Classes\CCEDialog.cpp" />
     <ClCompile Include="..\Classes\CCEDialogue.cpp" />
     <ClCompile Include="..\Classes\CCEDirector.cpp" />
+    <ClCompile Include="..\Classes\CCEDirector4Layout.cpp" />
     <ClCompile Include="..\Classes\CCEFileUtilsVFS.cpp" />
     <ClCompile Include="..\Classes\CCELabelButton.cpp" />
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
@@ -78,6 +80,7 @@
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
     <ClCompile Include="..\Classes\CCENarrate.cpp" />
     <ClCompile Include="..\Classes\CCEPixelNode.cpp" />
+    <ClCompile Include="..\Classes\CCEScene.cpp" />
     <ClCompile Include="..\Classes\CCEScrollView.cpp" />
     <ClCompile Include="..\Classes\CCESocket.cpp" />
     <ClCompile Include="..\Classes\CCESpriteFrameUtil.cpp" />

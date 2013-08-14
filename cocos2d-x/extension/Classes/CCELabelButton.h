@@ -40,7 +40,6 @@ protected:
     CC_PROPERTY(CCPoint, m_labelAnchorPoint, LabelAnchorPoint);
 
     /* Override setter to affect a background sprite too */
-    virtual GLubyte getOpacity(void);
     virtual void setOpacity(GLubyte var);
     
 protected:

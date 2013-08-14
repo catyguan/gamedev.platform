@@ -449,11 +449,6 @@ void CCELabelButton::setOpacity(GLubyte opacity)
     }
 }
 
-GLubyte CCELabelButton::getOpacity()
-{
-    return m_cOpacity;
-}
-
 void CCELabelButton::onEnter()
 {
 	CCEControl::onEnter();

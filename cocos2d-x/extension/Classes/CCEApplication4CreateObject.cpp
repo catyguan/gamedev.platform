@@ -1,9 +1,11 @@
 #include "CCEApplication.h"
 #include "cocoa/CCValueSupport.h"
+#include "CCEScene.h"
 #include "CCELayerTouch.h"
 #include "CCENarrate.h"
 #include "CCEDialogue.h"
 #include "CCScale9Sprite.h"
+#include "CCEAction.h"
 
 USING_NS_CC;
 
@@ -14,6 +16,11 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		if(r!=NULL) {
 			return r;
 		}
+	}
+	if(strcmp(type,"CCEScene")==0) {
+		CCEScene* o = CCEScene::create();
+		o->setup(cfg);
+		return o;
 	}
 	if(strcmp(type,"CCLayerColor")==0) {
 		CCLayerColor* o = CCLayerColor::create();
@@ -53,7 +60,9 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		return o;
 	}
 	if(strcmp(type,"CCELayerTouch")==0) {
-		return CCELayerTouch::create();
+		CCELayerTouch* o = CCELayerTouch::create();
+		o->setup(cfg);
+		return o;
 	}
 	if(strcmp(type,"CCLabelTTF")==0) {
 		CCValueReader r(&cfg);
@@ -183,6 +192,10 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			}
 		}
 		if(arr!=NULL) {
+			if(strcmp(type,"a.call")==0) {		
+				CCValue call = ccvp((*arr), 0);
+				return CCECall::create(call);
+			}
 			if(strcmp(type,"a.delay")==0 || strcmp(type,"a.delayTime")==0) {		
 				float a0 = ccvpFloat((*arr), 0);
 				return CCDelayTime::create(a0);				

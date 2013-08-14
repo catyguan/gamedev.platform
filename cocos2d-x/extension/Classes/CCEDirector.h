@@ -23,6 +23,8 @@ public:
 	CCValue apiObjectCall(std::string name, CCValue p1, CCValue p2);
 	CCValue apiObjectCall(std::string name, CCValue p1, CCValue p2, CCValue p3);
 
+	void layout(CCNode* node, bool deep);
+
 public:
 	void install();
     static CCEDirector* sharedDirector(void);
@@ -39,14 +41,17 @@ protected:
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN
 	CC_DECLARE_CALL(winSize)
+	CC_DECLARE_CALL(layout)
 	CC_DECLARE_CALL(createObject)
 	CC_DECLARE_CALL(buildObject)
 	CC_DECLARE_CALL(buildAction)
 	CC_DECLARE_CALL(scene)
+	CC_DECLARE_CALL(runScene)
 	CC_DECLARE_CALL(pushScene)
 	CC_DECLARE_CALL(replaceScene)
 	CC_DECLARE_CALL(popScene)
-	CC_DECLARE_CALLS_END	
+	CC_DECLARE_CALLS_END
+	// end_cc_call
 };
 
 #endif  // __CCE_DIRECTOR_H__

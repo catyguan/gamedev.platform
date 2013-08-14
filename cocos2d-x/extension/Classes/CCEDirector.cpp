@@ -103,6 +103,7 @@ CCValue CCEDirector::apiObjectCall(std::string name, CCValue p1, CCValue p2,CCVa
 	return apiCall("_API_application_objectcall", ps);
 }
 
+#include "CCEScene.h"
 static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
 {
 	if(params.size()<=idx)return NULL;
@@ -117,7 +118,7 @@ static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
 	}
 	CCNode* node = dynamic_cast<CCNode*>(o);
 	if(node!=NULL) {
-		r = CCScene::create();
+		r = CCEScene::create();
 		r->addChild(node);
 		return r;
 	}
@@ -189,10 +190,12 @@ CCAction* CCEDirector::buildAction(CCValue& cfg)
 
 CC_BEGIN_CALLS(CCEDirector, CCObject)	
 	CC_DEFINE_CALL(CCEDirector, winSize)
+	CC_DEFINE_CALL(CCEDirector, layout)
 	CC_DEFINE_CALL(CCEDirector,createObject)
 	CC_DEFINE_CALL(CCEDirector,buildObject)
 	CC_DEFINE_CALL(CCEDirector,buildAction)
 	CC_DEFINE_CALL(CCEDirector, scene)
+	CC_DEFINE_CALL(CCEDirector, runScene)
 	CC_DEFINE_CALL(CCEDirector, pushScene)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
 	CC_DEFINE_CALL(CCEDirector, popScene)	
@@ -201,6 +204,16 @@ CC_END_CALLS(CCEDirector, CCObject)
 CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
 	CCSize sz = CCDirector::sharedDirector()->getWinSize();
 	return CCValueUtil::size(sz.width, sz.height);
+}
+CCValue CCEDirector::CALLNAME(layout)(CCValueArray& params) {
+	CCNode* node = ccvpObject(params,0,CCNode);	
+	bool deep = true;
+	if(params.size()>1)deep = params[1].booleanValue();
+	if(node==NULL) {
+		throw new std::string("param 1 expect CCNode");
+	}
+	layout(node, deep);
+	return CCValue::nullValue();
 }
 CCValue CCEDirector::CALLNAME(createObject)(CCValueArray& params) {
 	std::string type;
@@ -237,11 +250,25 @@ CCValue CCEDirector::CALLNAME(scene)(CCValueArray& params) {
 	return CCValue::objectValue(s);
 }
 
+CCValue CCEDirector::CALLNAME(runScene)(CCValueArray& params) {
+	CCScene* s = toSceneObject(params,0);	
+	if(s==NULL) {
+		throw new std::string("param 1 expect CCScene");
+	}
+		CCDirector* d = CCDirector::sharedDirector();
+	if(d->currentScene()!=NULL) {
+		d->replaceScene(s);
+	} else {
+		d->runWithScene(s);
+	}
+	return CCValue::booleanValue(true);
+}
+
 CCValue CCEDirector::CALLNAME(pushScene)(CCValueArray& params) {
 	CCScene* s = toSceneObject(params,0);	
 	if(s==NULL) {
-		throw new std::string("param 1 except CCScene");
-	}	
+		throw new std::string("param 1 expect CCScene");
+	}
 	CCDirector::sharedDirector()->pushScene(s);
 	return CCValue::booleanValue(true);
 }
@@ -250,7 +277,7 @@ CCValue CCEDirector::CALLNAME(replaceScene)(CCValueArray& params)
 {
 	CCScene* s = toSceneObject(params,0);	
 	if(s==NULL) {
-		throw new std::string("param 1 except CCScene");
+		throw new std::string("param 1 expect CCScene");
 	}
 	CCDirector::sharedDirector()->replaceScene(s);
 	return CCValue::booleanValue(true);

@@ -98,6 +98,13 @@ protected:
 	CCPoint m_lastTouch;
 	bool m_traveling;
 	std::list<CCELayerTouchItem*> m_removedItems;
+
+	// cc_call
+	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(enableTouch)
+	CC_DECLARE_CALL(disableTouch)
+	CC_DECLARE_CALLS_END	
+
 };
 
 class CCETouchBuilder
