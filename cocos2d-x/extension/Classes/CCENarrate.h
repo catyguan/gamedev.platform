@@ -24,6 +24,17 @@ public:
 	virtual bool init(CCLabelTTF* label, int width, int height, float speed);
 	static CCENarrate* create(CCLabelTTF* label, int width, int height, float speed);
 
+	virtual bool init();
+	static CCENarrate* create();
+
+	CCLabelTTF* getLabel();
+	void setLabel(CCLabelTTF* v);
+	float getSpeed();
+	void setSpeed(float v);
+
+	virtual bool setup(CCValue& cfg);
+	virtual void setContentSize(CCSize& sz);
+
 	void build();
 
 	bool process(CCValue callback);
@@ -32,6 +43,9 @@ public:
 
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN	
+	CC_DECLARE_CALL(label)
+	CC_DECLARE_CALL(speed)
+	CC_DECLARE_CALL(build)
 	CC_DECLARE_CALL(process)
 	CC_DECLARE_CALL(isEnd)
 	CC_DECLARE_CALL(updateNarrate)

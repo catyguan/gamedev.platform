@@ -130,7 +130,7 @@ function _API_host_closure_add(f)
 	local HS = class.instance("bma.host.Service")
 	local cid = HS:nextClosureId()
 	if LDEBUG then
-		LOG:debug(LTAG,"_host_closure_add - callId="..cid)
+		LOG:debug(LTAG,"_host_closure_add - callId="..cid..","..tostring(f))
 	end
 	HS.closures[cid] = f
 	return cid

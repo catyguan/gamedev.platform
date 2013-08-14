@@ -376,7 +376,7 @@ static LuaHostValue popLuaValue(lua_State* L, LuaHostValuePrototype* vp, int idx
 		}
 		case LUA_TFUNCTION: {			
 			lua_getfield(L, LUA_GLOBALSINDEX, LUA_FUNCTION_HOST_CLOSURE_ADD);
-			lua_pushvalue(L , idx );			
+			lua_pushvalue(L , idx<0?idx-1:idx );			
 			lua_call(L,1,1);
 			int callId = lua_tointeger(L,-1);
 			lua_pop(L,1);

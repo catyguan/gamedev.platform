@@ -19,12 +19,25 @@ public:
 public:
 	virtual bool init();
 	static CCEDialogue* create();
+
+	CCNode* getFrame();
+	void setFrame(CCNode* node);
+	CCLabelTTF* getLabel();
+	void setLabel(CCLabelTTF* label);
+	CCNode* getPauseNode();
+	void setPauseNode(CCNode* node);
+	CCSize getMaginTopLeft();	
+	void setMarginTopLeft(CCSize sz);
+	CCSize getMarginBottomRight();
+	void setMarginBottomRight(CCSize sz);
 	
 	virtual bool showDialogue(CCValue& properties, CCValue call);	
 
 public:
 	virtual void onEnter();
 	virtual void cleanup();
+
+	virtual void setContentSize(const CCSize& contentSize);
 	
 public:
 	void onPauseNodeClick(CCNode* node, const char* name, CCNodeEvent*);
@@ -33,6 +46,10 @@ public:
 
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN	
+	CC_DECLARE_CALL(label)
+	CC_DECLARE_CALL(frame)
+	CC_DECLARE_CALL(margin)
+	CC_DECLARE_CALL(pauseNode)
 	CC_DECLARE_CALL(show)
 	CC_DECLARE_CALLS_END
 	// end cc_call
@@ -40,17 +57,21 @@ public:
 protected:
 	void clear();
 	void build(DialogueInfo* info, DialogueInfo* old);	
+	
 	void nextPage();
+	void pauseNarrate();
 	void endNarrate();
 
 	virtual void updatePauseNode();
+	void layout();
 
 protected:
-	CCScale9Sprite* m_frame;
-	CCENarrate* m_narrate;
-	CCNode* m_pauseNode;
+	CCSize m_marginTopLeft, m_marginBottomRight;
+
 	DialogueInfo* m_info;
 
+	CCENarrate* m_narrate;
+	CCLabelTTF* m_label;
 	bool m_paused;
 
 };

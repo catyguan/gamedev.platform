@@ -14,6 +14,35 @@ CCENarrate::~CCENarrate()
 	CC_SAFE_RELEASE_NULL(m_label);
 }
 
+CCLabelTTF* CCENarrate::getLabel()
+{
+	return m_label;
+}
+
+void CCENarrate::setLabel(CCLabelTTF* v)
+{
+	if(v!=NULL) {
+		CC_SAFE_RELEASE(m_label);
+		m_label = v;
+		CC_SAFE_RETAIN(m_label);
+	}
+}
+
+float CCENarrate::getSpeed()
+{
+	return m_speed;
+}
+
+void CCENarrate::setSpeed(float v)
+{
+	m_speed = v;
+}
+
+void CCENarrate::setContentSize(CCSize& sz)
+{
+	CCNodeRGBA::setContentSize(sz);
+	build();
+}
 void CCENarrate::cleanup()
 {
 	CCNodeRGBA::cleanup();
@@ -21,20 +50,26 @@ void CCENarrate::cleanup()
 	CC_SAFE_RELEASE_NULL(m_label);
 }
 
+bool CCENarrate::init()
+{
+	if(!CCNodeRGBA::init()) {
+		return false;
+	}
+	return true;
+}
+
 bool CCENarrate::init(CCLabelTTF* label, int width, int height, float speed)
 {
 	CC_ASSERT(label);
 	CC_ASSERT(height>0);
 
-	if(!CCNodeRGBA::init()) {
+	if(!init()) {
 		return false;
 	}
 	m_label = label;
-	CC_SAFE_RETAIN(m_label);
-	setContentSize(CCSizeMake(width, height));
+	CC_SAFE_RETAIN(m_label);	
 	m_speed = (float) (speed>0?speed:NARRATE_DEFAULT_SPEED);
-	
-	build();
+	setContentSize(CCSizeMake(width, height));
 
 	return true;
 }
@@ -53,8 +88,35 @@ CCENarrate* CCENarrate::create(CCLabelTTF* label, int width, int height, float s
     return pRet;
 }
 
+CCENarrate* CCENarrate::create()
+{	
+    CCENarrate *pRet = new CCENarrate();
+	if (pRet && pRet->init())
+    {
+        pRet->autorelease();
+    }
+    else
+    {
+        CC_SAFE_DELETE(pRet);
+    }
+    return pRet;
+}
+
+bool CCENarrate::setup(CCValue& cfg)
+{
+	if(!CCNodeRGBA::setup(cfg)) {
+		return false;
+	}
+	build();
+	return true;
+}
+
 void CCENarrate::build()
 {
+	if(m_label==NULL)return;
+	CCSize mySize = getContentSize();
+	if(mySize.width==0 || mySize.height==0)return;
+
 	CC_ASSERT(m_label);
 	m_lineNum = 1;
 	m_lineHeight = 0;
@@ -66,7 +128,6 @@ void CCENarrate::build()
 
 	CCSize labelSize = m_label->getContentSize();
 	std::string str = m_label->getString();
-	CCSize mySize = getContentSize();
 	
 	std::string::size_type pos = 0;
 	while((pos=str.find_first_of('\n',pos))!=std::string::npos)  
@@ -79,6 +140,7 @@ void CCENarrate::build()
 	if(m_pageLine<0)m_pageLine = 1;
 	m_pageNum = (int) ceil(m_lineNum*1.0/m_pageLine);
 
+	removeAllChildren();
 	for(int i=1;i<=m_pageLine;i++) {	
 		CCSprite* sp = CCSprite::create();
 		sp->setAnchorPoint(CCPointZero);
@@ -208,9 +270,12 @@ bool CCENarrate::isEnd()
 
 // cc_call
 CC_BEGIN_CALLS(CCENarrate, CCNodeRGBA)
+	CC_DEFINE_CALL(CCENarrate, label)
+	CC_DEFINE_CALL(CCENarrate, speed)
 	CC_DEFINE_CALL(CCENarrate, updateNarrate)
 	CC_DEFINE_CALL(CCENarrate, pauseNarrate)
 	CC_DEFINE_CALL(CCENarrate, endNarrate)
+	CC_DEFINE_CALL(CCENarrate, build)
 	CC_DEFINE_CALL(CCENarrate, process)
 	CC_DEFINE_CALL(CCENarrate, isEnd)
 CC_END_CALLS(CCENarrate, CCNodeRGBA)
@@ -226,6 +291,30 @@ CCValue CCENarrate::CALLNAME(pauseNarrate)(CCValueArray& params) {
 }
 CCValue CCENarrate::CALLNAME(endNarrate)(CCValueArray& params) {		
 	endNarrate();
+	return CCValue::nullValue();
+}
+CCValue CCENarrate::CALLNAME(label)(CCValueArray& params) {		
+	if(params.size()>0) {
+		CCLabelTTF* obj = ccvpObject(params,0,CCLabelTTF);
+		if(obj!=NULL) {
+			setLabel(obj);
+		}
+	}
+	return CCValue::objectValue(m_label);
+}
+CCValue CCENarrate::CALLNAME(speed)(CCValueArray& params) {		
+	if(params.size()>0) {
+		float v = params[0].floatValue();
+		setSpeed(v);
+	}
+	return CCValue::numberValue(m_speed);
+}
+CCValue CCENarrate::CALLNAME(build)(CCValueArray& params) {	
+	CCValue v;
+	if(params.size()>0) {
+		v = params[0];
+	}
+	build();
 	return CCValue::nullValue();
 }
 CCValue CCENarrate::CALLNAME(process)(CCValueArray& params) {	

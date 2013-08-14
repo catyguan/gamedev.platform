@@ -30,6 +30,7 @@ public:
 
 protected:
 	CCObject* buildObject(CCValue& cfg);
+	CCAction* buildAction(CCValue& cfg);
 
 protected:
 	CCScene* m_scene;
@@ -40,6 +41,7 @@ protected:
 	CC_DECLARE_CALL(winSize)
 	CC_DECLARE_CALL(createObject)
 	CC_DECLARE_CALL(buildObject)
+	CC_DECLARE_CALL(buildAction)
 	CC_DECLARE_CALL(scene)
 	CC_DECLARE_CALL(pushScene)
 	CC_DECLARE_CALL(replaceScene)

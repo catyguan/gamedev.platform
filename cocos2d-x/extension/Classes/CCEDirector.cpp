@@ -157,10 +157,41 @@ CCObject* CCEDirector::buildObject(CCValue& cfg)
 	return NULL;
 }
 
+CCAction* CCEDirector::buildAction(CCValue& cfg)
+{
+	if(cfg.isArray()) {
+		CCValueArray* arr = cfg.arrayValue();		
+		std::string type;
+		for(size_t i=0;i<arr->size();i++) {
+			if(i==0 && (*arr)[i].isString()) {
+				type = (*arr)[i].stringValue();
+				continue;
+			}
+			if((*arr)[i].isArray()) {
+				CCAction* obj = buildAction((*arr)[i]);
+				if(obj!=NULL) {
+					(*arr)[i] = CCValue::objectValue(obj);
+				}
+			}
+		}
+		if(type.size()>0) {
+			arr->erase(arr->begin());
+			std::string id = "a."+type;
+			CCObject* obj = CCEApplication::sharedApp()->createObject(id.c_str(), cfg);
+			if(obj!=NULL) {
+				CCAction* r = dynamic_cast<CCAction*>(obj);
+				if(r!=NULL)return r;
+			}
+		}
+	}
+	return NULL;
+}
+
 CC_BEGIN_CALLS(CCEDirector, CCObject)	
 	CC_DEFINE_CALL(CCEDirector, winSize)
 	CC_DEFINE_CALL(CCEDirector,createObject)
 	CC_DEFINE_CALL(CCEDirector,buildObject)
+	CC_DEFINE_CALL(CCEDirector,buildAction)
 	CC_DEFINE_CALL(CCEDirector, scene)
 	CC_DEFINE_CALL(CCEDirector, pushScene)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
@@ -192,6 +223,12 @@ CCValue CCEDirector::CALLNAME(createObject)(CCValueArray& params) {
 CCValue CCEDirector::CALLNAME(buildObject)(CCValueArray& params) {
 	if(params.size()>0) {
 		return CCValue::objectValue(buildObject(params[0]));
+	}
+	return CCValue::nullValue();
+}
+CCValue CCEDirector::CALLNAME(buildAction)(CCValueArray& params) {
+	if(params.size()>0) {
+		return CCValue::objectValue(buildAction(params[0]));
 	}
 	return CCValue::nullValue();
 }
