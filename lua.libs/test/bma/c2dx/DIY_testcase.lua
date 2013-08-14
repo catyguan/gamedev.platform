@@ -94,6 +94,7 @@ if TC==2 then
 			horizontalAlignment=0
 		},
 		pauseNode = {
+			id="node1",
 			_type="CCSprite",
 			image="hand1.png",
 			x=sz.width-10-27,y=30,
@@ -132,4 +133,7 @@ if TC==2 then
 			obj2:visible(false)
 		end)
 	end)
+	
+	local sz = obj2.node1:contentSize()
+	print("node1 size", sz.width, sz.height)
 end

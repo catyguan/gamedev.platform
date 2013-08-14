@@ -1,5 +1,5 @@
-#ifndef  __CCE_APPUTIL_H__
-#define  __CCE_APPUTIL_H__
+#ifndef  __CCE_UTIL_H__
+#define  __CCE_UTIL_H__
 
 #include "cocos2d.h"
 

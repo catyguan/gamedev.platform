@@ -18,6 +18,7 @@
     <ClInclude Include="..\Classes\CCEAppUtil.h" />
     <ClInclude Include="..\Classes\CCEAsynSocket.h" />
     <ClInclude Include="..\Classes\CCEButton.h" />
+    <ClInclude Include="..\Classes\CCEConfig.h" />
     <ClInclude Include="..\Classes\CCEContainer.h" />
     <ClInclude Include="..\Classes\CCEControl.h" />
     <ClInclude Include="..\Classes\CCEDialog.h" />
@@ -64,6 +65,7 @@
     <ClCompile Include="..\Classes\CCEAppUtil.cpp" />
     <ClCompile Include="..\Classes\CCEAsynSocket.cpp" />
     <ClCompile Include="..\Classes\CCEButton.cpp" />
+    <ClCompile Include="..\Classes\CCEConfig.cpp" />
     <ClCompile Include="..\Classes\CCEContainer.cpp" />
     <ClCompile Include="..\Classes\CCEControl.cpp" />
     <ClCompile Include="..\Classes\CCEDialog.cpp" />
