@@ -3,11 +3,11 @@ require("bma.lang.ext.Core")
 
 local Class = class.define("bma.app.ApplicationService",{})
 
--- Class:createControl()
--- Class:createDataHelper()
+local LDEBUG = LOG:debugEnabled()
+local LTAG = "AppService"
 
 function Class:install()	
-	if not self.id then error("service id is nil") end
+	if not self.id then error(self.className.." service id is nil") end
 	local app = class.instance("application")
 	
 	if app.services[self.id] then
@@ -15,18 +15,9 @@ function Class:install()
 	end
 	app.services[self.id] = self
 	
-	if self.createControl then
-		local c = self:createControl()
-		if c then
-			app.objects[self.id] = c
-		end	
-	end	
-	if self.createData then
-		local data = self:createData()
-		if data then		
-			app.datas[self.id] = data
-		end
-	end	
+	if LDEBUG then
+		LOG:debug(LTAG, "install service ["..self.id.."] ==> " .. self.className)
+	end
 end
 
 function Class:uninstall()
@@ -34,6 +25,8 @@ function Class:uninstall()
 	local app = class.instance("application")
 	
 	app.services[self.id] = nil
-	app.objects[self.id] = nil
-	app.datas[self.id] = nil
+	
+	if LDEBUG then
+		LOG:debug(LTAG, "uninstall service ["..self.id.."] ==> " .. self.className)
+	end
 end

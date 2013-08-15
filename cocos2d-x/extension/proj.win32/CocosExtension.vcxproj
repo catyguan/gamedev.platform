@@ -27,6 +27,7 @@
     <ClInclude Include="..\Classes\CCEFileUtilsVFS.h" />
     <ClInclude Include="..\Classes\CCELabelButton.h" />
     <ClInclude Include="..\Classes\CCELayerTouch.h" />
+    <ClInclude Include="..\Classes\CCELayoutUtil.h" />
     <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
     <ClInclude Include="..\Classes\CCENarrate.h" />
@@ -72,10 +73,10 @@
     <ClCompile Include="..\Classes\CCEDialog.cpp" />
     <ClCompile Include="..\Classes\CCEDialogue.cpp" />
     <ClCompile Include="..\Classes\CCEDirector.cpp" />
-    <ClCompile Include="..\Classes\CCEDirector4Layout.cpp" />
     <ClCompile Include="..\Classes\CCEFileUtilsVFS.cpp" />
     <ClCompile Include="..\Classes\CCELabelButton.cpp" />
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
+    <ClCompile Include="..\Classes\CCELayoutUtil.cpp" />
     <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
     <ClCompile Include="..\Classes\CCENarrate.cpp" />

@@ -17,13 +17,8 @@ public:
 
 	bool apiStartup();
 	void apiShutdown();
-	CCValue apiObjectCall(std::string name, CCValueArray& ps);
-	CCValue apiObjectCall(std::string name);
-	CCValue apiObjectCall(std::string name, CCValue p1);
-	CCValue apiObjectCall(std::string name, CCValue p1, CCValue p2);
-	CCValue apiObjectCall(std::string name, CCValue p1, CCValue p2, CCValue p3);
 
-	void layout(CCNode* node, bool deep);
+	void layout(CCNode* node, bool deep);	
 
 public:
 	void install();

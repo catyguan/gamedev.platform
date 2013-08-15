@@ -2,6 +2,7 @@
 #include "cocoa/CCValueSupport.h"
 #include "CCEScene.h"
 #include "CCELayerTouch.h"
+#include "CCEContainer.h"
 #include "CCENarrate.h"
 #include "CCEDialogue.h"
 #include "CCScale9Sprite.h"
@@ -117,6 +118,11 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		o->setup(cfg);
 		return o;
 	}
+	if(strcmp(type,"CCEPanel")==0) {
+		CCEPanel* o = CCEPanel::create();
+		o->setup(cfg);
+		return o;
+	}	
 	if(strcmp(type,"CCEDialogue")==0) {
 		CCEDialogue* o = CCEDialogue::create();
 		o->setup(cfg);

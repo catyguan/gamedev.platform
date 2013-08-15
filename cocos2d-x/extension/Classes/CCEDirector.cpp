@@ -11,7 +11,6 @@ CCEDirector::CCEDirector(CCELuaApplication* app)
 	m_app = app;
 }
 
-
 CCEDirector::~CCEDirector(void)
 {
 	
@@ -62,45 +61,6 @@ void CCEDirector::apiShutdown()
 {
 	CCValueArray ps;
 	apiCall("_API_application_shutdown", ps);
-}
-
-CCValue CCEDirector::apiObjectCall(std::string name, CCValueArray& ps)
-{
-	ps.insert(ps.begin(), CCValue::stringValue(name));
-	return apiCall("_API_application_objectcall", ps);
-}
-
-CCValue CCEDirector::apiObjectCall(std::string name)
-{
-	CCValueArray ps;
-	ps.push_back(CCValue::stringValue(name));
-	return apiCall("_API_application_objectcall", ps);
-}
-
-CCValue CCEDirector::apiObjectCall(std::string name, CCValue p1)
-{
-	CCValueArray ps;
-	ps.push_back(CCValue::stringValue(name));
-	ps.push_back(p1);
-	return apiCall("_API_application_objectcall", ps);
-}
-
-CCValue CCEDirector::apiObjectCall(std::string name, CCValue p1, CCValue p2)
-{
-	CCValueArray ps;
-	ps.push_back(CCValue::stringValue(name));
-	ps.push_back(p1);
-	return apiCall("_API_application_objectcall", ps);
-}
-
-CCValue CCEDirector::apiObjectCall(std::string name, CCValue p1, CCValue p2,CCValue p3)
-{
-	CCValueArray ps;
-	ps.push_back(CCValue::stringValue(name));
-	ps.push_back(p1);
-	ps.push_back(p2);
-	ps.push_back(p3);
-	return apiCall("_API_application_objectcall", ps);
 }
 
 #include "CCEScene.h"
@@ -186,6 +146,12 @@ CCAction* CCEDirector::buildAction(CCValue& cfg)
 		}
 	}
 	return NULL;
+}
+
+#include "CCELayoutUtil.h"
+void CCEDirector::layout(CCNode* node, bool deep)
+{
+	LayoutUtil::layout(node, deep);
 }
 
 CC_BEGIN_CALLS(CCEDirector, CCObject)	

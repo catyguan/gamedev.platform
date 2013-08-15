@@ -3,6 +3,7 @@
 #include "CCENarrate.h"
 #include "cocoa\CCValueSupport.h"
 #include "base_nodes/CCNode_Events.h"
+#include "CCELayoutUtil.h"
 
 #define TAG_FRAME	1
 #define TAG_PAUSE	2
@@ -334,32 +335,21 @@ CCValue CCEDialogue::CALLNAME(pauseNode)(CCValueArray& params) {
 }
 CCValue CCEDialogue::CALLNAME(margin)(CCValueArray& params) {
 	if(params.size()>0) {
-		CCValueReader vr(&params[0]);
-		if(vr.isMap()) {
-			CCValue* v;
-
-			v = vr.getNull("left");
-			if(v!=NULL)m_marginTopLeft.width = v->floatValue();
-
-			v = vr.getNull("top");
-			if(v!=NULL)m_marginTopLeft.height = v->floatValue();
-
-			v = vr.getNull("right");
-			if(v!=NULL)m_marginBottomRight.width = v->floatValue();
-
-			v = vr.getNull("bottom");
-			if(v!=NULL)m_marginBottomRight.height = v->floatValue();
-		}
+		LayoutUtil::margin(params[0], 
+			&m_marginTopLeft.width,
+			&m_marginTopLeft.height,
+			&m_marginBottomRight.width,
+			&m_marginBottomRight.height);
 		return CCValue::nullValue();
 	} else {
-		CCValueMap map;
-		map["left"] = CCValue::numberValue(m_marginTopLeft.width);
-		map["top"] = CCValue::numberValue(m_marginTopLeft.height);
-		map["right"] = CCValue::numberValue(m_marginBottomRight.width);
-		map["height"] = CCValue::numberValue(m_marginBottomRight.height);		
-		return CCValue::mapValue(map);		
+		return LayoutUtil::margin( 
+			m_marginTopLeft.width,
+			m_marginTopLeft.height,
+			m_marginBottomRight.width,
+			m_marginBottomRight.height);
 	}
 }
+
 CCValue nullValue;
 CCValue CCEDialogue::CALLNAME(show)(CCValueArray& params) {	
 	CCValue& v = params.size()>0?params.at(0):nullValue;
