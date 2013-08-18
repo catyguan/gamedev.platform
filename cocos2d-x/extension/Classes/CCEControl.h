@@ -17,6 +17,8 @@ USING_NS_CC;
 class CCEControl : public CCEContainer
 {
 public:
+	virtual void onEnter();
+
     /** Tells whether the control is enabled. */
     virtual void setEnabled(bool v);
     virtual bool isEnabled();
@@ -29,6 +31,9 @@ public:
     virtual void setHighlighted(bool v);
     virtual bool isHighlighted();
 
+	void setTouchType(const char* v);
+	const char* getTouchType();
+
 	virtual int getState();
 	
 	virtual bool raiseEvent(const char* name, CCNodeEvent*);  
@@ -38,15 +43,24 @@ protected:
     bool m_bEnabled;
     bool m_bSelected;
     bool m_bHighlighted;
+	std::string m_touchType;
 
 public:
     CCEControl();
+	virtual ~CCEControl();
+
     virtual bool init(void);
-    virtual ~CCEControl();
+	static CCEControl* create();
 
 protected:
-    static CCEControl* create();
-
+   
+	// cc_call
+	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(enabled)
+	CC_DECLARE_CALL(selected)
+	CC_DECLARE_CALL(highlighted)
+	CC_DECLARE_CALL(touch)
+	CC_DECLARE_CALLS_END	
 };
 
 #endif

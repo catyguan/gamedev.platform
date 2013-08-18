@@ -2,6 +2,7 @@
 #include "actions/CCAction.h"
 #include "actions/CCActionInterval.h"
 #include "CCEUtil.h"
+#include "cocoa\CCValueSupport.h"
 
 enum
 {
@@ -81,7 +82,7 @@ void CCEButton::setHighlighted(bool enabled)
     if( m_node!=NULL && m_zoomOnTouchDown )
     {
         float scaleValue = (isHighlighted() && isEnabled()) ? 1.1f : 1.0f;
-		CCLOG("scale %f", scaleValue);
+		// CCLOG("scale %f", scaleValue);
         CCAction *zoomAction =CCScaleTo::create(0.05f, scaleValue);
         zoomAction->setTag(kZoomActionTag);
         runAction(zoomAction);
@@ -136,7 +137,7 @@ void CCEButton::setNode(int state, CCNode* node)
 	set->node = node;
 
     node->setVisible(false);
-    node->setAnchorPoint(ccp(0.5f, 0.5f));
+	node->setAnchorPoint(CCPointZero);
     addChild(node, 2);
 
     // If the current state if equal to the given state we update the layout
@@ -169,7 +170,7 @@ void CCEButton::setBackground(int state, CCNode* node)
 
 	if(node!=NULL) {
 		node->setVisible(false);
-		node->setAnchorPoint(ccp(0.5f, 0.5f));
+		node->setAnchorPoint(CCPointZero);
 		addChild(node, 1);
 	}
 
@@ -244,12 +245,6 @@ CCEButton* CCEButton::create()
     return NULL;
 }
 
-void CCEButton::onEnter()
-{
-	CCEControl::onEnter();
-	updateControl();
-}
-
 void CCEButton::cleanup()
 {
 	CCEControl::cleanup();	
@@ -266,3 +261,7 @@ void CCEButton::releaseSettings()
     }
 	m_settings.clear();
 }
+
+CC_BEGIN_CALLS(CCEButton, CCEControl)	
+	// CC_DEFINE_CALL(CCEControl, enabled)
+CC_END_CALLS(CCEButton, CCEControl)

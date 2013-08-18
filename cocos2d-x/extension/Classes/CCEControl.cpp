@@ -1,4 +1,5 @@
 #include "CCEControl.h"
+#include "cocoa\CCValueSupport.h"
 #include "base_nodes/CCNode_Events.h"
 #include "CCELayerTouch.h"
 
@@ -46,6 +47,16 @@ CCEControl::~CCEControl()
     
 }
 
+void CCEControl::onEnter()
+{
+	CCEContainer::onEnter();
+	updateControl();
+	if(m_touchType.size()>0) {
+		CCETouchBuilder b;
+		b.bind(this).on(m_touchType).createTouch(NULL);
+	}
+}
+
 void CCEControl::setEnabled(bool bEnabled)
 {    
 	m_bEnabled = bEnabled;
@@ -85,6 +96,16 @@ bool CCEControl::isHighlighted()
     return m_bHighlighted;
 }
 
+void CCEControl::setTouchType(const char* type)
+{
+	m_touchType = type;
+}
+
+const char* CCEControl::getTouchType()
+{
+	return m_touchType.c_str();
+}
+
 int CCEControl::getState()
 {
 	if(!isEnabled()) {
@@ -101,7 +122,10 @@ int CCEControl::getState()
 
 void CCEControl::updateControl()
 {
-	
+	if(canCall("doUpdateControl")) {
+		CCValueArray ps;
+		this->call("doUpdateControl",ps);
+	}
 }
 
 bool CCEControl::raiseEvent(const char* name, CCNodeEvent* e)
@@ -122,4 +146,52 @@ bool CCEControl::raiseEvent(const char* name, CCNodeEvent* e)
 		}
 	}
 	return r;
+}
+
+CC_BEGIN_CALLS(CCEControl, CCEContainer)	
+	CC_DEFINE_CALL(CCEControl, enabled)
+	CC_DEFINE_CALL(CCEControl, selected)
+	CC_DEFINE_CALL(CCEControl, highlighted)
+	CC_DEFINE_CALL(CCEControl, touch)
+CC_END_CALLS(CCEControl, CCEContainer)
+
+CCValue CCEControl::CALLNAME(enabled)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		setEnabled(v);
+	}
+	return CCValue::booleanValue(isEnabled());
+}
+
+CCValue CCEControl::CALLNAME(selected)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		setSelected(v);
+	}
+	return CCValue::booleanValue(isSelected());
+}
+
+CCValue CCEControl::CALLNAME(highlighted)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		setHighlighted(v);
+	}
+	return CCValue::booleanValue(isHighlighted());
+}
+
+CCValue CCEControl::CALLNAME(touch)(CCValueArray& params) {
+	if(params.size()>0) {
+		std::string v;
+		if(params[0].isArray()) {
+			CCValueArray* arr = params[0].arrayValue();
+			for(size_t i=0;arr!=NULL && i<arr->size();i++) {
+				if(i!=0)v+=",";
+				v+= (*arr)[i].stringValue();
+			}
+		} else {
+			v = params[0].stringValue();
+		}
+		setTouchType(v.c_str());
+	}
+	return CCValue::stringValue(getTouchType());
 }

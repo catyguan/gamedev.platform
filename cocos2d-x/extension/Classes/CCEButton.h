@@ -47,7 +47,11 @@ public:
 	
     virtual void updateControl();
 	virtual void cleanup();
-	virtual void onEnter();
+
+	// cc_call
+	CC_DECLARE_CALLS_BEGIN
+	// CC_DECLARE_CALL(enabled)
+	CC_DECLARE_CALLS_END
 };
 
 #endif

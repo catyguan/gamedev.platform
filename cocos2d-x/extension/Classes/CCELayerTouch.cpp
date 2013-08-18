@@ -7,6 +7,7 @@
 #include "base_nodes/CCNode_Events.h"
 #include "CCEAppUtil.h"
 #include "cocoa\CCValueSupport.h"
+#include "CCEUtil.h"
 
 //
 //CCELayerTouchItem
@@ -424,9 +425,9 @@ CCValue CCELayerTouch::CALLNAME(enableTouch)(CCValueArray& params) {
 	}
 	if(ename.size()==0) {
 		throw new std::string("param 2 event name");
-	} else if(ename.compare("tap")==0) {
-		CCEGestureRecognizer4Tap* rec = CCEGestureRecognizer4Tap::create(node);
-		createTouch(rec);
+	} else {
+		CCETouchBuilder b;
+		b.bind(node).on(ename).createTouch(this);
 	}	
 	return CCValue::nullValue();
 }
@@ -485,11 +486,33 @@ CCETouchBuilder& CCETouchBuilder::bind(CCNode* n)
 	return *this;
 }
 
+CCETouchBuilder& CCETouchBuilder::on(std::string type)
+{
+	std::string delim(",");
+	std::vector<std::string> list;
+	StringUtil::split(type, delim, &list);
+	if(list.size()>0) {
+		for(size_t i=0;i<list.size();i++) {
+			std::string type = list[i];
+			if(type.compare("tap")==0) {
+				onTap(NULL,NULL);
+			} else if(type.compare("focus")==0) {
+				onFocus(NULL,NULL);
+			} else if(type.compare("holdpress")==0) {
+				onHoldpress(NULL,NULL);
+			}
+		}
+	}
+	return *this;
+}
+
 CCETouchBuilder& CCETouchBuilder::onFocus(CCObject* obj,SEL_NodeEventHandler handler)
 {
 	CC_ASSERT(node!=NULL);
 	CCEGestureRecognizer4Focus* gr = CCEGestureRecognizer4Focus::create(node);
-	node->onEvent(NODE_EVENT_FOCUS, obj, handler);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_FOCUS, obj, handler);
+	}
 	addGestureRecognizer(gr);
 	return *this;
 }
@@ -498,7 +521,9 @@ CCETouchBuilder& CCETouchBuilder::onTap(CCObject* obj,SEL_NodeEventHandler handl
 {
 	CC_ASSERT(node!=NULL);	
 	CCEGestureRecognizer4Tap* gr = CCEGestureRecognizer4Tap::create(node);
-	node->onEvent(NODE_EVENT_TAP, obj, handler);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_TAP, obj, handler);
+	}
 	addGestureRecognizer(gr);
 	return *this;
 }
@@ -507,7 +532,9 @@ CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler
 {
 	CC_ASSERT(node!=NULL);	
 	CCEGestureRecognizer4Holdpress* gr = CCEGestureRecognizer4Holdpress::create(node);
-	node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	}
 	addGestureRecognizer(gr);
 	return *this;
 }
@@ -516,7 +543,9 @@ CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler
 {
 	CC_ASSERT(node!=NULL);	
 	CCEGestureRecognizer4Holdpress* gr = CCEGestureRecognizer4Holdpress::create(node,timeThreshold,moveThreshold,checkInterval);
-	node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_HOLDPRESS, obj, handler);
+	}
 	addGestureRecognizer(gr);
 	return *this;
 }
@@ -524,6 +553,9 @@ CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler
 
 void CCETouchBuilder::createTouch(CCELayerTouch* layer)
 {
+	if(layer==NULL) {
+		layer = CCELayerTouch::getTouchLayer(node);
+	}
 	std::list<CCEGestureRecognizer*>::const_iterator it;
 	for(it=recognizers.begin();it!=recognizers.end();it++) {
 		CCELayerTouchItem* item = layer->createTouch(*it);

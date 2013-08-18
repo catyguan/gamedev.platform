@@ -115,6 +115,7 @@ public:
 
 public:
 	CCETouchBuilder& bind(CCNode* node);
+	CCETouchBuilder& on(std::string type);
 	CCETouchBuilder& onFocus(CCObject* obj,SEL_NodeEventHandler handler);
 	CCETouchBuilder& onTap(CCObject* obj,SEL_NodeEventHandler handler);
 	CCETouchBuilder& onHoldpress(CCObject* obj,SEL_NodeEventHandler handler);

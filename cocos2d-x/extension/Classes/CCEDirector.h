@@ -45,6 +45,7 @@ protected:
 	CC_DECLARE_CALL(pushScene)
 	CC_DECLARE_CALL(replaceScene)
 	CC_DECLARE_CALL(popScene)
+	CC_DECLARE_CALL(contentScaleFactor)
 	CC_DECLARE_CALLS_END
 	// end_cc_call
 };

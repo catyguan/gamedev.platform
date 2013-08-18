@@ -1,6 +1,7 @@
 #include "CCELayoutUtil.h"
 
 #include "cocoa/CCValueSupport.h"
+#include "CCEUtil.h"
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -38,26 +39,35 @@ CCValue LayoutUtil::margin(float top, float left, float bottom, float right) {
 
 bool LayoutUtil::createLayoutItem(CCNode* ch, LayoutItem& item)
 {
-	item.dock = 0;
+	item.node  = NULL;
 	item.align = item.valign = -1;
 	item.order = 0;
 
 	std::string sv;
+	CCValue v;
+
 	sv = ch->attribute("layout_dock").stringValue();
 	if(sv.size()>0) {
 		if(sv.compare("left")==0) {
-			item.dock = 1;
-		} else if(sv.compare("right")==0) {
-			item.dock = 2;
+			item.align = 0;
+			item.height = "*";
 		} else if(sv.compare("top")==0) {
-			item.dock = 3;
+			item.valign = 0;
+			item.width = "*";
+		} else if(sv.compare("right")==0) {
+			item.align = 2;
+			item.height = "*";
 		} else if(sv.compare("bottom")==0) {
-			item.dock = 4;
-		} else if(sv.compare("all")==0) {
-			item.dock = 5;
+			item.valign = 2;
+			item.width = "*";
+		} else if(sv.compare("fill")==0) {
+			item.align = 1;
+			item.valign = 1;
+			item.width = "*";
+			item.height = "*";
 		}
 	}
-
+	
 	sv = ch->attribute("layout_align").stringValue();
 	if(sv.size()>0) {
 		if(sv.compare("left")==0) {
@@ -80,12 +90,25 @@ bool LayoutUtil::createLayoutItem(CCNode* ch, LayoutItem& item)
 		}
 	}
 
-	item.width = ch->attribute("layout_width").stringValue();
-	item.height = ch->attribute("layout_height").stringValue();
+	v = ch->attribute("layout_width");
+	if(v.isString()) {
+		sv = v.stringValue();
+		if(sv.size()>0)item.width = sv;
+	} else if(v.isInt() || v.isNumber()) {
+		item.width = StringUtil::format("%d", v.intValue());
+	}
+	
+	v = ch->attribute("layout_height");
+	if(v.isString()) {
+		sv = v.stringValue();
+		if(sv.size()>0)item.height = sv;
+	} else if(v.isInt() || v.isNumber()) {
+		item.height = StringUtil::format("%d", v.intValue());
+	}
 
 	item.order = ch->attribute("layout_order").intValue();
 
-	if(item.dock!=0 || item.align!=-1 || item.valign!=-1 || item.width.size()>0 || item.height.size()>0) {
+	if(item.align!=-1 || item.valign!=-1 || item.width.size()>0 || item.height.size()>0) {
 		item.node = ch;
 		return true;
 	}
@@ -104,6 +127,16 @@ void LayoutUtil::layout(CCNode* node, bool deep)
 		node->call("doLayout", ps);
 	} else {
 		doLayout(node, deep);
+	}
+
+	if(deep) {
+		CCArray* children = node->getChildren();
+		if(children!=NULL) {		
+			for(size_t i=0;i<children->count();i++) {
+				CCNode* node = dynamic_cast<CCNode*>(children->objectAtIndex(i));
+				layout(node, deep);
+			}
+		}
 	}
 }
 
@@ -141,18 +174,13 @@ void LayoutUtil::doLayout(CCNode* node,bool deep)
 			const LayoutItem& item = (*it);
 			doLayout(rect, (LayoutItem&) item);
 		}
-	}
-
-	if(deep && children!=NULL) {		
-		for(size_t i=0;i<children->count();i++) {
-			CCNode* node = dynamic_cast<CCNode*>(children->objectAtIndex(i));
-			layout(node, deep);
-		}
-	}
+	}	
 }
 
 void LayoutUtil::alignLayout(CCNode* node, CCRect& rect, int align, int valign)
 {
+	if(node==NULL)return;
+
 	CCPoint pt = node->isIgnoreAnchorPointForPosition()?CCPointZero:node->getAnchorPoint();
 	CCSize sz = node->getContentSize();
 	switch(align) {
@@ -197,7 +225,7 @@ bool LayoutUtil::parseSize(std::string& str, int* percent, int* value)
 	*value = 0;
 	if(str.length()>0) {		
 		if(str.compare("*")==0) {
-			*percent = 100;
+			*percent = -1;
 			return true;
 		} else if(str[str.size()-1]=='%') {
 			*percent = atoi(str.substr(0, str.size()-1).c_str());
@@ -212,23 +240,35 @@ bool LayoutUtil::parseSize(std::string& str, int* percent, int* value)
 
 void LayoutUtil::resizeLayout(CCNode* node, CCRect& rect, std::string width, std::string height)
 {
+	if(node==NULL)return;
+
 	bool ch = false;
 	CCSize sz = node->getContentSize();
 	int per;
 	int val;
 	if(parseSize(width, &per, &val)) {
+		if(per==-1)per=100;
 		if(per>0) {
 			sz.width = rect.size.width*per/100;
 		} else {			
-			sz.width = rect.size.width+val;		
+			if(val>0) {
+				sz.width = (float) val;
+			} else {
+				sz.width = rect.size.width+val;		
+			}
 		}
 		ch = true;
 	}
 	if(parseSize(height, &per, &val)) {
+		if(per==-1)per=100;
 		if(per>0) {
 			sz.height = rect.size.height*per/100;
 		} else {
-			sz.height = rect.size.height+val;
+			if(val>0) {
+				sz.height = (float) val;
+			} else {
+				sz.height = rect.size.height+val;
+			}
 		}
 		ch = true;
 	}

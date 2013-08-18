@@ -32,7 +32,6 @@ typedef struct _CCEPanelGridItem {
 } CCEPanelGridItem;
 class CCEPanel : public CCEContainer
 {
-	CC_SYNTHESIZE(std::string, m_type, Type)
 	CC_SYNTHESIZE(float, m_padding, Padding)
 	CC_SYNTHESIZE(int, m_gridWidth, GridWidth)
 	CC_SYNTHESIZE(int, m_gridHeight, GridHeight)
@@ -42,6 +41,8 @@ public:
 
 	void setItems(std::vector<CCEPanelGridItem>& items);
 
+	virtual void doLayout(bool deep);
+
 public:
     CCEPanel();    
     virtual ~CCEPanel();
@@ -49,10 +50,10 @@ public:
 protected:
 	std::vector<CCEPanelGridItem> m_items;
 	
-	CC_DECLARE_CALLS_BEGIN	
-	CC_DECLARE_CALL(type)
+	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(doLayout)
 	CC_DECLARE_CALL(padding)
-	CC_DECLARE_CALL(items)
+	CC_DECLARE_CALL(grid)
 	CC_DECLARE_CALLS_END
 };
 

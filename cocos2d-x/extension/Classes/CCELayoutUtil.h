@@ -8,7 +8,6 @@ USING_NS_CC;
 struct LayoutItem
 {
 	CCNode* node;
-	int dock;		// 0:none,1-left,2-right,3-top,4-right,5-all
 	int align;		// -1:none, 0-left, 1-middle, 2-right
 	int valign;		// -1:none, 0-top, 1-center, 2-bottom
 	int order;		// default:0

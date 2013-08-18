@@ -7,6 +7,7 @@
 #include "CCEDialogue.h"
 #include "CCScale9Sprite.h"
 #include "CCEAction.h"
+#include "CCEButton.h"
 
 USING_NS_CC;
 
@@ -80,7 +81,9 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 
 			float fontSize = -1;
 			v = r.getNull("fontSize");
-			if(v!=NULL)fontSize = v->floatValue();			
+			if(v!=NULL) {
+				fontSize = v->floatValue();
+			}
 
 			CCSize dm(-1,-1);
 			v = r.getNull("dimensions");
@@ -120,6 +123,47 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 	}
 	if(strcmp(type,"CCEPanel")==0) {
 		CCEPanel* o = CCEPanel::create();
+		o->setup(cfg);
+		return o;
+	}
+	if(strcmp(type,"CCEContainer")==0) {
+		CCEContainer* o = CCEContainer::create();
+		o->setup(cfg);
+		return o;
+	}
+	if(strcmp(type,"CCEControl")==0) {
+		CCEControl* o = CCEControl::create();
+		o->setup(cfg);
+		return o;
+	}
+	if(strcmp(type,"CCEButton")==0) {
+		CCEButton* o;
+		
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;
+			CCNode* node = NULL;
+			v = r.getNull("node");
+			if(v!=NULL) {
+				CCObject* obj = v->objectValue();
+				if(obj!=NULL)node = dynamic_cast<CCNode*>(obj);
+			}
+
+			CCNode* bgnode = NULL;
+			v = r.getNull("backgroup");
+			if(v!=NULL) {
+				CCObject* obj = v->objectValue();
+				if(obj!=NULL)bgnode = dynamic_cast<CCNode*>(obj);
+			}
+
+			if(node!=NULL || bgnode!=NULL) {
+				r.remove("node");
+				r.remove("backgroup");
+				o = CCEButton::create(node, bgnode);				
+			}
+		}
+
+		if(o==NULL)o = CCEButton::create();
 		o->setup(cfg);
 		return o;
 	}	
@@ -296,7 +340,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 				int a3 = ccvpInt((*arr),3);
 				return CCJumpTo::create(a0,a1,a2, (unsigned int) a3);
 			}
-			if(strcmp(type,"a.scaleBy")==0) {		
+			if(strcmp(type,"a.scaleTo")==0) {		
 				float a0 = ccvpFloat((*arr), 0);
 				float a1 = ccvpFloat((*arr), 1);
 				if(arr->size()>2) {
@@ -354,7 +398,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			}
 		}
 	}
-
+	CCLOG("WARN - unknow object type, %s", type);
 	return  NULL;
 }
 

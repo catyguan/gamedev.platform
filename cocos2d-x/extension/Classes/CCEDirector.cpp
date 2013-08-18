@@ -87,6 +87,18 @@ static CCScene* toSceneObject(CCValueArray& params,unsigned int idx)
 
 CCObject* CCEDirector::buildObject(CCValue& cfg)
 {
+	if(cfg.isArray()) {
+		CCValueArray* arr = cfg.arrayValue();
+		int c = arr->size();
+		for(int i=0;i<c;i++) {
+			CCValue& v = (*arr)[i];
+			CCObject* obj = buildObject(v);
+			if(obj!=NULL) {
+				(*arr)[i] = CCValue::objectValue(obj);
+			}			
+		}	
+		return NULL;
+	}
 	if(cfg.isMap()) {
 		CCValueMap* map = cfg.mapValue();
 		CCValueMapIterator it = map->begin();
@@ -99,6 +111,9 @@ CCObject* CCEDirector::buildObject(CCValue& cfg)
 				if(obj!=NULL) {
 					tmp[it->first] = CCValue::objectValue(obj);
 				}
+			} else if(it->second.isArray()) {
+				const CCValue& v = it->second;
+				buildObject((CCValue&) v);
 			} else {
 				if(it->first.compare("_type")==0) {
 					type = it->second.stringValue();
@@ -164,7 +179,8 @@ CC_BEGIN_CALLS(CCEDirector, CCObject)
 	CC_DEFINE_CALL(CCEDirector, runScene)
 	CC_DEFINE_CALL(CCEDirector, pushScene)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
-	CC_DEFINE_CALL(CCEDirector, popScene)	
+	CC_DEFINE_CALL(CCEDirector, popScene)
+	CC_DEFINE_CALL(CCEDirector, contentScaleFactor)
 CC_END_CALLS(CCEDirector, CCObject)
 
 CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
@@ -253,4 +269,8 @@ CCValue CCEDirector::CALLNAME(popScene)(CCValueArray& params)
 {	
 	CCDirector::sharedDirector()->popScene();
 	return CCValue::nullValue();
+}
+
+CCValue CCEDirector::CALLNAME(contentScaleFactor)(CCValueArray& params) {
+	return CCValue::numberValue(CCDirector::sharedDirector()->getContentScaleFactor());
 }
