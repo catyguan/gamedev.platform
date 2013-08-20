@@ -493,7 +493,7 @@ CCETouchBuilder& CCETouchBuilder::on(std::string type)
 	StringUtil::split(type, delim, &list);
 	if(list.size()>0) {
 		for(size_t i=0;i<list.size();i++) {
-			std::string type = list[i];
+			std::string type = StringUtil::trim(list[i]);
 			if(type.compare("tap")==0) {
 				onTap(NULL,NULL);
 			} else if(type.compare("focus")==0) {

@@ -14,6 +14,11 @@ USING_NS_CC;
 #define CONTROL_STATE_DISABLED		(1 << 2)
 #define CONTROL_STATE_SELECTED		(1 << 3)
 
+#define CONTROL_STATE_NORMAL_TEXT		"normal"
+#define CONTROL_STATE_HIGHLIGHTED_TEXT	"highlighted"
+#define CONTROL_STATE_DISABLED_TEXT		"disabled"
+#define CONTROL_STATE_SELECTED_TEXT		"selected"
+
 class CCEControl : public CCEContainer
 {
 public:
@@ -35,6 +40,8 @@ public:
 	const char* getTouchType();
 
 	virtual int getState();
+	static int toState(const char* v);
+	static const char* toState(int v);
 	
 	virtual bool raiseEvent(const char* name, CCNodeEvent*);  
 	virtual void updateControl();

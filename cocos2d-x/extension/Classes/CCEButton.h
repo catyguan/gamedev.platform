@@ -50,7 +50,11 @@ public:
 
 	// cc_call
 	CC_DECLARE_CALLS_BEGIN
-	// CC_DECLARE_CALL(enabled)
+	CC_DECLARE_CALL(setNode)
+	CC_DECLARE_CALL(getNode)
+	CC_DECLARE_CALL(setBackground)	
+	CC_DECLARE_CALL(getBackground)
+	CC_DECLARE_CALL(state)
 	CC_DECLARE_CALLS_END
 };
 

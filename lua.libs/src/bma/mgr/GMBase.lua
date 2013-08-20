@@ -31,6 +31,27 @@ function Class:runScene(clsName, ...)
 	if LOG:debugEnabled() then
 		LOG:debug("GMBase","runScene "..cname)
 	end
+	
+	if CONFIG.DEV then
+		local devButton = director:buildObject({
+			_type="CCEButton",
+			node = {
+				_type="CCSprite",
+				id="DEV_BUTTON",
+				image="dev.png"
+			},
+			touch = "focus, tap"
+		})
+		local winSize = director:winSize()
+		local sz = devButton:contentSize()
+		devButton:position({x=winSize.width-sz.width/2,y=winSize.height-sz.height/2})
+		scene:addChild(devButton,100)
+		
+		devButton:onEvent("tap", "devTap", function()
+			GM:onDevButtonClick()
+		end)
+	end
+	
 	director:runScene(scene)
 end
 

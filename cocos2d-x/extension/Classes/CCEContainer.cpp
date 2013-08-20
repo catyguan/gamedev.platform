@@ -5,7 +5,7 @@
 
 // CCEContainer
 CCEContainer::CCEContainer()
-: m_bIsOpacityModifyRGB(false)
+: m_bIsOpacityModifyRGB(false), m_refs(NULL)
 {
 	setCascadeColorEnabled(true);
 	setCascadeOpacityEnabled(true);
@@ -13,7 +13,18 @@ CCEContainer::CCEContainer()
 
 CCEContainer::~CCEContainer()
 {
-    
+	clearRefs();
+}
+
+void CCEContainer::clearRefs()
+{
+	if(m_refs.size()>0) {
+		std::list<CCObject*>::const_iterator it = m_refs.begin();
+		for(;it!=m_refs.end();it++) {
+			(*it)->release();
+		}
+		m_refs.clear();
+	}
 }
 
 void CCEContainer::setOpacityModifyRGB(bool bOpacityModifyRGB)
@@ -48,6 +59,157 @@ CCEContainer* CCEContainer::create()
         CC_SAFE_DELETE(pRet);
     }    
     return pRet;
+}
+
+void CCEContainer::cleanup()
+{
+	if(m_refs.size()>0) {
+		removeAllRefs();
+	}
+	CCNodeRGBA::cleanup();
+}
+
+void CCEContainer::addRef(CCObject* obj)
+{
+	if(obj!=NULL) {
+		CC_SAFE_RETAIN(obj);
+		m_refs.push_back(obj);
+	}
+}
+
+CCObject* CCEContainer::getRefById(const char* id)
+{
+	if(m_refs.size() > 0)
+    {
+		std::list<CCObject*>::const_iterator it = m_refs.begin();        
+		for(;it!=m_refs.end();it++)
+        {
+			CCNode* pNode = dynamic_cast<CCNode*>((*it));
+			if(pNode && pNode->getId().compare(id)==0) {
+                return pNode;
+			}
+        }		
+    }
+    return NULL;
+}
+
+CCObject* CCEContainer::getRefByTag(int tag)
+{
+	if(m_refs.size() > 0)
+    {
+		std::list<CCObject*>::const_iterator it = m_refs.begin();        
+		for(;it!=m_refs.end();it++)
+        {
+			CCNode* pNode = dynamic_cast<CCNode*>((*it));
+			if(pNode && pNode->getTag()==tag) {
+                return pNode;
+			}
+        }		
+    }
+    return NULL;
+}
+
+void CCEContainer::removeRefById(const char* id)
+{
+	CCObject* obj = getRefById(id);
+	if(obj!=NULL) {
+		CCNode* node = dynamic_cast<CCNode*>(obj);
+		if(node!=NULL && node->getParent()==NULL) {
+			node->cleanup();
+		}
+		m_refs.remove(node);
+		node->release();
+	}
+}
+
+void CCEContainer::removeRefByTag(int tag)
+{
+	CCObject* obj = getRefByTag(tag);
+	if(obj!=NULL) {
+		CCNode* node = dynamic_cast<CCNode*>(obj);
+		if(node!=NULL && node->getParent()==NULL) {
+			node->cleanup();
+		}
+		m_refs.remove(node);
+		node->release();
+	}
+}
+
+std::list<CCObject*>& CCEContainer::getRefs()
+{
+	return m_refs;
+}
+
+void CCEContainer::removeAllRefs()
+{
+	if(m_refs.size()>0) {
+		std::list<CCObject*>::const_iterator it = m_refs.begin();        
+		for(;it!=m_refs.end();it++)
+        {
+			CCNode* pNode = dynamic_cast<CCNode*>((*it));
+			if(pNode && pNode->getParent()==NULL) {
+				pNode->cleanup();
+			}
+        }	
+		clearRefs();
+	}
+}
+
+CC_BEGIN_CALLS(CCEContainer, CCNodeRGBA)
+	CC_DEFINE_CALL(CCEContainer, addRef)
+	CC_DEFINE_CALL(CCEContainer, getRef)
+	CC_DEFINE_CALL(CCEContainer, removeRef)
+	CC_DEFINE_CALL(CCEContainer, removeAllRefs)
+	CC_DEFINE_CALL(CCEContainer, getAllRefs)
+CC_END_CALLS(CCEContainer, CCNodeRGBA)
+
+CCValue CCEContainer::CALLNAME(addRef)(CCValueArray& params) {
+	CCObject* obj = ccvpObject(params, 0, CCObject);
+	if(obj==NULL) {
+		throw new std::string("param 1 expect CCObject");
+	}
+	addRef(obj);
+	return CCValue::nullValue();
+}
+
+CCValue CCEContainer::CALLNAME(getRef)(CCValueArray& params) {
+	if(params.size()>0) {
+		if(params[0].isString()) {
+			return CCValue::objectValue(getRefById(params[0].stringValue().c_str()));
+		}
+		if(params[0].isInt()) {
+			return CCValue::objectValue(getRefByTag(params[0].intValue()));
+		}		
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEContainer::CALLNAME(removeRef)(CCValueArray& params) {
+	if(params.size()>0) {
+		if(params[0].isString()) {
+			removeRefById(params[0].stringValue().c_str());
+		} else if(params[0].isInt()) {
+			removeRefByTag(params[0].intValue());
+		}		
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEContainer::CALLNAME(removeAllRefs)(CCValueArray& params) {
+	removeAllRefs();
+	return CCValue::nullValue();
+}
+
+CCValue CCEContainer::CALLNAME(getAllRefs)(CCValueArray& params) {
+	CCValueArray arr;
+	if(m_refs.size()>0) {
+		std::list<CCObject*>::const_iterator it = m_refs.begin();        
+		for(;it!=m_refs.end();it++)
+        {
+			arr.push_back(CCValue::objectValue(*it));
+        }	
+	}
+	return CCValue::arrayValue(arr);
 }
 
 // CCEPanel

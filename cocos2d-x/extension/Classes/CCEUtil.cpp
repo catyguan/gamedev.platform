@@ -43,6 +43,15 @@ int StringUtil::replaceAll(std::string& str,  const std::string& pattern,  const
 	return count; 
 }
 
+std::string StringUtil::trim(std::string& str)
+{
+	std::string s = str;
+	std::string::iterator c;
+	for (c = s.begin(); c != s.end() && iswspace(*c++);); s.erase(s.begin(), --c);
+	for (c = s.end(); c != s.begin() && iswspace(*--c);); s.erase(++c, s.end());
+	return s;
+}
+
 CCRect RectUtil::rectUnion(const CCRect& src1, const CCRect& src2) 
 {
     CCRect result;

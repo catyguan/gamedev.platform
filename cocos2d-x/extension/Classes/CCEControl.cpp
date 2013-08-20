@@ -120,6 +120,32 @@ int CCEControl::getState()
 	return CONTROL_STATE_NORMAL;
 }
 
+int CCEControl::toState(const char* v)
+{
+	if(strcmp(v, CONTROL_STATE_DISABLED_TEXT)==0) {
+		return CONTROL_STATE_DISABLED;
+	}
+	if(strcmp(v, CONTROL_STATE_SELECTED_TEXT)==0) {
+		return CONTROL_STATE_SELECTED;
+	}
+	if(strcmp(v, CONTROL_STATE_HIGHLIGHTED_TEXT)==0) {
+		return CONTROL_STATE_HIGHLIGHTED;
+	}
+	return CONTROL_STATE_NORMAL;
+}
+
+const char* CCEControl::toState(int v)
+{
+	switch(v) {
+	case CONTROL_STATE_DISABLED:return CONTROL_STATE_DISABLED_TEXT;
+	case CONTROL_STATE_SELECTED:return CONTROL_STATE_SELECTED_TEXT;
+	case CONTROL_STATE_HIGHLIGHTED:return CONTROL_STATE_HIGHLIGHTED_TEXT;
+	case CONTROL_STATE_NORMAL:
+	default:
+		return CONTROL_STATE_NORMAL_TEXT;
+	}
+}
+
 void CCEControl::updateControl()
 {
 	if(canCall("doUpdateControl")) {

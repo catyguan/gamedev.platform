@@ -8,9 +8,9 @@ USING_NS_CC;
 struct LayoutItem
 {
 	CCNode* node;
-	int align;		// -1:none, 0-left, 1-middle, 2-right
-	int valign;		// -1:none, 0-top, 1-center, 2-bottom
-	int order;		// default:0
+	int align;			// -1:none, 0:left,1:middle, 2:right
+	int valign;			// -1:none, 0:top, 1:center, 2:bottom
+	int order;			// default:0
 	std::string width;
 	std::string height;
 };

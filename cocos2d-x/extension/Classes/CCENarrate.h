@@ -51,6 +51,7 @@ public:
 	CC_DECLARE_CALL(updateNarrate)
 	CC_DECLARE_CALL(pauseNarrate)
 	CC_DECLARE_CALL(endNarrate)
+	CC_DECLARE_CALL(fastForward)
 	CC_DECLARE_CALLS_END
 	// end cc_call
 

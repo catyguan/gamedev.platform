@@ -169,6 +169,16 @@ void LayoutUtil::doLayout(CCNode* node,bool deep)
 
 		CCSize sz = node->getContentSize();
 		CCRect rect(0,0,sz.width,sz.height);		
+		CCValue mv = node->attribute("layout_margin");
+		if(!mv.isNull()) {
+			float t,l,b,r;
+			margin(mv, &t,&l,&b,&r);
+			float x1 = rect.origin.x+l;
+			float x2 = rect.size.width-r;
+			float y1 = rect.origin.y+t;
+			float y2 = rect.size.height-b;
+			rect = CCRectMake(x1,y1,x2-x1,y2-y1);
+		}
 		std::vector<LayoutItem>::const_iterator it = ilist.begin();
 		for(;it!=ilist.end();it++) {
 			const LayoutItem& item = (*it);

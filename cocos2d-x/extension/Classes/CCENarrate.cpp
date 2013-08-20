@@ -198,7 +198,7 @@ void CCENarrate::updateNarrate(float t)
 	if(uline==0)uline = 1;
 
 	CCSize labelSize = m_label->getContentSize();
-	float width = min(labelSize.width, getContentSize().width);
+	float width = getContentSize().width;
 	float lt = m_speed;
 	
 	int linebase = (m_currentPage-1)*m_pageLine;
@@ -212,6 +212,7 @@ void CCENarrate::updateNarrate(float t)
 			w = (int) width*tw;
 		}
 		int tag = (l-1)%m_pageLine+1;
+		if(w>labelSize.width)w=labelSize.width;
 		showLine(l+linebase,tag,w);
 	}
 	m_currentLine = uline;
@@ -278,6 +279,7 @@ CC_BEGIN_CALLS(CCENarrate, CCNodeRGBA)
 	CC_DEFINE_CALL(CCENarrate, build)
 	CC_DEFINE_CALL(CCENarrate, process)
 	CC_DEFINE_CALL(CCENarrate, isEnd)
+	CC_DEFINE_CALL(CCENarrate, fastForward)	
 CC_END_CALLS(CCENarrate, CCNodeRGBA)
 
 CCValue CCENarrate::CALLNAME(updateNarrate)(CCValueArray& params) {		
@@ -326,5 +328,9 @@ CCValue CCENarrate::CALLNAME(process)(CCValueArray& params) {
 }
 CCValue CCENarrate::CALLNAME(isEnd)(CCValueArray& params) {
 	return CCValue::booleanValue(isEnd());
+}
+CCValue CCENarrate::CALLNAME(fastForward)(CCValueArray& params) {
+	fastForward();
+	return CCValue::nullValue();
 }
 // end cc_call

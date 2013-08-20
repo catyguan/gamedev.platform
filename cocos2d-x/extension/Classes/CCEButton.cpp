@@ -71,14 +71,12 @@ CCEButton* CCEButton::create(CCNode* node, CCNode* background)
 
 void CCEButton::setHighlighted(bool enabled)
 {
-    CCEControl::setHighlighted(enabled);
-
     CCAction *action =getActionByTag(kZoomActionTag);
     if (action)
     {
         stopAction(action);        
     }
-    updateControl();
+    CCEControl::setHighlighted(enabled);
     if( m_node!=NULL && m_zoomOnTouchDown )
     {
         float scaleValue = (isHighlighted() && isEnabled()) ? 1.1f : 1.0f;
@@ -183,9 +181,6 @@ void CCEButton::setBackground(int state, CCNode* node)
 
 void CCEButton::updateControl()
 {
-	if (getParent()==NULL) {
-        return;
-    }
     // Hide the background and the label
     if (m_node != NULL) {
         m_node->setVisible(false);
@@ -263,5 +258,80 @@ void CCEButton::releaseSettings()
 }
 
 CC_BEGIN_CALLS(CCEButton, CCEControl)	
-	// CC_DEFINE_CALL(CCEControl, enabled)
+	CC_DEFINE_CALL(CCEButton, setNode)
+	CC_DEFINE_CALL(CCEButton, getNode)
+	CC_DEFINE_CALL(CCEButton, setBackground)
+	CC_DEFINE_CALL(CCEButton, getBackground)
+	CC_DEFINE_CALL(CCEButton, state)
 CC_END_CALLS(CCEButton, CCEControl)
+
+CCValue CCEButton::CALLNAME(setNode)(CCValueArray& params) {	
+	std::string v = ccvpString(params, 0);
+	CCNode* node = ccvpObject(params,1,CCNode);	
+	int state = toState(v.c_str());
+	setNode(state, node);
+	return CCValue::nullValue();
+}
+
+CCValue CCEButton::CALLNAME(getNode)(CCValueArray& params) {
+	std::string v = ccvpString(params, 0);
+	int state = toState(v.c_str());
+	return CCValue::objectValue(getNode(state));
+}
+
+CCValue CCEButton::CALLNAME(setBackground)(CCValueArray& params) {	
+	std::string v = ccvpString(params, 0);
+	CCNode* node = ccvpObject(params,1,CCNode);	
+	int state = toState(v.c_str());
+	setBackground(state, node);
+	return CCValue::nullValue();
+}
+
+CCValue CCEButton::CALLNAME(getBackground)(CCValueArray& params) {
+	std::string v = ccvpString(params, 0);
+	int state = toState(v.c_str());
+	return CCValue::objectValue(getBackground(state));
+}
+
+CCValue CCEButton::CALLNAME(state)(CCValueArray& params) {
+	CCValueMap* map = ccvpMap(params,0);
+	if(map!=NULL) {
+		CCValueMapIterator it = map->begin();
+		for(;it!=map->end();it++) {
+			int st = toState(it->first.c_str());
+			if(it->second.isArray())
+			{
+				CCValueArray* arr = it->second.arrayValue();
+				if(arr!=NULL && arr->size()==2) {
+					CCNode* n1 = dynamic_cast<CCNode*>((*arr)[0].objectValue());
+					CCNode* n2 = dynamic_cast<CCNode*>((*arr)[1].objectValue());
+					if(n1!=NULL) {
+						setNode(st, n1);
+					}
+					if(n2!=NULL) {
+						setBackground(st, n2);
+					}
+				}
+			} else if(it->second.isMap()) {
+				CCValueMap* map2 = it->second.mapValue();
+				if(map2!=NULL) {
+					CCValueMapIterator it2;
+					it2 = map2->find("node");
+					if(it2!=map2->end()) {
+						CCNode* n = dynamic_cast<CCNode*>(it2->second.objectValue());
+						if(n!=NULL)setNode(st,n);
+					}
+					it2 = map2->find("background");
+					if(it2!=map2->end()) {
+						CCNode* n = dynamic_cast<CCNode*>(it2->second.objectValue());
+						if(n!=NULL)setBackground(st,n);
+					}
+				}
+			} else if(it->second.isObject()) {
+				CCNode* obj = dynamic_cast<CCNode*>(it->second.objectValue());
+				setNode(st, obj);
+			}
+		}
+	}
+	return CCValue::nullValue();
+}

@@ -137,7 +137,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		return o;
 	}
 	if(strcmp(type,"CCEButton")==0) {
-		CCEButton* o;
+		CCEButton* o = NULL;
 		
 		CCValueReader r(&cfg);
 		if(r.isMap()) {
@@ -150,7 +150,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			}
 
 			CCNode* bgnode = NULL;
-			v = r.getNull("backgroup");
+			v = r.getNull("background");
 			if(v!=NULL) {
 				CCObject* obj = v->objectValue();
 				if(obj!=NULL)bgnode = dynamic_cast<CCNode*>(obj);
@@ -158,7 +158,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 
 			if(node!=NULL || bgnode!=NULL) {
 				r.remove("node");
-				r.remove("backgroup");
+				r.remove("background");
 				o = CCEButton::create(node, bgnode);				
 			}
 		}

@@ -16,9 +16,33 @@ public:
     virtual bool isOpacityModifyRGB();
     virtual void setOpacityModifyRGB(bool bOpacityModifyRGB);
 
+	virtual void cleanup();
+
+	virtual void addRef(CCObject* obj);
+	virtual CCObject* getRefById(const char* id);
+	virtual CCObject* getRefByTag(int tag);
+	virtual void removeRefById(const char* id);
+	virtual void removeRefByTag(int tag);
+	virtual std::list<CCObject*>& getRefs();
+	virtual void removeAllRefs();
+
 public:
     CCEContainer();    
     virtual ~CCEContainer();
+
+protected:
+	void clearRefs();
+
+protected:
+	std::list<CCObject*> m_refs;
+
+	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(addRef)
+	CC_DECLARE_CALL(getRef)
+	CC_DECLARE_CALL(removeRef)
+	CC_DECLARE_CALL(removeAllRefs)
+	CC_DECLARE_CALL(getAllRefs)
+	CC_DECLARE_CALLS_END
 };
 
 typedef struct _CCEPanelGridItem {
