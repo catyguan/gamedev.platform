@@ -9,22 +9,31 @@ function Class.install()
 	class.setInstance("bma.http.client.Service", o)
 end
 
-function Class:ctor()
-	
+local httpclient = application.httpclient
+
+function Class:process(req, callback)
+	local this = self
+	local r = httpclient:process(req, function(...)
+		this:sendEvent({type="running", status=this:isRunning()})
+		if callback then
+			callback(...)
+		end
+	end)
+	self:sendEvent({type="running", status=self:isRunning()})
+	return r
 end
 
---[[
-{
-	callback:AICalLStack, 
-	url:string, 
-	headers:map<name,value>, 
-	params:map<name,value>, 
-	content:string, 
-	opts:map<string,value>
-}
-return {status:int,headers:map<name,value>,content:string}
-]]
-function Class:execute(callback, url, headers, params, content, opts)
-	local HS = class.instance("bma.host.Service")
-    return HS:call(callback, "http.client.execute", url, headers, params, opts)
+function Class:cancel(reqid)
+	local r = httpclient:cancel(reqid)
+	self:sendEvent({type="running", status=self:isRunning()})
+	return r
+end
+
+function Class:isRunning()
+	local rc = httpclient:runningCount()
+	return rc > 0	
+end
+
+function Class:escape(v)
+	return httpclient:escape(v)
 end

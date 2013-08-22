@@ -6,11 +6,11 @@ local Class = class.define("bma.mgr.services.GlobalService",{"bma.app.Applicatio
 local file = application.file
 
 local obj = function(self)
-	if self.object==nil then
-		self.object = class.new("bma.mgr.services.GlobalObject")
-		self.object:loadData()
+	if self._object==nil then
+		self._object = class.new("bma.mgr.services.GlobalObject")
+		self._object:loadData()
 	end
-	return self.object
+	return self._object
 end
 
 function Class:ctor()	
@@ -30,7 +30,7 @@ function Class:lastProfileId()
 end
 
 function Class:listProfiles()
-	local list = this.object:prop("profiles")
+	local list = this._object:prop("profiles")
 	if list==nil then
 		return {}
 	end

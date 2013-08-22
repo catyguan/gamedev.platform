@@ -266,7 +266,7 @@ static int luaCall( lua_State * L )
 	return host->lapi_ud_call();	
 }
 
-static void pushLuaValue(lua_State* L, LuaHostValuePrototype* vp, LuaHostValue v)
+static void pushLuaValue(lua_State* L, LuaHostValuePrototype* vp, LuaHostValue& v)
 {
 	int t = vp->getLuaType(v);
 	if(t==LUA_TINT) {
@@ -289,7 +289,7 @@ static void pushLuaValue(lua_State* L, LuaHostValuePrototype* vp, LuaHostValue v
 		while(vp->arrayValid(o, it)) {
 			LuaHostValue v2 = vp->arrayGetAt(o, it);
 			
-			lua_pushnumber(L, i+1);
+			lua_pushnumber(L, i++);
 			pushLuaValue(L, vp, v2);
 			lua_settable(L,-3);
 			
