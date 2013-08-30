@@ -1,6 +1,38 @@
 #include "CCETouch.h"
 #include "CCDirector.h"
 
+#include "cocoa\CCValueSupport.h"
+
+// CCEEvents
+CCValue CCETouchEvent::toValue()
+{
+	CCValueMap map;
+	map["position"] = CCValueUtil::point(m_touch.x, m_touch.y);
+	return CCValue::mapValue(map);
+}
+
+
+CCValue CCETouchFocusEvent::toValue()
+{
+	CCValueMap map;
+	map["focus"] = CCValue::booleanValue(m_focus);
+	return CCValue::mapValue(map);
+}
+
+CCValue CCETouchHoldEvent::toValue()
+{
+	CCValueMap map;
+	map["hold"] = CCValue::booleanValue(m_hold);
+	return CCValue::mapValue(map);
+}
+
+CCValue CCETouchPanEvent::toValue()
+{
+	CCValueMap map;
+	map["from"] = CCValueUtil::point(m_from.x, m_from.y);
+	return CCValue::mapValue(map);
+}
+
 //
 // CCEGestureRecognizer
 //

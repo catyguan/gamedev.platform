@@ -18,6 +18,8 @@ public:
 	bool apiStartup();
 	void apiShutdown();
 
+	void pause(CCObject* obj, bool children);
+	void resume(CCObject* obj, bool children);
 	void layout(CCNode* node, bool deep);	
 
 public:
@@ -46,6 +48,8 @@ protected:
 	CC_DECLARE_CALL(replaceScene)
 	CC_DECLARE_CALL(popScene)
 	CC_DECLARE_CALL(contentScaleFactor)
+	CC_DECLARE_CALL(pause)
+	CC_DECLARE_CALL(resume)
 	CC_DECLARE_CALLS_END
 	// end_cc_call
 };

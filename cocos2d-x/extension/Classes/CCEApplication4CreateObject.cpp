@@ -61,6 +61,47 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		o->setup(cfg);
 		return o;
 	}
+	if(strcmp(type,"CCSpriteFrame")==0) {
+		CCSpriteFrame* o = NULL;
+
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;
+			std::string image;
+			v = r.getNull("image");
+			if(v!=NULL)image = v->stringValue();
+
+			CCRect rect = CCRectMake(0,0,0,0);
+			v = r.getNull("rect");
+			if(v!=NULL)rect = CCValueUtil::rect(*v);
+
+			if(image.size()>0) {
+				r.remove("image");
+				if(rect.size.width>0 && rect.size.height>0) {
+					r.remove("rect");
+					o = CCSpriteFrame::create(image.c_str(), rect);
+				}
+			}
+		}			
+		return o;
+	}
+	if(strcmp(type,"CCTexture2D")==0) {
+		CCTexture2D* o = NULL;
+
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;
+			std::string image;
+			v = r.getNull("image");
+			if(v!=NULL)image = v->stringValue();
+
+			if(image.size()>0) {
+				r.remove("image");
+				o = CCTextureCache::sharedTextureCache()->addImage(image.c_str());
+			}
+		}
+		return o;
+	}
 	if(strcmp(type,"CCELayerTouch")==0) {
 		CCELayerTouch* o = CCELayerTouch::create();
 		o->setup(cfg);
@@ -224,7 +265,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 				}
 			}
 			return CCSequence::create(oarr);
-		}
+		}		
 		if(strcmp(type,"a.show")==0) {
 			return CCShow::create();
 		}
@@ -395,6 +436,29 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			if(strcmp(type,"a.reverseTime")==0) {		
 				CCFiniteTimeAction* a0 = ccvpObject((*arr),0,CCFiniteTimeAction);
 				return CCReverseTime::create(a0);
+			}
+			if(strcmp(type,"a.animate")==0) {				
+				float d = ccvpFloat((*arr),0);
+				CCArray* oarr = CCArray::create();
+				if(arr->size()>1 && (*arr)[1].isArray()) {
+					CCValueArray* frames = (*arr)[1].arrayValue();
+					if(frames!=NULL) {
+						for(size_t i=0;i<frames->size();i++) {
+							CCSpriteFrame* obj = ccvpObject((*frames),i,CCSpriteFrame);
+							if(obj!=NULL) {
+								oarr->addObject(obj);
+							}
+						}
+					}
+				} else {
+					for(size_t i=1;i<arr->size();i++) {
+						CCSpriteFrame* obj = ccvpObject((*arr),i,CCSpriteFrame);
+						if(obj!=NULL) {
+							oarr->addObject(obj);
+						}
+					}
+				}
+				return CCAnimate::create(CCAnimation::createWithSpriteFrames(oarr, d));
 			}
 		}
 	}

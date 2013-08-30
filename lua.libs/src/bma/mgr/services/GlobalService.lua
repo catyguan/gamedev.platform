@@ -3,12 +3,10 @@ require("bma.lang.ext.Json")
 
 local Class = class.define("bma.mgr.services.GlobalService",{"bma.app.ApplicationService"})
 
-local file = application.file
-
 local obj = function(self)
 	if self._object==nil then
-		self._object = class.new("bma.mgr.services.GlobalObject")
-		self._object:loadData()
+		self._object = class.new("bma.mgr.services.FileObjectBase")
+		self._object:loadData("/global.ldf")
 	end
 	return self._object
 end
@@ -17,46 +15,13 @@ function Class:ctor()
 	self.id = "global"
 end
 
-function Class:newProfile(pid)
-	return obj(self):newProfile(pid)
+function Class:value(n,v, save)	
+	local obj = obj(self)
+	return obj:value(n, v, save)
 end
 
-function Class:curretProfileId()
-	return obj(self).currentProfileId
-end
-
-function Class:lastProfileId()
-	return obj(self).currentProfileId
-end
-
-function Class:listProfiles()
-	local list = this._object:prop("profiles")
-	if list==nil then
-		return {}
-	end
-	return nil
-end
-
-function Class:getProfile(pid)
-	return obj(self):getProfile(pid)
-end
-
-function Class:listProfiles()
-	return obj(self):listProfiles()
-end
-	
-function Class:changeProfile(pid)
-	return obj(self):changeProfile(pid)
-end
-
-function Class:saveProfiles()
-	return obj(self):saveData()
-end
-	
-function Class:canDeleteProfile(pid)
-	return obj(self):canDeleteProfile(pid)
-end
-	
-function Class:deleteProfile(pid)
-	return obj(self):deleteProfile(pid)
+function Class:save()
+	if self._object~=nil then
+		return self._object:saveData()
+	end	
 end

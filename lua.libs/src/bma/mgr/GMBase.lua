@@ -54,11 +54,12 @@ function Class:unloadScene(clsName)
 	unrequire(cname)
 end
 
-function Class:deployService(clsName)	
-	s = class.new(self:getClassName(clsName, "services"))
-	
+function Class:deployService(sid, clsName)	
 	local app = class.instance("application")
-	if app.services[s.id]==nil then
+	if app.services[sid]==nil then
+		local name = self:getClassName(clsName, "services")
+		local s = class.new(name)
+		if s.id ~= sid then error(name.." serviceId not match - "..sid) end
 		s:install()		
 	end
 	return s

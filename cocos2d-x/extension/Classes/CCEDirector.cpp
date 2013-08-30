@@ -163,6 +163,56 @@ CCAction* CCEDirector::buildAction(CCValue& cfg)
 	return NULL;
 }
 
+void CCEDirector::pause(CCObject* obj, bool children)
+{
+	CCDirector* dir = CCDirector::sharedDirector();
+	if(obj==NULL) {
+		obj = dir->currentScene();		
+	}	
+	CCNode* node = dynamic_cast<CCNode*>(obj);
+	if(node!=NULL) {		
+		if(node->attribute("nopause").booleanValue()) {
+			return;
+		}
+		node->pauseSchedulerAndActions();
+	} else {
+		dir->getScheduler()->pauseTarget(obj);
+	}
+	if(children) {		
+		if(node!=NULL) {
+			CCObject* pObj;
+			CCARRAY_FOREACH(node->getChildren(), pObj)
+			{
+				pause(pObj, children);
+			}
+		}
+	}
+}
+
+void CCEDirector::resume(CCObject* obj, bool children)
+{
+	CCDirector* dir = CCDirector::sharedDirector();
+	if(obj==NULL) {
+		obj = dir->currentScene();
+	}
+	CCNode* node = dynamic_cast<CCNode*>(obj);
+	if(node!=NULL) {
+		node->resumeSchedulerAndActions();
+	} else {
+		dir->getScheduler()->resumeTarget(obj);
+	}
+	if(children) {		
+		if(node!=NULL) {
+			CCObject* pObj;
+			CCARRAY_FOREACH(node->getChildren(), pObj)
+			{
+				resume(pObj, children);
+			}
+		}
+	}
+}
+
+
 #include "CCELayoutUtil.h"
 void CCEDirector::layout(CCNode* node, bool deep)
 {
@@ -181,6 +231,8 @@ CC_BEGIN_CALLS(CCEDirector, CCObject)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
 	CC_DEFINE_CALL(CCEDirector, popScene)
 	CC_DEFINE_CALL(CCEDirector, contentScaleFactor)
+	CC_DEFINE_CALL(CCEDirector, pause)
+	CC_DEFINE_CALL(CCEDirector, resume)
 CC_END_CALLS(CCEDirector, CCObject)
 
 CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
@@ -273,4 +325,18 @@ CCValue CCEDirector::CALLNAME(popScene)(CCValueArray& params)
 
 CCValue CCEDirector::CALLNAME(contentScaleFactor)(CCValueArray& params) {
 	return CCValue::numberValue(CCDirector::sharedDirector()->getContentScaleFactor());
+}
+
+CCValue CCEDirector::CALLNAME(pause)(CCValueArray& params) {
+	CCObject* obj = ccvpObject(params, 0, CCObject);
+	bool children = ccvpBoolean(params, 1);
+	pause(obj, children);
+	return CCValue::nullValue();
+}
+
+CCValue CCEDirector::CALLNAME(resume)(CCValueArray& params) {
+	CCObject* obj = ccvpObject(params, 0, CCObject);
+	bool children = ccvpBoolean(params, 1);
+	resume(obj, children);
+	return CCValue::nullValue();
 }

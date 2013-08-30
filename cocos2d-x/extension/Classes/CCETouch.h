@@ -23,6 +23,8 @@ public:
 
 	CCPoint& getTouch(){return m_touch;};
 
+	virtual CCValue toValue();
+
 protected:
 	CCPoint m_touch;
 };
@@ -34,6 +36,8 @@ public:
 	virtual ~CCETouchFocusEvent(){};
 
 	bool isFocus(){return m_focus;};
+
+	virtual CCValue toValue();
 
 protected:
 	bool m_focus;
@@ -47,6 +51,8 @@ public:
 
 	bool isHold(){return m_hold;};
 
+	virtual CCValue toValue();
+
 protected:
 	bool m_hold;
 };
@@ -58,6 +64,8 @@ public:
 	virtual ~CCETouchPanEvent(){};
 
 	CCPoint getFrom(){return m_from;};
+
+	virtual CCValue toValue();
 
 protected:
 	CCPoint m_from;
