@@ -119,7 +119,8 @@ function Class:createHttpClientStatusFunction()
 		local sp = director:buildObject({
 			id="icon_httpclient",
 			_type="CCSprite",
-			image="httpclient.png"
+			image="httpclient.png",
+			attributes = { nopause = true }
 		})
 		local winSize = director:winSize()
 		local sz = sp:contentSize()

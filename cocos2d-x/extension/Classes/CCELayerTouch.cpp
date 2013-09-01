@@ -140,7 +140,7 @@ CCELayerTouchItem* CCELayerTouch::getTouchByNode(CCNode* node)
 	return NULL;
 }
 
-void CCELayerTouch::recognized(CCPoint pt, CCELayerTouchItem* item)
+void CCELayerTouch::recognized(int id, CCPoint pt, CCELayerTouchItem* item)
 {
 	std::list<CCELayerTouchItem*>::const_iterator it;
 	for(it=m_activedItems.begin();it!=m_activedItems.end();)
@@ -151,7 +151,7 @@ void CCELayerTouch::recognized(CCPoint pt, CCELayerTouchItem* item)
 		if(pItem!=item) {
 			pItem->actived = false;
 			m_activedItems.erase(cur);
-			pItem->recognizer->touchCancelled(pt);
+			pItem->recognizer->touchCancelled(id, pt);
 		}
 	}
 }
@@ -261,10 +261,10 @@ void CCELayerTouch::registerWithTouchDispatcher()
     pDirector->getTouchDispatcher()->addTargetedDelegate(this, kCCELayerTouchHandlerPriority, true);
 }
 
-void CCELayerTouch::travel(int type, CCPoint pt)
+void CCELayerTouch::travel(int type,int id, CCPoint pt)
 {
 	m_traveling = true;
-	_travel(type, pt);
+	_travel(type, id, pt);
 	m_traveling = false;
 	if(m_removedItems.size()>0) {		
 		std::list<CCELayerTouchItem*>::const_iterator it;
@@ -285,7 +285,7 @@ void CCELayerTouch::travel(int type, CCPoint pt)
 	}
 }
 
-void CCELayerTouch::_travel(int type, CCPoint pt)
+void CCELayerTouch::_travel(int type,int id, CCPoint pt)
 {
 	std::list<CCELayerTouchItem*>::const_iterator it;
 	if(m_activedItems.size()>0) {		
@@ -296,17 +296,17 @@ void CCELayerTouch::_travel(int type, CCPoint pt)
 			CCELayerTouchItem* pItem = (*cur);
 			bool t = false;
 			switch(type) {
-			case 1:t = pItem->recognizer->touchBegan(pt);break;
-			case 2:t = pItem->recognizer->touchMoved(pt);break;
-			case 3:t = pItem->recognizer->touchEnded(pt);break;
-			case 4:pItem->recognizer->touchCancelled(pt);break;
+			case 1:t = pItem->recognizer->touchBegan(id, pt);break;
+			case 2:t = pItem->recognizer->touchMoved(id, pt);break;
+			case 3:t = pItem->recognizer->touchEnded(id, pt);break;
+			case 4:pItem->recognizer->touchCancelled(id, pt);break;
 			}
 			if(!t) {
 				pItem->actived = false;
 				m_activedItems.erase(cur);
 			}
 			if(pItem->recognizer->isRecognized()) {
-				recognized(pt, pItem);
+				recognized(id, pt, pItem);
 				return;
 			}
 		}		
@@ -319,26 +319,27 @@ void CCELayerTouch::_travel(int type, CCPoint pt)
 			CCELayerTouchItem* pItem = (*it);
 			bool t = false;
 			switch(type) {
-			case 1:t = pItem->recognizer->touchBegan(pt);break;
-			case 2:t = pItem->recognizer->touchMoved(pt);break;
-			case 3:t = pItem->recognizer->touchEnded(pt);break;
-			case 4:pItem->recognizer->touchCancelled(pt);break;
+			case 1:t = pItem->recognizer->touchBegan(id, pt);break;
+			case 2:t = pItem->recognizer->touchMoved(id, pt);break;
+			case 3:t = pItem->recognizer->touchEnded(id, pt);break;
+			case 4:pItem->recognizer->touchCancelled(id, pt);break;
 			}			
 			if(t) {
 				addActiveItem(pItem);
 			}
 			if(pItem->recognizer->isRecognized()) {
-				recognized(pt, pItem);
+				recognized(id, pt, pItem);
 				return;
 			}			
 		}
 	}
 }
 
-void CCELayerTouch::checkItems(CCPoint* pt)
+void CCELayerTouch::checkItems(int* id, CCPoint* pt)
 {
+	if(id==NULL)id=&m_lastId;
 	if(pt==NULL)pt = &m_lastTouch;
-	travel(2, *pt);
+	travel(2, *id, *pt);
 }
 
 bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
@@ -359,7 +360,8 @@ bool CCELayerTouch::ccTouchBegan(CCTouch* touch, CCEvent* event)
     }
 
 	CCPoint cp = touch->getLocation();
-	travel(1, cp);
+	travel(1, touch->getID(), cp);
+	m_lastId = touch->getID();
 	m_lastTouch = cp;
 	return true;
 }
@@ -370,7 +372,8 @@ void CCELayerTouch::ccTouchMoved(CCTouch* touch, CCEvent* event)
 	// CCLOG("ccTouchMoved - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 
 	CCPoint cp =touch->getLocation();
-	travel(2, cp);
+	travel(2, touch->getID(), cp);
+	m_lastId = touch->getID();
 	m_lastTouch = cp;
 }
 
@@ -380,7 +383,8 @@ void CCELayerTouch::ccTouchEnded(CCTouch *touch, CCEvent* event)
 	// CCLOG("ccTouchEnded - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 
 	CCPoint cp = touch->getLocation();
-	travel(3, cp);
+	travel(3, touch->getID(), cp);
+	m_lastId = touch->getID();
 	m_lastTouch = cp;	
 }
 
@@ -390,7 +394,8 @@ void CCELayerTouch::ccTouchCancelled(CCTouch *touch, CCEvent* event)
 	// CCLOG("ccTouchCancelled - %d (%f, %f)", touch->getID(), touch->getLocation().x, touch->getLocation().y);
 
 	CCPoint cp = touch->getLocation();
-	travel(4, cp);
+	travel(4, touch->getID(), cp);
+	m_lastId = touch->getID();
 	m_lastTouch = cp;	
 }
 
@@ -419,16 +424,23 @@ CCValue CCELayerTouch::CALLNAME(enableTouch)(CCValueArray& params) {
 		}
 	}
 	std::string ename = ccvpString(params, 1);
+	int p = -1;
 
 	if(node==NULL) {
 		throw new std::string("param 1 expect CCNode");
 	}
 	if(ename.size()==0) {
 		throw new std::string("param 2 event name");
-	} else {
-		CCETouchBuilder b;
-		b.bind(node).on(ename).createTouch(this);
-	}	
+	}
+	if(params.size()>2) {
+		p = params[2].intValue();
+	}
+	CCETouchBuilder b;
+	b.bind(node).on(ename);
+	if(p>=0) {
+		b.setPriority(p);
+	}
+	b.createTouch(this);
 	return CCValue::nullValue();
 }
 CCValue CCELayerTouch::CALLNAME(disableTouch)(CCValueArray& params) {

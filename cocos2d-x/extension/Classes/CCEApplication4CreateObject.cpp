@@ -8,6 +8,7 @@
 #include "CCScale9Sprite.h"
 #include "CCEAction.h"
 #include "CCEButton.h"
+#include "CCEScrollView.h"
 
 USING_NS_CC;
 
@@ -248,6 +249,52 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			o = CCScale9Sprite::create();
 		}
 		o->setup(cfg);
+		return o;
+	}
+	if(strcmp(type,"CCEScrollView")==0) {
+		CCEScrollViewBase* o = NULL;
+
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;
+			CCSize size;
+			v = r.getNull("viewSize");
+			if(v!=NULL)size = CCValueUtil::size(*v);
+
+			if(size.width>0 && size.height>0) {
+				r.remove("viewSize");
+
+				CCNode* content = NULL;
+				v = r.getNull("content");
+				if(v!=NULL) {
+					if(v->isObject()) {
+						content = dynamic_cast<CCNode*>(v->objectValue());
+					}
+					r.remove("content");
+				} else {
+					if(r.beMap("vmode")) {
+						v = r.get("contentSize");
+						CCSize csz = CCValueUtil::size(*v);
+						v = r.get("tileSize");
+						CCSize tsz = CCValueUtil::size(*v);
+						v = r.get("helper");
+						r.pop();
+						content = CCELayer4ScrollVMode::create(csz, tsz);
+						content->bindMethod("vmodeHelper", *v);
+					}
+				}				
+				o = CCEScrollView::create(size, content);
+
+				v = r.get("touchEnable");
+				if(v->booleanValue()) {					
+					o->setTouchEnabled(true);
+				}
+			}
+		}
+		
+		if(o!=NULL) {
+			o->setup(cfg);
+		}
 		return o;
 	}
 

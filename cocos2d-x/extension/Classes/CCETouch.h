@@ -15,6 +15,11 @@ USING_NS_CC;
 #define NODE_EVENT_SWIPE		"swipe"
 #define NODE_EVENT_ROTATION		"rotation"
 
+typedef struct _CCETouchInfo {
+	int id;
+	CCPoint touch;
+} CCETouchInfo;
+
 class CCETouchEvent : public CCNodeEvent
 {
 public:
@@ -79,10 +84,10 @@ public:
 
 public:
 	// return stillTrack?
-	virtual bool touchBegan(CCPoint touch) = 0;
-	virtual bool touchMoved(CCPoint touch) = 0;	
-    virtual bool touchEnded(CCPoint touch) = 0;
-	virtual void touchCancelled(CCPoint touch) = 0;
+	virtual bool touchBegan(int id, CCPoint touch) = 0;
+	virtual bool touchMoved(int id, CCPoint touch) = 0;	
+    virtual bool touchEnded(int id, CCPoint touch) = 0;
+	virtual void touchCancelled(int id, CCPoint touch) = 0;
 	// already recognizer
 	virtual bool isRecognized() = 0;
 };
@@ -114,10 +119,10 @@ public:
 	void clear();
 
 	// return active?
-	virtual bool touchBegan(CCPoint touch);
-	virtual bool touchMoved(CCPoint touch);
-    virtual bool touchEnded(CCPoint touch);
-	virtual void touchCancelled(CCPoint touch);
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
 	// already recognize
 	virtual bool isRecognized();
 
@@ -139,10 +144,10 @@ public:
 	void setFocus(CCPoint pt, bool v);
 
 	// return active?
-	virtual bool touchBegan(CCPoint touch);
-	virtual bool touchMoved(CCPoint touch);	
-    virtual bool touchEnded(CCPoint touch);
-	virtual void touchCancelled(CCPoint touch);
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);	
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
 	// already recognize
 	virtual bool isRecognized();
 
@@ -160,10 +165,10 @@ public:
 	static CCEGestureRecognizer4Tap* create(CCNode* node);
 
 	// return active?
-	virtual bool touchBegan(CCPoint touch);
-	virtual bool touchMoved(CCPoint touch);	
-    virtual bool touchEnded(CCPoint touch);
-	virtual void touchCancelled(CCPoint touch);
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);	
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
 	// already recognize
 	virtual bool isRecognized();
 
@@ -184,10 +189,10 @@ public:
 	static CCEGestureRecognizer4Holdpress* create(CCNode* node,int timeThreshold, int moveThreshold, float checkInterval);
 
 	// return active?
-	virtual bool touchBegan(CCPoint touch);
-	virtual bool touchMoved(CCPoint touch);	
-    virtual bool touchEnded(CCPoint touch);
-	virtual void touchCancelled(CCPoint touch);
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);	
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
 	// already recognize
 	virtual bool isRecognized();
 

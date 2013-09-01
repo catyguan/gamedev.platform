@@ -158,7 +158,7 @@ public:
     bool isClippingToBounds() { return m_bClippingToBounds; }
     void setClippingToBounds(bool bClippingToBounds) { m_bClippingToBounds = bClippingToBounds; }
 
-    virtual void visit();
+	virtual void visit();
     virtual void addChild(CCNode * child, int zOrder, int tag);
     virtual void addChild(CCNode * child, int zOrder);
     virtual void addChild(CCNode * child);
@@ -274,7 +274,44 @@ protected:
     CCPoint m_fMinInset; 
 
 	bool m_bScrollOut;
+
+	CC_DECLARE_CALLS_BEGIN	
+	CC_DECLARE_CALL(viewSize)
+	CC_DECLARE_CALL(scrollBy)
+	CC_DECLARE_CALL(scrollTo)
+	CC_DECLARE_CALL(contentOffset)
+	CC_DECLARE_CALL(nodeVisible)
+	CC_DECLARE_CALL(direction)
+	CC_DECLARE_CALL(container)
+	CC_DECLARE_CALLS_END
 };
+
+class CCELayer4ScrollVMode : public CCLayer
+{
+public:
+	CCELayer4ScrollVMode();
+    virtual ~CCELayer4ScrollVMode();
+
+    static CCELayer4ScrollVMode* create(CCSize contentSize, CCSize tileSize);
+
+public:
+	virtual void onEnter();
+	virtual void setPosition(const CCPoint &position);
+
+	virtual void vmodeHelper(bool remove, int x, int y);
+
+protected:
+	void updateContent();
+	CCSize getViewSize();
+	bool empty(CCRect& r);
+	bool containsPoint(CCRect& r, float x, float y);
+
+protected:
+	CCRect m_lastRect;
+	CCSize m_tileSize;
+};
+
+#include "CCETouch.h"
 
 /**
  * ScrollView support for cocos2d for iphone.
@@ -309,8 +346,7 @@ public:
 	virtual bool initWithViewSize(CCSize size, CCNode* container = NULL);
 
     bool isTouchMoved() { return m_bTouchMoved; }
-
-	
+	bool isActived() {return m_bTouchMoved || m_bDragging;};
 
     /** override functions */
     // optional
@@ -319,9 +355,16 @@ public:
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
 
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);	
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
+
     void setTouchEnabled(bool e);
 protected:
 	virtual CCPoint getCenterPoint();
+	bool hasTouch(int id);
+	void removeTouch(int id);
 
 protected:
     /**
@@ -340,7 +383,14 @@ protected:
     /**
      * UITouch objects to detect multitouch
      */
-    CCArray* m_pTouches;    
+	std::vector<CCETouchInfo> m_Touches;
+
+	bool m_animated;
+
+	CC_DECLARE_CALLS_BEGIN	
+	CC_DECLARE_CALL(enableTouch)
+	CC_DECLARE_CALL(animated)
+	CC_DECLARE_CALLS_END
 };
 
 #endif /* __CCEScrollView_H__ */

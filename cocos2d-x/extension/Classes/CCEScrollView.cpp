@@ -8,14 +8,15 @@
 #include "CCDirector.h"
 #include "kazmath/GL/matrix.h"
 #include "CCEGLView.h"
+#include "../cocoa/CCValueSupport.h"
 
 USING_NS_CC;
 
+// CCEScrollViewBase
 #define SCROLL_DEACCEL_RATE  0.95f
 #define SCROLL_DEACCEL_DIST  1.0f
 #define BOUNCE_DURATION      0.15f
 #define INSET_RATIO          0.2f
-
 
 CCEScrollViewBase::CCEScrollViewBase()
 : m_fZoomScale(0.0f)
@@ -28,7 +29,7 @@ CCEScrollViewBase::CCEScrollViewBase()
 , m_pContainer(NULL)
 , m_fMinScale(0.0f)
 , m_fMaxScale(0.0f)
-,m_bScrollOut(true)
+,m_bScrollOut(false)
 {
 
 }
@@ -65,7 +66,6 @@ CCEScrollViewBase* CCEScrollViewBase::create()
     }
     return pRet;
 }
-
 
 bool CCEScrollViewBase::initWithViewSize(CCSize size, CCNode *container/* = NULL*/)
 {
@@ -192,8 +192,9 @@ CCPoint CCEScrollViewBase::getScrollOffset(CCPoint& moveDistance)
 		default:
 			break;
 	}
-                
-    CCPoint pt = ccp(m_pContainer->getPosition().x + moveDistance.x, m_pContainer->getPosition().y + moveDistance.y);
+    
+	CCPoint cpos = m_pContainer->getPosition();
+    CCPoint pt = ccp(cpos.x + moveDistance.x, cpos.y + moveDistance.y);
 	if(!m_bScrollOut) {
 		getRelocatePosition(pt);
 	}
@@ -202,6 +203,8 @@ CCPoint CCEScrollViewBase::getScrollOffset(CCPoint& moveDistance)
 
 void CCEScrollViewBase::scroll(CCPoint moveDistance, bool animated) 
 {
+	if(moveDistance.x==0 && moveDistance.y==0)return;
+
 	CCPoint offset = getScrollOffset(moveDistance);
     m_tScrollDistance = moveDistance;
     this->setContentOffset(offset, animated);    
@@ -209,6 +212,8 @@ void CCEScrollViewBase::scroll(CCPoint moveDistance, bool animated)
 
 void CCEScrollViewBase::scrollInDuration(CCPoint moveDistance, float dt) 
 {
+	if(moveDistance.x==0 && moveDistance.y==0)return;
+
 	CCPoint offset = getScrollOffset(moveDistance);
     m_tScrollDistance = moveDistance;
     this->setContentOffsetInDuration(offset, dt);    
@@ -567,19 +572,223 @@ void CCEScrollViewBase::visit()
 	kmGLPopMatrix();
 }
 
+
+CC_BEGIN_CALLS(CCEScrollViewBase, CCLayer)
+	CC_DEFINE_CALL(CCEScrollViewBase, viewSize)
+	CC_DEFINE_CALL(CCEScrollViewBase, scrollBy)
+	CC_DEFINE_CALL(CCEScrollViewBase, scrollTo)
+	CC_DEFINE_CALL(CCEScrollViewBase, contentOffset)
+	CC_DEFINE_CALL(CCEScrollViewBase, nodeVisible)
+	CC_DEFINE_CALL(CCEScrollViewBase, direction)
+	CC_DEFINE_CALL(CCEScrollViewBase, container)
+CC_END_CALLS(CCEScrollViewBase, CCLayer)
+
+CCValue CCEScrollViewBase::CALLNAME(viewSize)(CCValueArray& params) {
+	if(params.size()>0) {
+		CCSize sz = CCValueUtil::size(params[0]);
+		setViewSize(sz);
+		return CCValue::nullValue();
+	} else {
+		CCSize sz = getViewSize();
+		return CCValueUtil::size(sz.width, sz.height);
+	}
+}
+
+CCValue CCEScrollViewBase::CALLNAME(scrollBy)(CCValueArray& params) {
+	CCPoint pt;
+	float d = -1;
+	bool a = false;
+	if(params.size()>0) {
+		pt = CCValueUtil::point(params[0]);
+	}
+	if(params.size()>1) {
+		if(params[1].isBoolean()) {
+			a = params[1].booleanValue();
+		} else {
+			d = params[1].floatValue();
+		}
+	}
+	if(d<0) {
+		scroll(pt, a);
+	} else {
+		scrollInDuration(pt, d);
+	}
+	return CCValue::nullValue();	
+}
+
+CCValue CCEScrollViewBase::CALLNAME(scrollTo)(CCValueArray& params) {
+	CCPoint pt;
+	float d = -1;
+	bool a = false;
+	if(params.size()>0) {
+		pt = CCValueUtil::point(params[0]);
+	}
+	if(params.size()>1) {
+		if(params[1].isBoolean()) {
+			a = params[1].booleanValue();
+		} else {
+			d = params[1].floatValue();
+		}
+	}
+	CCPoint cpos = m_pContainer->getPosition();
+	CCPoint offset = ccp(pt.x-cpos.x,pt.y-cpos.y);
+	if(d<0) {
+		scroll(offset, a);
+	} else {
+		scrollInDuration(offset, d);
+	}
+	return CCValue::nullValue();	
+}
+
+CCValue CCEScrollViewBase::CALLNAME(contentOffset)(CCValueArray& params) {
+	CCPoint pt = getContentOffset();
+	return CCValueUtil::point(pt.x,pt.y);
+}
+
+CCValue CCEScrollViewBase::CALLNAME(nodeVisible)(CCValueArray& params) {
+	CCNode* node;
+	if(params.size()>0) {
+		if(params[0].isObject()) {
+			node = ccvpObject(params,0,CCNode);
+		} else if(params[0].isString()) {
+			node = m_pContainer->getChildById(params[0].stringValue().c_str());
+		} else {
+			node = m_pContainer->getChildByTag(params[0].intValue());
+		}
+	}
+	if(node==NULL)return CCValue::booleanValue(false);
+	return CCValue::booleanValue(isNodeVisible(node));
+}
+
+CCValue CCEScrollViewBase::CALLNAME(direction)(CCValueArray& params) {
+	if(params.size()>0) {
+		setDirection((CCEScrollViewDirection) params[0].intValue());
+	}
+	return CCValue::intValue(getDirection());
+}
+
+CCValue CCEScrollViewBase::CALLNAME(container)(CCValueArray& params) {
+	return CCValue::objectValue(getContainer());
+}
+
+// CCELayer4ScrollVMode
+CCELayer4ScrollVMode::CCELayer4ScrollVMode()
+{
+}
+
+CCELayer4ScrollVMode::~CCELayer4ScrollVMode()
+{
+}
+
+CCELayer4ScrollVMode* CCELayer4ScrollVMode::create(CCSize contentSize, CCSize tileSize)
+{
+	CCELayer4ScrollVMode* pRet = new CCELayer4ScrollVMode();
+	if (pRet && pRet->init())
+    {
+        pRet->autorelease();
+
+		pRet->setContentSize(contentSize);
+		pRet->m_tileSize = tileSize;
+    }
+    else
+    {
+        CC_SAFE_DELETE(pRet);
+    }
+    return pRet;
+}
+
+void CCELayer4ScrollVMode::onEnter()
+{
+	CCLayer::onEnter();
+	updateContent();
+}
+
+void CCELayer4ScrollVMode::setPosition(const CCPoint &position)
+{
+	CCLayer::setPosition(position);
+	updateContent();
+}
+
+void CCELayer4ScrollVMode::vmodeHelper(bool remove, int x, int y)
+{
+	if(methodCanCall("vmodeHelper")) {
+		CCValueArray ps;
+		ps.push_back(CCValue::booleanValue(remove));
+		ps.push_back(CCValue::intValue(x));
+		ps.push_back(CCValue::intValue(y));
+		CCValue r;
+		methodCall("vmodeHelper", ps, r);
+	}
+}
+
+bool CCELayer4ScrollVMode::empty(CCRect& r)
+{
+	return r.origin.x==0 && r.origin.y==0 && r.size.width==0 && r.size.height==0;
+}
+
+bool CCELayer4ScrollVMode::containsPoint(CCRect& r, float x, float y)
+{
+    if (x >= r.getMinX() && x < r.getMaxX()
+        && y >= r.getMinY() && y < r.getMaxY())
+    {
+        return true;
+    }
+    return false;
+}
+
+void CCELayer4ScrollVMode::updateContent()
+{
+	CCPoint pt = getPosition();
+	CCSize vsz = getViewSize();
+	float cx = floor(-pt.x/m_tileSize.width);
+	float cy = floor(-pt.y/m_tileSize.height);
+	float cx2 = ceil((vsz.width-pt.x)/m_tileSize.width);
+	float cy2 = ceil((vsz.height-pt.y)/m_tileSize.height);
+	
+	CCRect cur = CCRectMake(cx,cy,cx2-cx,cy2-cy);
+	for(int y=0;y<m_lastRect.size.height;y++) {
+		float ry = y+m_lastRect.origin.y;
+		for(int x=0;x<m_lastRect.size.width;x++) {
+			float rx = x+m_lastRect.origin.x;
+			if(!containsPoint(cur, rx, ry)) {
+				vmodeHelper(true, (int) rx, (int) ry);
+			}				
+		}
+	}
+	for(int y=0;y<cur.size.height;y++) {
+		float ry = y+cur.origin.y;
+		for(int x=0;x<cur.size.width;x++) {
+			float rx = x+cur.origin.x;
+			if(!containsPoint(m_lastRect, rx, ry)) {
+				vmodeHelper(false, (int) rx, (int) ry);
+			}
+		}
+	}
+	
+	m_lastRect = cur;
+}
+
+CCSize CCELayer4ScrollVMode::getViewSize()
+{
+	CCEScrollViewBase* sv = (CCEScrollViewBase*) getParent();
+	if(sv!=NULL)return sv->getViewSize();
+	return CCSizeZero;
+}
+
+// CCEScrollView
 #include "touch_dispatcher/CCTouch.h"
 
 CCEScrollView::CCEScrollView()
 : m_bTouchMoved(false)
 , m_fTouchLength(0.0f)
-, m_pTouches(NULL)
+, m_animated(false)
 {
 
 }
 
 CCEScrollView::~CCEScrollView()
 {
-    m_pTouches->release();
+    
 }
 
 CCEScrollView* CCEScrollView::create(CCSize size, CCNode* container/* = NULL*/)
@@ -616,7 +825,7 @@ bool CCEScrollView::initWithViewSize(CCSize size, CCNode *container/* = NULL*/)
 	if (CCEScrollViewBase::initWithViewSize(size, container))
     {
         setTouchEnabled(true);
-        m_pTouches = new CCArray();
+		m_Touches.clear();
         m_fTouchLength = 0.0f;
         return true;
     }
@@ -635,11 +844,36 @@ void CCEScrollView::setTouchEnabled(bool e)
     {
         m_bDragging = false;
         m_bTouchMoved = false;
-        m_pTouches->removeAllObjects();
+		m_Touches.clear();
     }
 }
 
+bool CCEScrollView::hasTouch(int id)
+{
+	std::vector<CCETouchInfo>::const_iterator it = m_Touches.begin();
+	for(;it!=m_Touches.end();it++) {
+		if(it->id==id)return true;
+	}
+	return false;
+}
+
+void CCEScrollView::removeTouch(int id)
+{
+	std::vector<CCETouchInfo>::const_iterator it = m_Touches.begin();
+	for(;it!=m_Touches.end();it++) {
+		if(it->id==id) {
+			m_Touches.erase(it);
+			return;
+		}
+	}
+}
+
 bool CCEScrollView::ccTouchBegan(CCTouch* touch, CCEvent* event)
+{
+	return touchBegan(touch->getID(), touch->getLocation());
+}
+
+bool CCEScrollView::touchBegan(int id, CCPoint touch)
 {
     if (!this->isVisible())
     {
@@ -650,32 +884,37 @@ bool CCEScrollView::ccTouchBegan(CCTouch* touch, CCEvent* event)
     frame = CCRectMake(frameOriginal.x, frameOriginal.y, m_tViewSize.width, m_tViewSize.height);
     
     //dispatcher does not know about clipping. reject touches outside visible bounds.
-    if (m_pTouches->count() > 2 ||
+	if (m_Touches.size() > 2 ||
         m_bTouchMoved          ||
-        !frame.containsPoint(m_pContainer->convertToWorldSpace(m_pContainer->convertTouchToNodeSpace(touch))))
+        !frame.containsPoint(m_pContainer->convertToWorldSpace(m_pContainer->convertToNodeSpace(touch))))
     {
         return false;
     }
 
-    if (!m_pTouches->containsObject(touch))
+	if (!hasTouch(id))
     {
-        m_pTouches->addObject(touch);
+		CCETouchInfo vl;
+		vl.id = id;
+		vl.touch = touch;
+		m_Touches.push_back(vl);
     }
 
-    if (m_pTouches->count() == 1)
+	if (m_Touches.size() == 1)
     { // scrolling
-        m_tTouchPoint     = this->convertTouchToNodeSpace(touch);
+        m_tTouchPoint     = this->convertToNodeSpace(touch);
         m_bTouchMoved     = false;
         m_bDragging     = true; //dragging started
         m_tScrollDistance = ccp(0.0f, 0.0f);
         m_fTouchLength    = 0.0f;
     }
-    else if (m_pTouches->count() == 2)
+	else if (m_Touches.size() == 2)
     {
-        m_tTouchPoint  = ccpMidpoint(this->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(0)),
-                                   this->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(1)));
-        m_fTouchLength = ccpDistance(m_pContainer->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(0)),
-                                   m_pContainer->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(1)));
+		CCPoint p0 = m_Touches[0].touch;
+		CCPoint p1 = m_Touches[1].touch;
+        m_tTouchPoint  = ccpMidpoint(this->convertToNodeSpace(p0),
+                                   this->convertToNodeSpace(p1));
+        m_fTouchLength = ccpDistance(m_pContainer->convertToNodeSpace(p0),
+                                   m_pContainer->convertToNodeSpace(p1));
         m_bDragging  = false;
     } 
     return true;
@@ -683,14 +922,19 @@ bool CCEScrollView::ccTouchBegan(CCTouch* touch, CCEvent* event)
 
 void CCEScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
 {
+	touchMoved(touch->getID(), touch->getLocation());
+}
+
+bool CCEScrollView::touchMoved(int id, CCPoint touch)
+{
     if (!this->isVisible())
     {
-        return;
+        return false;
     }
 
-    if (m_pTouches->containsObject(touch))
+    if (hasTouch(id))
     {
-        if (m_pTouches->count() == 1 && m_bDragging)
+        if (m_Touches.size() == 1 && m_bDragging)
         { // scrolling
             CCPoint moveDistance, newPoint;
             CCRect  frame;
@@ -699,54 +943,72 @@ void CCEScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
             CCPoint frameOriginal = this->getParent()->convertToWorldSpace(this->getPosition());
             frame = CCRectMake(frameOriginal.x, frameOriginal.y, m_tViewSize.width, m_tViewSize.height);
 
-            newPoint     = this->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(0));
+			m_Touches[0].touch = touch;
+			CCPoint p0 = touch;
+            newPoint     = this->convertToNodeSpace(p0);
             moveDistance = ccpSub(newPoint, m_tTouchPoint);
             m_tTouchPoint  = newPoint;
             
             if (frame.containsPoint(this->convertToWorldSpace(newPoint)))
             {
-				scroll(moveDistance);
+				scroll(moveDistance, m_animated);
             }
         }
-        else if (m_pTouches->count() == 2 && !m_bDragging)
+        else if (m_Touches.size() == 2 && !m_bDragging)
         {
-            const float len = ccpDistance(m_pContainer->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(0)),
-                                            m_pContainer->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(1)));
+			CCPoint p0 = m_Touches[0].touch;
+			CCPoint p1 = m_Touches[1].touch;
+            const float len = ccpDistance(m_pContainer->convertToNodeSpace(p0),
+                                            m_pContainer->convertToNodeSpace(p1));
             this->setZoomScale(this->getZoomScale()*len/m_fTouchLength);
         }
+		return true;
     }
+	return false;
 }
 
 void CCEScrollView::ccTouchEnded(CCTouch* touch, CCEvent* event)
 {
+	touchEnded(touch->getID(), touch->getLocation());
+}
+
+bool CCEScrollView::touchEnded(int id, CCPoint touch)
+{
     if (!this->isVisible())
     {
-        return;
+        return false;
     }
-    if (m_pTouches->containsObject(touch))
+    if (hasTouch(id))
     {
-        if (m_pTouches->count() == 1 && m_bTouchMoved)
+		if (m_Touches.size() == 1 && m_bTouchMoved)
         {
             this->schedule(schedule_selector(CCEScrollView::deaccelerateScrolling));
         }
-        m_pTouches->removeObject(touch);
+		removeTouch(id);
     } 
 
-    if (m_pTouches->count() == 0)
+    if (m_Touches.size() == 0)
     {
         m_bDragging = false;    
         m_bTouchMoved = false;
+		return false;
     }
+	return true;
 }
 
 void CCEScrollView::ccTouchCancelled(CCTouch* touch, CCEvent* event)
+{
+	return touchCancelled(touch->getID(), touch->getLocation());
+}
+
+void CCEScrollView::touchCancelled(int id, CCPoint touch)
 {
     if (!this->isVisible())
     {
         return;
     }
-    m_pTouches->removeObject(touch); 
-    if (m_pTouches->count() == 0)
+	removeTouch(id); 
+    if (m_Touches.size() == 0)
     {
         m_bDragging = false;    
         m_bTouchMoved = false;
@@ -763,4 +1025,75 @@ CCPoint CCEScrollView::getCenterPoint()
     {
 		return m_tTouchPoint;
 	}
+}
+
+#include "CCETouch.h"
+
+class CCEGestureRecognizer4ScrollView : public CCEGestureRecognizer4Node {
+
+public:
+	CCEGestureRecognizer4ScrollView(){};
+	virtual ~CCEGestureRecognizer4ScrollView(){};
+
+public:
+	static CCEGestureRecognizer4ScrollView* create(CCEScrollView* node) {
+		CCEGestureRecognizer4ScrollView* r = new CCEGestureRecognizer4ScrollView();
+		r->init(node);
+		return r;
+	}
+	CCEScrollView* view() {
+		return (CCEScrollView*) getNode();
+	}
+	virtual bool touchBegan(int id, CCPoint touch) {
+		return view()->touchBegan(id, touch);
+	}
+	virtual bool touchMoved(int id, CCPoint touch) {
+		return view()->touchMoved(id, touch);
+	}	
+    virtual bool touchEnded(int id, CCPoint touch) {
+		return view()->touchEnded(id, touch);
+	}
+	virtual void touchCancelled(int id, CCPoint touch)  {
+		view()->touchCancelled(id, touch);
+	}
+	// already recognize
+	virtual bool isRecognized() {
+		return view()->isActived();
+	}
+
+};
+
+CC_BEGIN_CALLS(CCEScrollView, CCEScrollViewBase)
+	CC_DEFINE_CALL(CCEScrollView, enableTouch)
+	CC_DEFINE_CALL(CCEScrollView, animated)	
+CC_END_CALLS(CCEScrollView, CCEScrollViewBase)
+
+#include "CCELayerTouch.h"
+
+CCValue CCEScrollView::CALLNAME(enableTouch)(CCValueArray& params) {
+	CCELayerTouch* node = ccvpObject(params, 0, CCELayerTouch);
+	if(node==NULL)node = CCELayerTouch::getTouchLayer(this);
+	if(node!=NULL) {
+		CCETouchBuilder b;
+		b.addGestureRecognizer(CCEGestureRecognizer4ScrollView::create(this));
+		size_t idx = 1;
+		if(params.size()>1 && params[1].isInt()) {
+			b.setPriority(params[1].intValue());
+			idx ++;
+		}
+		if(params.size()>idx && params[idx].canCall()) {
+			CCValue call = params[idx];
+			this->onEvent(NODE_EVENT_SCROLLVIEW_SCROLL,"scrollHandle",call);
+		}
+		b.createTouch(node);
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEScrollView::CALLNAME(animated)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		m_animated = v;
+	}
+	return CCValue::booleanValue(m_animated);
 }

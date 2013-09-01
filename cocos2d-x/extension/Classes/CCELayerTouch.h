@@ -78,16 +78,16 @@ public:
 	virtual bool isEnabled() { return m_bEnabled; }
     virtual void setEnabled(bool value) { m_bEnabled = value; };	
 
-	void checkItems(CCPoint* pt);	
+	void checkItems(int* id, CCPoint* pt);	
 
 protected:
 	void removeItem(std::list<CCELayerTouchItem*>::const_iterator it);
 	void sortItems(std::list<CCELayerTouchItem*>& ret);
-	void recognized(CCPoint pt, CCELayerTouchItem* item);
+	void recognized(int id, CCPoint pt, CCELayerTouchItem* item);
 	void addActiveItem(CCELayerTouchItem* item);
 	void removeActiveItem(CCELayerTouchItem* item,bool except);
-	void _travel(int type, CCPoint pt);
-	void travel(int type, CCPoint pt);
+	void _travel(int type,int id, CCPoint pt);
+	void travel(int type, int id, CCPoint pt);
 
 	// config
 	bool m_bEnabled;	
@@ -95,6 +95,7 @@ protected:
 	// runtime
 	std::list<CCELayerTouchItem*> m_touchItems;
 	std::list<CCELayerTouchItem*> m_activedItems;
+	int m_lastId;
 	CCPoint m_lastTouch;
 	bool m_traveling;
 	std::list<CCELayerTouchItem*> m_removedItems;

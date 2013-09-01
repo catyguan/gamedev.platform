@@ -116,44 +116,44 @@ void CCEGestureRecognizer4Chain::clear()
 	}
 }
 
-bool CCEGestureRecognizer4Chain::touchBegan(CCPoint touch)
+bool CCEGestureRecognizer4Chain::touchBegan(int id, CCPoint touch)
 {
 	bool r = false;
 	std::list<CCEGestureRecognizer*>::const_iterator it;
 	for(it=m_chain.begin();it!=m_chain.end();it++) {
-		if((*it)->touchBegan(touch)) {
+		if((*it)->touchBegan(id, touch)) {
 			r = true;
 		}
 	}
 	return r;
 }
 
-bool CCEGestureRecognizer4Chain::touchMoved(CCPoint touch)
+bool CCEGestureRecognizer4Chain::touchMoved(int id, CCPoint touch)
 {
 	bool r = false;
 	std::list<CCEGestureRecognizer*>::const_iterator it;
 	for(it=m_chain.begin();it!=m_chain.end();it++) {
-		if((*it)->touchMoved(touch)) {
+		if((*it)->touchMoved(id, touch)) {
 			r = true;
 		}
 	}
 	return r;
 }
 
-void CCEGestureRecognizer4Chain::touchCancelled(CCPoint touch)
+void CCEGestureRecognizer4Chain::touchCancelled(int id, CCPoint touch)
 {
 	std::list<CCEGestureRecognizer*>::const_iterator it;
 	for(it=m_chain.begin();it!=m_chain.end();it++) {
-		(*it)->touchCancelled(touch);
+		(*it)->touchCancelled(id, touch);
 	}
 }
 
-bool CCEGestureRecognizer4Chain::touchEnded(CCPoint touch)
+bool CCEGestureRecognizer4Chain::touchEnded(int id, CCPoint touch)
 {
 	bool r = false;
 	std::list<CCEGestureRecognizer*>::const_iterator it;
 	for(it=m_chain.begin();it!=m_chain.end();it++) {
-		if((*it)->touchEnded(touch)) {
+		if((*it)->touchEnded(id, touch)) {
 			r = true;
 		}
 	}
@@ -203,12 +203,12 @@ void CCEGestureRecognizer4Focus::setFocus(CCPoint touch, bool v)
 	}
 }
 
-bool CCEGestureRecognizer4Focus::touchBegan(CCPoint touch)
+bool CCEGestureRecognizer4Focus::touchBegan(int id, CCPoint touch)
 {
-	return touchMoved(touch);
+	return touchMoved(id, touch);
 }
 
-bool CCEGestureRecognizer4Focus::touchMoved(CCPoint touch)
+bool CCEGestureRecognizer4Focus::touchMoved(int id, CCPoint touch)
 {
 	CCPoint local = m_node->convertToNodeSpace(touch);
 	if(m_node->containsPoint(local)) {
@@ -219,12 +219,12 @@ bool CCEGestureRecognizer4Focus::touchMoved(CCPoint touch)
 	return true;
 }
 
-void CCEGestureRecognizer4Focus::touchCancelled(CCPoint touch)
+void CCEGestureRecognizer4Focus::touchCancelled(int id, CCPoint touch)
 {
 	setFocus(touch, false);
 }
 
-bool CCEGestureRecognizer4Focus::touchEnded(CCPoint touch)
+bool CCEGestureRecognizer4Focus::touchEnded(int id, CCPoint touch)
 {
 	setFocus(touch,false);
 	return false;
@@ -257,23 +257,23 @@ CCEGestureRecognizer4Tap* CCEGestureRecognizer4Tap::create(CCNode* node)
 	return r;
 }
 
-bool CCEGestureRecognizer4Tap::touchBegan(CCPoint touch)
+bool CCEGestureRecognizer4Tap::touchBegan(int id, CCPoint touch)
 {
-	return touchMoved(touch);
+	return touchMoved(id, touch);
 }
 
-bool CCEGestureRecognizer4Tap::touchMoved(CCPoint touch)
+bool CCEGestureRecognizer4Tap::touchMoved(int id, CCPoint touch)
 {
 	m_tap = false;
 	return true;
 }
 
-void CCEGestureRecognizer4Tap::touchCancelled(CCPoint touch)
+void CCEGestureRecognizer4Tap::touchCancelled(int id, CCPoint touch)
 {
 	m_tap = false;
 }
 
-bool CCEGestureRecognizer4Tap::touchEnded(CCPoint touch)
+bool CCEGestureRecognizer4Tap::touchEnded(int id, CCPoint touch)
 {
 	CCPoint local = m_node->convertToNodeSpace(touch);
 	if(m_node->containsPoint(local)) {
@@ -354,7 +354,7 @@ void CCEGestureRecognizer4Holdpress::init(CCNode* node,int timeThreshold,int mov
 	m_checkInterval = checkInterval;
 }
 
-bool CCEGestureRecognizer4Holdpress::touchBegan(CCPoint touch)
+bool CCEGestureRecognizer4Holdpress::touchBegan(int id, CCPoint touch)
 {
 	CCPoint local = m_node->convertToNodeSpace(touch);
 	if(m_node->containsPoint(local)) {
@@ -364,7 +364,7 @@ bool CCEGestureRecognizer4Holdpress::touchBegan(CCPoint touch)
 	return true;
 }
 
-bool CCEGestureRecognizer4Holdpress::touchMoved(CCPoint touch)
+bool CCEGestureRecognizer4Holdpress::touchMoved(int id, CCPoint touch)
 {
 	CCPoint local = m_node->convertToNodeSpace(touch);
 	if(m_node->containsPoint(local)) {
@@ -378,12 +378,12 @@ bool CCEGestureRecognizer4Holdpress::touchMoved(CCPoint touch)
 	return true;
 }
 
-void CCEGestureRecognizer4Holdpress::touchCancelled(CCPoint touch)
+void CCEGestureRecognizer4Holdpress::touchCancelled(int id, CCPoint touch)
 {
 	cancelHold(touch);
 }
 
-bool CCEGestureRecognizer4Holdpress::touchEnded(CCPoint touch)
+bool CCEGestureRecognizer4Holdpress::touchEnded(int id, CCPoint touch)
 {
 	cancelHold(touch);
 	return false;
