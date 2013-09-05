@@ -9,6 +9,7 @@
 #include "CCEAction.h"
 #include "CCEButton.h"
 #include "CCEScrollView.h"
+#include "misc_nodes\CCRenderTexture.h"
 
 USING_NS_CC;
 
@@ -289,6 +290,30 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 				if(v->booleanValue()) {					
 					o->setTouchEnabled(true);
 				}
+			}
+		}
+		
+		if(o!=NULL) {
+			o->setup(cfg);
+		}
+		return o;
+	}
+	if(strcmp(type,"CCRenderTexture")==0) {
+		CCRenderTexture* o = NULL;
+
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;
+			CCSize size;
+			v = r.getNull("width");
+			if(v!=NULL)size.width = v->floatValue();
+			v = r.getNull("height");
+			if(v!=NULL)size.height = v->floatValue();
+
+			if(size.width>0 && size.height>0) {
+				r.remove("width");
+				r.remove("height");
+				o = CCRenderTexture::create(size.width, size.height);
 			}
 		}
 		

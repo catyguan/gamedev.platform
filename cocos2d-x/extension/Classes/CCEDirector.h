@@ -30,6 +30,7 @@ public:
 protected:
 	CCObject* buildObject(CCValue& cfg);
 	CCAction* buildAction(CCValue& cfg);
+	int buildNodeFrame(CCNode* rectsNode, CCNode* node, int size, int idx);
 
 protected:
 	CCScene* m_scene;
@@ -48,6 +49,7 @@ protected:
 	CC_DECLARE_CALL(replaceScene)
 	CC_DECLARE_CALL(popScene)
 	CC_DECLARE_CALL(contentScaleFactor)
+	CC_DECLARE_CALL(createNodeFrame)
 	CC_DECLARE_CALL(pause)
 	CC_DECLARE_CALL(resume)
 	CC_DECLARE_CALLS_END

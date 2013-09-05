@@ -110,7 +110,7 @@ end
 
 -- API
 function _API_host_closure_call(callId, ...)
-	if LDEBUG then
+	if LDEBUG and CFG.LogClosure then
 		LOG:debug(LTAG,"_host_closure_call - callId="..callId)
 		print("call params => ", ...)
 	end
@@ -119,7 +119,7 @@ function _API_host_closure_call(callId, ...)
 	if f then
 		return f(...)
 	else
-		if LDEBUG then
+		if LDEBUG and CFG.LogClosure then
 			LOG:debug(LTAG,"discard _host_closure_call "..callId)
 		end
 	end
@@ -129,7 +129,7 @@ end
 function _API_host_closure_add(f)	
 	local HS = class.instance("bma.host.Service")
 	local cid = HS:nextClosureId()
-	if LDEBUG then
+	if LDEBUG and CFG.LogClosure then
 		LOG:debug(LTAG,"_host_closure_add - callId="..cid..","..tostring(f))
 	end
 	HS.closures[cid] = f
@@ -138,7 +138,7 @@ end
 
 -- API
 function _API_host_closure_remove(callId)
-	if LDEBUG then
+	if LDEBUG and CFG.LogClosure then
 		LOG:debug(LTAG,"_host_closure_remove - callId="..callId)
 	end
 	local HS = class.instance("bma.host.Service")

@@ -231,6 +231,7 @@ CC_BEGIN_CALLS(CCEDirector, CCObject)
 	CC_DEFINE_CALL(CCEDirector, replaceScene)
 	CC_DEFINE_CALL(CCEDirector, popScene)
 	CC_DEFINE_CALL(CCEDirector, contentScaleFactor)
+	CC_DEFINE_CALL(CCEDirector, createNodeFrame)
 	CC_DEFINE_CALL(CCEDirector, pause)
 	CC_DEFINE_CALL(CCEDirector, resume)
 CC_END_CALLS(CCEDirector, CCObject)
@@ -339,4 +340,52 @@ CCValue CCEDirector::CALLNAME(resume)(CCValueArray& params) {
 	bool children = ccvpBoolean(params, 1);
 	resume(obj, children);
 	return CCValue::nullValue();
+}
+
+#include "CCERectsNode.h"
+ccColor4B sColors[] = { ccc4(255,0,0,255), ccc4(0,255,0,255),ccc4(0,0,255,255) };
+int CCEDirector::buildNodeFrame(CCNode* rectsNode, CCNode* node, int size, int idx)
+{
+	CCPoint pt = node->convertToWorldSpace(CCPointZero);
+	CCSize sz = node->getContentSize();
+
+	CCRect rect(pt.x, pt.y, sz.width, sz.height);
+	// CCLOG("nodeFrame %s - %f, %f, %f, %f,", node->getId().c_str(), pt.x, pt.y, sz.width, sz.height);
+	CCRect rb = CCRectMake(rect.getMinX()-size/2, rect.getMinY()-size/2, sz.width+size, size);
+	CCRect rr = CCRectMake(rect.getMaxX()-size/2, rect.getMinY()-size/2, size, sz.height+size);
+	CCRect rt = CCRectMake(rect.getMinX()-size/2, rect.getMaxY()-size/2, sz.width+size, size);
+	CCRect rl = CCRectMake(rect.getMinX()-size/2, rect.getMinY()-size/2, size, sz.height+size);
+
+	ccColor4B clr = sColors[idx%3];
+	idx++;
+
+	CCERectsNode* obj = (CCERectsNode*) rectsNode;
+	obj->add(rb, clr);
+	obj->add(rr, clr);
+	obj->add(rt, clr);
+	obj->add(rl, clr);
+
+	CCArray* children = node->getChildren();
+	if(children!=NULL) {
+		CCObject* child;
+        CCARRAY_FOREACH(children, child)
+        {
+            CCNode* pChild = (CCNode*) child;
+            idx = buildNodeFrame(rectsNode, pChild, size, idx);
+        }
+	}
+	return idx;
+}
+
+CCValue CCEDirector::CALLNAME(createNodeFrame)(CCValueArray& params) {
+	CCNode* obj = ccvpObject(params, 0, CCNode);
+	int size = ccvpInt(params, 1);
+	if(size==0)size=4;
+	
+	CCERectsNode* rectsNode = CCERectsNode::create();
+	if(obj!=NULL) {
+		buildNodeFrame(rectsNode, obj, size, 0);
+	}
+
+	return CCValue::objectValue(rectsNode);
 }

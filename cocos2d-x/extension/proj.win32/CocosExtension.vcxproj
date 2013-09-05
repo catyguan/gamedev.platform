@@ -33,6 +33,7 @@
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
     <ClInclude Include="..\Classes\CCENarrate.h" />
     <ClInclude Include="..\Classes\CCEPixelNode.h" />
+    <ClInclude Include="..\Classes\CCERectsNode.h" />
     <ClInclude Include="..\Classes\CCEScene.h" />
     <ClInclude Include="..\Classes\CCEScrollView.h" />
     <ClInclude Include="..\Classes\CCESocket.h" />
@@ -84,6 +85,7 @@
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
     <ClCompile Include="..\Classes\CCENarrate.cpp" />
     <ClCompile Include="..\Classes\CCEPixelNode.cpp" />
+    <ClCompile Include="..\Classes\CCERectsNode.cpp" />
     <ClCompile Include="..\Classes\CCEScene.cpp" />
     <ClCompile Include="..\Classes\CCEScrollView.cpp" />
     <ClCompile Include="..\Classes\CCESocket.cpp" />
