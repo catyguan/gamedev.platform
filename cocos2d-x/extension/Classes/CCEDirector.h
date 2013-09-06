@@ -52,6 +52,7 @@ protected:
 	CC_DECLARE_CALL(createNodeFrame)
 	CC_DECLARE_CALL(pause)
 	CC_DECLARE_CALL(resume)
+	CC_DECLARE_CALL(resetApplication)
 	CC_DECLARE_CALLS_END
 	// end_cc_call
 };

@@ -313,7 +313,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 			if(size.width>0 && size.height>0) {
 				r.remove("width");
 				r.remove("height");
-				o = CCRenderTexture::create(size.width, size.height);
+				o = CCRenderTexture::create((int) size.width, (int) size.height);
 			}
 		}
 		

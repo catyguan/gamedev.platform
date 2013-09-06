@@ -234,6 +234,7 @@ CC_BEGIN_CALLS(CCEDirector, CCObject)
 	CC_DEFINE_CALL(CCEDirector, createNodeFrame)
 	CC_DEFINE_CALL(CCEDirector, pause)
 	CC_DEFINE_CALL(CCEDirector, resume)
+	CC_DEFINE_CALL(CCEDirector, resetApplication)
 CC_END_CALLS(CCEDirector, CCObject)
 
 CCValue CCEDirector::CALLNAME(winSize)(CCValueArray& params) {
@@ -290,12 +291,8 @@ CCValue CCEDirector::CALLNAME(runScene)(CCValueArray& params) {
 	if(s==NULL) {
 		throw new std::string("param 1 expect CCScene");
 	}
-		CCDirector* d = CCDirector::sharedDirector();
-	if(d->currentScene()!=NULL) {
-		d->replaceScene(s);
-	} else {
-		d->runWithScene(s);
-	}
+	CCDirector* d = CCDirector::sharedDirector();
+	d->replaceScene(s);	
 	return CCValue::booleanValue(true);
 }
 
@@ -388,4 +385,9 @@ CCValue CCEDirector::CALLNAME(createNodeFrame)(CCValueArray& params) {
 	}
 
 	return CCValue::objectValue(rectsNode);
+}
+
+CCValue CCEDirector::CALLNAME(resetApplication)(CCValueArray& params) {
+	CCApplication::sharedApplication()->resetApplication();
+	return CCValue::nullValue();
 }

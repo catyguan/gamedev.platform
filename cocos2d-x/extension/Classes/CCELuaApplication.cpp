@@ -481,7 +481,11 @@ void CCELuaApplication::setvar(const char* key, const char* value)
 
 bool CCELuaApplication::pcall(const char* fun, CCValueArray& data, CCValueArray& result)
 {
-	CC_ASSERT(isOpen());
+	if(!isOpen()) {
+		result.clear();
+		result.push_back(CCValue::stringValue("luaState closed"));
+		return false;
+	}
 	CC_ASSERT(fun!=NULL);
 	bool r = m_host->pcall(fun,data, result);
 	if(!r && result.size()>0) {
