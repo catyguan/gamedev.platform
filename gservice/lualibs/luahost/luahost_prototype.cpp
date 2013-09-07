@@ -357,7 +357,8 @@ static LuaHostValue popLuaValue(lua_State* L, LuaHostValuePrototype* vp, int idx
 				LuaHostArray r = vp->newArray();
 				for (int i = 1; i <= len; i++) {		
 					lua_rawgeti(L, idx, i);
-					vp->arrayAdd(r, popLuaValue(L, vp, -1));
+					LuaHostValue pv = popLuaValue(L, vp, -1);
+					vp->arrayAdd(r, pv);
 					lua_pop(L, 1);
 				}
 				return vp->newArrayValue(r);
@@ -366,8 +367,9 @@ static LuaHostValue popLuaValue(lua_State* L, LuaHostValuePrototype* vp, int idx
 				lua_pushnil(L);
 				while (lua_next(L, idx) != 0) {
 					const char* key = lua_tostring(L, -2);
-					if(key!=NULL) {					
-						vp->mapSet(r, key, popLuaValue(L, vp, -1));
+					if(key!=NULL) {				
+						LuaHostValue tmp = popLuaValue(L, vp, -1);
+						vp->mapSet(r, key, tmp);
 					}
 					lua_pop(L, 1);
 				}
@@ -402,7 +404,8 @@ static LuaHostValue popLuaValue(lua_State* L, LuaHostValuePrototype* vp, int idx
 static void popStackData(lua_State* L, LuaHostValuePrototype* vp, LuaHostArray& params,int nresults) {
 	int top = lua_gettop(L) - nresults;
 	for(int i=1;i<=nresults;i++) {
-		vp->arrayAdd(params, popLuaValue(L,vp,top+i));
+		LuaHostValue v = popLuaValue(L,vp,top+i);
+		vp->arrayAdd(params, v);
 	}
 	if(nresults>0) {
 		lua_pop(L,nresults);
@@ -505,7 +508,8 @@ bool LuaHostPrototype::buildCallError(LuaHostArray_Ref r, std::string msg)
 {	
 	LuaHostValuePrototype* vp = valuePrototype();
 	vp->resetArray(r);
-	vp->arrayAdd(r, vp->newString(msg.c_str()));
+	LuaHostValue v = vp->newString(msg.c_str());
+	vp->arrayAdd(r, v);
     return false;
 }
 
@@ -597,11 +601,16 @@ bool LuaHostPrototype::reponseLuaAInvoke(int callId, const char* err, LuaHostArr
 {	
 	LuaHostValuePrototype* vp = valuePrototype();
 	if(err==NULL) {
-		vp->arrayPushFirst(data, vp->newNull());
+		LuaHostValue v = vp->newNull();
+		vp->arrayPushFirst(data, v);
 	} else {
-		vp->arrayPushFirst(data, vp->newString(err));
+		LuaHostValue v = vp->newString(err);
+		vp->arrayPushFirst(data, v);
 	}
-	vp->arrayPushFirst(data, vp->newInt(callId));
+	if(true) {
+		LuaHostValue v = vp->newInt(callId);
+		vp->arrayPushFirst(data, v);
+	}
 	return pcall(LUA_FUNCTION_HOST_RESPONSE, data, result);
 }
 

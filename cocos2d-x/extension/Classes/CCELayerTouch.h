@@ -67,8 +67,7 @@ public:
 	void removeTouchByNode(CCNode* node);
 	void removeAllTouch();
 
-	void CCELayerTouch::reorderItems();
-	
+	void reorderItems();	
 	
 	static CCELayerTouch* getTouchLayer(CCNode* node);
 
@@ -81,7 +80,7 @@ public:
 	void checkItems(int* id, CCPoint* pt);	
 
 protected:
-	void removeItem(std::list<CCELayerTouchItem*>::const_iterator it);
+	void removeItem(std::list<CCELayerTouchItem*>::iterator it);
 	void sortItems(std::list<CCELayerTouchItem*>& ret);
 	void recognized(int id, CCPoint pt, CCELayerTouchItem* item);
 	void addActiveItem(CCELayerTouchItem* item);

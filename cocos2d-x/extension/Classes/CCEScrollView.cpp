@@ -859,7 +859,7 @@ bool CCEScrollView::hasTouch(int id)
 
 void CCEScrollView::removeTouch(int id)
 {
-	std::vector<CCETouchInfo>::const_iterator it = m_Touches.begin();
+	std::vector<CCETouchInfo>::iterator it = m_Touches.begin();
 	for(;it!=m_Touches.end();it++) {
 		if(it->id==id) {
 			m_Touches.erase(it);

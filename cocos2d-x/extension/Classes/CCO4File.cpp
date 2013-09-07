@@ -90,10 +90,14 @@ CCValue CCO4File::CALLNAME(delete)(CCValueArray& params)
 {
 	std::string name = ccvpString(params,0);
 	name = vpath(name);
-	BOOL r = ::DeleteFileA(name.c_str());
-	return CCValue::booleanValue(r==TRUE);
+	bool r = false;
+#if CC_TARGET_PLATFORM==CC_PLATFORM_WIN32
+	r = ::DeleteFileA(name.c_str())==TRUE;
+#endif
+	return CCValue::booleanValue(r);
 }
 
+#if CC_TARGET_PLATFORM==CC_PLATFORM_WIN32
 // CCO4VFSFile
 #include "../sqlite/SQLiteVFS.h"
 
@@ -121,7 +125,7 @@ CCValue CCO4VFSFile::CALLNAME(load)(CCValueArray& params)
 	std::string name = ccvpString(params,0);
 		
 	int size = 0;
-	byte* buf = m_vfs->fileRead(name.c_str(), &size);
+	char* buf = (char*) m_vfs->fileRead(name.c_str(), &size);
     if (!buf)
     {
         std::string msg = "file.load(";
@@ -156,3 +160,4 @@ CCValue CCO4VFSFile::CALLNAME(delete)(CCValueArray& params)
 	bool r = m_vfs->fileDelete(name.c_str(), false);
 	return CCValue::booleanValue(r);
 }
+#endif

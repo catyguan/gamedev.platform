@@ -163,8 +163,10 @@ void CCEDialogue::layout()
 		float x2 = size.width - m_marginBottomRight.width;
 		float y2 = size.height - m_marginBottomRight.height;
 
-		m_narrate->setPosition(CCPointMake(x1, y1));
-		m_narrate->setContentSize(CCSizeMake(x2-x1,y2-y1));
+		CCPoint pt(x1,y1);
+		m_narrate->setPosition(pt);
+		CCSize sz(x2-x1,y2-y1);
+		m_narrate->setContentSize(sz);
 	}
 
 	CCNode* pnode = getPauseNode();

@@ -142,10 +142,10 @@ CCELayerTouchItem* CCELayerTouch::getTouchByNode(CCNode* node)
 
 void CCELayerTouch::recognized(int id, CCPoint pt, CCELayerTouchItem* item)
 {
-	std::list<CCELayerTouchItem*>::const_iterator it;
+	std::list<CCELayerTouchItem*>::iterator it;
 	for(it=m_activedItems.begin();it!=m_activedItems.end();)
 	{
-		std::list<CCELayerTouchItem*>::const_iterator cur = it;
+		std::list<CCELayerTouchItem*>::iterator cur = it;
 		it++;
 		CCELayerTouchItem* pItem = (*cur);
 		if(pItem!=item) {
@@ -166,7 +166,7 @@ void CCELayerTouch::addActiveItem(CCELayerTouchItem* item)
 
 void CCELayerTouch::removeActiveItem(CCELayerTouchItem* item,bool except)
 {
-	std::list<CCELayerTouchItem*>::const_iterator it,cur;
+	std::list<CCELayerTouchItem*>::iterator it,cur;
 	for(it=m_activedItems.begin();it!=m_activedItems.end();)
     {
 		cur = it;
@@ -190,7 +190,7 @@ void CCELayerTouch::removeActiveItem(CCELayerTouchItem* item,bool except)
     }
 }
 
-void CCELayerTouch::removeItem(std::list<CCELayerTouchItem*>::const_iterator it)
+void CCELayerTouch::removeItem(std::list<CCELayerTouchItem*>::iterator it)
 {
 	CCELayerTouchItem* pItem = *it;
 	m_touchItems.erase(it);
@@ -200,7 +200,7 @@ void CCELayerTouch::removeItem(std::list<CCELayerTouchItem*>::const_iterator it)
 
 void CCELayerTouch::removeTouch(CCEGestureRecognizer* recognizer)
 {
-	std::list<CCELayerTouchItem*>::const_iterator it,cur;
+	std::list<CCELayerTouchItem*>::iterator it,cur;
 	for(it=m_touchItems.begin();it!=m_touchItems.end();)
     {
 		cur = it;
@@ -218,7 +218,7 @@ void CCELayerTouch::removeTouch(CCEGestureRecognizer* recognizer)
 
 void CCELayerTouch::removeTouchByNode(CCNode* node)
 {
-	std::list<CCELayerTouchItem*>::const_iterator it,cur;
+	std::list<CCELayerTouchItem*>::iterator it,cur;
 	for(it=m_touchItems.begin();it!=m_touchItems.end();)
     {
 		cur = it;
@@ -272,10 +272,10 @@ void CCELayerTouch::travel(int type,int id, CCPoint pt)
 		{
 			CCELayerTouchItem* item = *it;
 
-			std::list<CCELayerTouchItem*>::const_iterator it2;
+			std::list<CCELayerTouchItem*>::iterator it2;
 			for(it2=m_touchItems.begin();it2!=m_touchItems.end();)
 			{
-				std::list<CCELayerTouchItem*>::const_iterator cur = it2;
+				std::list<CCELayerTouchItem*>::iterator cur = it2;
 				it2++;
 				if(*cur==item) {
 					removeItem(cur);
@@ -287,11 +287,11 @@ void CCELayerTouch::travel(int type,int id, CCPoint pt)
 
 void CCELayerTouch::_travel(int type,int id, CCPoint pt)
 {
-	std::list<CCELayerTouchItem*>::const_iterator it;
+	std::list<CCELayerTouchItem*>::iterator it;
 	if(m_activedItems.size()>0) {		
 		for(it=m_activedItems.begin();it!=m_activedItems.end();)
 		{
-			std::list<CCELayerTouchItem*>::const_iterator cur = it;
+			std::list<CCELayerTouchItem*>::iterator cur = it;
 			it++;
 			CCELayerTouchItem* pItem = (*cur);
 			bool t = false;

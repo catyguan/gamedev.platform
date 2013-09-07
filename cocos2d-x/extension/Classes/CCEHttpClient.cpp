@@ -91,7 +91,7 @@ void CCEHttpClient::appRunnable(void* data, long mstick)
 			while(msg!=NULL) {
 				if(msg->msg==CURLMSG_DONE) {
 					HttpClientReq* req = NULL;
-					std::vector<HttpClientReq*>::const_iterator it = cl->m_reqs.begin();
+					std::vector<HttpClientReq*>::iterator it = cl->m_reqs.begin();
 					for(;it!=cl->m_reqs.end();it++) {
 						if((*it)->ch==msg->easy_handle) {
 							req = *it;
@@ -244,7 +244,7 @@ int CCEHttpClient::process(CCValue& reqData, CCValue callback)
 bool CCEHttpClient::cancel(int reqId)
 {
 	HttpClientReq* req = NULL;
-	std::vector<HttpClientReq*>::const_iterator it = m_reqs.begin();
+	std::vector<HttpClientReq*>::iterator it = m_reqs.begin();
 	for(;it!=m_reqs.end();it++) {
 		if((*it)->id==reqId) {
 			req = (*it);

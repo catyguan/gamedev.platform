@@ -5,7 +5,7 @@
 
 // CCEContainer
 CCEContainer::CCEContainer()
-: m_bIsOpacityModifyRGB(false), m_refs(NULL)
+: m_bIsOpacityModifyRGB(false)
 {
 	setCascadeColorEnabled(true);
 	setCascadeOpacityEnabled(true);

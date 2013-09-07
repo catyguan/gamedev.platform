@@ -87,7 +87,7 @@ public:
 		array.push_back(v);
 	};
 	virtual LuaHostValue arrayPopFirst(LuaHostArray_Ref array) {
-		CCValueArrayIterator it = array.begin();
+		std::vector<CCValue>::iterator it = array.begin();
 		if(it!=array.end()) {
 			CCValue r = *it;
 			array.erase(it);
@@ -552,9 +552,9 @@ void CCELuaApplication::appRunnable(void* data, long mstick)
 	// CCLOG("[LuaHost] apprun %d", host->nowTick);
 	if(host->m_minWaitTime>=0 && host->m_minWaitTime<host->m_nowTick) {
 		int mintm = host->m_nowTick+3600*1000;
-		for (std::list<CCELuaHostTimer>::const_iterator it = host->m_timers.begin(); it != host->m_timers.end(); )
+		for (std::list<CCELuaHostTimer>::iterator it = host->m_timers.begin(); it != host->m_timers.end(); )
 		{	
-			std::list<CCELuaHostTimer>::const_iterator cit = it;			
+			std::list<CCELuaHostTimer>::iterator cit = it;			
 
 			if(cit->time <= host->m_nowTick) {
 				CCValueArray ps;

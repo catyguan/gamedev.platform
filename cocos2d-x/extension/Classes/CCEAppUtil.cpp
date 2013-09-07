@@ -114,7 +114,7 @@ long CCEAppUtil::timestamp()
 
 long CCEAppUtil::timeTick()
 {
-#ifndef CC_PLATFORM_WIN32
+#if CC_TARGET_PLATFORM!=CC_PLATFORM_WIN32
   struct timeval tp = {0};
   if (gettimeofday(&tp, NULL)) {
     return 0;
@@ -123,7 +123,7 @@ long CCEAppUtil::timeTick()
   }  
 #endif
 
-#ifdef CC_PLATFORM_WIN32
+#if CC_TARGET_PLATFORM==CC_PLATFORM_WIN32
   DWORD tm = GetTickCount();
   return (long)tm;
 #endif

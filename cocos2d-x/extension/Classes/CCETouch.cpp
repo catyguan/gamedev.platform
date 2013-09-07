@@ -92,7 +92,7 @@ CCEGestureRecognizer4Chain* CCEGestureRecognizer4Chain::add(CCEGestureRecognizer
 
 bool CCEGestureRecognizer4Chain::remove(CCEGestureRecognizer* sub,bool deleteObj)
 {
-	std::list<CCEGestureRecognizer*>::const_iterator it;
+	std::list<CCEGestureRecognizer*>::iterator it;
 	for(it=m_chain.begin();it!=m_chain.end();it++) {
 		if((*it)==sub) {
 			m_chain.erase(it);
@@ -107,7 +107,7 @@ bool CCEGestureRecognizer4Chain::remove(CCEGestureRecognizer* sub,bool deleteObj
 
 void CCEGestureRecognizer4Chain::clear()
 {
-	std::list<CCEGestureRecognizer*>::const_iterator it;
+	std::list<CCEGestureRecognizer*>::iterator it;
 	while(m_chain.size()>0) {		
 		it = m_chain.begin();
 		CCEGestureRecognizer* ptr = *it;
