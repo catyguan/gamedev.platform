@@ -69,7 +69,7 @@ bool CCENarrate::init(CCLabelTTF* label, int width, int height, float speed)
 	m_label = label;
 	CC_SAFE_RETAIN(m_label);	
 	m_speed = (float) (speed>0?speed:NARRATE_DEFAULT_SPEED);
-	CCSize sz(width, height);
+	CCSize sz = CCSizeMake(width, height);
 	setContentSize(sz);
 
 	return true;

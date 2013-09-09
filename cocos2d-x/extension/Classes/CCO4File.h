@@ -16,6 +16,7 @@ class CCO4File : public CCObject
 	CC_DECLARE_CALLS_END
 };
 
+/*
 class SQLiteVFS;
 class CCO4VFSFile : public CCObject
 {
@@ -33,5 +34,6 @@ protected:
 	CC_DECLARE_CALL(delete)
 	CC_DECLARE_CALLS_END
 };
+*/
 
 #endif

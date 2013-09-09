@@ -97,6 +97,7 @@ CCValue CCO4File::CALLNAME(delete)(CCValueArray& params)
 	return CCValue::booleanValue(r);
 }
 
+/*
 #if CC_TARGET_PLATFORM==CC_PLATFORM_WIN32
 // CCO4VFSFile
 #include "../sqlite/SQLiteVFS.h"
@@ -161,3 +162,4 @@ CCValue CCO4VFSFile::CALLNAME(delete)(CCValueArray& params)
 	return CCValue::booleanValue(r);
 }
 #endif
+*/
