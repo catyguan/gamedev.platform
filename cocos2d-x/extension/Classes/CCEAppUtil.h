@@ -5,7 +5,7 @@
 
 typedef struct tagResource
 {
-	char directory[100];
+	std::string directory;
     cocos2d::CCSize size;    
 } Resource;
 

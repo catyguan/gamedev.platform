@@ -21,13 +21,13 @@ void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resource
     // We use the ratio of resource's height to the height of design resolution,
     // this can make sure that the resource's height could fit for the height of design resolution.
 
-	while(strlen(resources->directory)!=0) {
+	while(resources->directory.size()!=0) {
 		// if the frame's height is larger than the height of medium resource size, select large resource.
 		if (h >= resources->size.height)
 		{ 
 			float scaleFactor = MIN(resources->size.height/designResolutionSize.height, resources->size.width/designResolutionSize.width);
-			CCLOG("resourceSize => %f x %f, resource => %s, scaleFactor => %f", resources->size.width, resources->size.height, resources->directory, scaleFactor);			
-			CCFileUtils::sharedFileUtils()->addSearchPath(resources->directory);
+			CCLOG("resourceSize => %f x %f, resource => %s, scaleFactor => %f", resources->size.width, resources->size.height, resources->directory.c_str(), scaleFactor);			
+			CCFileUtils::sharedFileUtils()->addSearchPath(resources->directory.c_str());
 			CCDirector::sharedDirector()->setContentScaleFactor(scaleFactor);
 			break;
 		}
