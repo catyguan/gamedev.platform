@@ -4,7 +4,7 @@
 #include "cocoa/CCValueSupport.h"
 
 #include "CCEUtil.h"
-#include "platform\CCFileSystemProtocol.h"
+#include "platform\CCFileSystem.h"
 
 // CCO4File
 CC_BEGIN_CALLS(CCO4File, CCObject)
@@ -17,14 +17,14 @@ CC_END_CALLS(CCO4File, CCObject)
 CCValue CCO4File::CALLNAME(exists)(CCValueArray& params)
 {
 	std::string name = ccvpString(params,0);	
-	CCFileSystemProtocol* fs = CCFileSystemProtocol::sharedFileSystem();
+	CCFileSystem* fs = CCFileSystem::sharedFileSystem();
 	return CCValue::booleanValue(fs->fileExists(kAppData, name.c_str()));
 }
 
 CCValue CCO4File::CALLNAME(load)(CCValueArray& params)
 {
 	std::string name = ccvpString(params,0);
-	CCFileSystemProtocol* fs = CCFileSystemProtocol::sharedFileSystem();
+	CCFileSystem* fs = CCFileSystem::sharedFileSystem();
 	unsigned long size = 0;
 	unsigned char* buf = NULL;
 	buf = fs->fileRead(kAppData, name.c_str(), &size);	
@@ -47,7 +47,7 @@ CCValue CCO4File::CALLNAME(save)(CCValueArray& params)
 	std::string name = ccvpString(params,0);
 	std::string content = ccvpString(params, 1);
 	
-	CCFileSystemProtocol* fs = CCFileSystemProtocol::sharedFileSystem();
+	CCFileSystem* fs = CCFileSystem::sharedFileSystem();
 	unsigned long wcount = fs->fileWrite(kAppData, name.c_str(), (unsigned char*) content.c_str(), content.length());
 	
 	bool r = wcount!=content.length();	
@@ -64,7 +64,7 @@ CCValue CCO4File::CALLNAME(delete)(CCValueArray& params)
 {
 	std::string name = ccvpString(params,0);
 	
-	CCFileSystemProtocol* fs = CCFileSystemProtocol::sharedFileSystem();
+	CCFileSystem* fs = CCFileSystem::sharedFileSystem();
 	bool r = fs->fileDelete(kAppData, name.c_str());
 	return CCValue::booleanValue(r);
 }

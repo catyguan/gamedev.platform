@@ -9,7 +9,8 @@ class StringUtil
 {
 public:
 	static std::string format(const char* format, ...);
-	static void split(std::string& s, std::string& delim, std::vector<std::string>* ret);
+	static void split(std::string& s, std::string delim, std::vector<std::string>* ret);
+	static void split(std::string& s, std::string delim, std::vector<std::string>* ret, int limit);
 	static int replaceAll(std::string& str,  const std::string& pattern,  const std::string& newpat);
 	static std::string trim(std::string& str);
 };

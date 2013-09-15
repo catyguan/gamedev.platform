@@ -11,7 +11,12 @@ std::string StringUtil::format( const char* format, ... )
 	return std::string( text );
 }
 
-void StringUtil::split(std::string& s, std::string& delim,std::vector< std::string >* ret)
+void StringUtil::split(std::string& s, std::string delim,std::vector< std::string >* ret)
+{
+	split(s,delim,ret,-1);
+}
+
+void StringUtil::split(std::string& s, std::string delim,std::vector< std::string >* ret,int limit)
 {
 	size_t last = 0;
 	size_t index=s.find_first_of(delim,last);
@@ -19,11 +24,15 @@ void StringUtil::split(std::string& s, std::string& delim,std::vector< std::stri
 	{
 		ret->push_back(s.substr(last,index-last));
 		last=index+1;
-		index=s.find_first_of(delim,last);
+		if(limit>1 && ret->size()==limit-1) {
+			index = s.npos;
+		} else {
+			index=s.find_first_of(delim,last);
+		}
 	}
-	if (index-last>0)
+	if (last<s.size())
 	{
-		ret->push_back(s.substr(last,index-last));
+		ret->push_back(s.substr(last));
 	}
 }
 

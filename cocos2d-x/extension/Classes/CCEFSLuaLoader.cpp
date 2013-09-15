@@ -1,5 +1,5 @@
 #include "CCEFSLuaLoader.h"
-#include "platform\CCFileSystemProtocol.h"
+#include "platform\CCFileSystem.h"
 
 #include "CCEUtil.h"
 #include "CCELuaApplication.h"
@@ -32,7 +32,7 @@ std::string CCEFSLuaLoader::loader_callback(CCELuaApplication* host, void* data,
 	path.append(".lua");
 
 	unsigned long size;
-	unsigned char* buf = CCFileSystemBase::sharedFileSystem()->fileRead(kLua, path.c_str(), &size);
+	unsigned char* buf = CCFileSystem::sharedFileSystem()->fileRead(kLua, path.c_str(), &size);
 	if(buf!=NULL) {
 		std::string r((char*)buf, size);
 		delete[] buf;

@@ -76,7 +76,7 @@ private:
 class CCELuaResponseObject : public CCObject
 {
 public:
-	~CCELuaResponseObject();
+	virtual ~CCELuaResponseObject();
 
 public:
 	static CCELuaResponseObject* create(CCELuaApplication* app, int cid);
@@ -95,7 +95,7 @@ protected:
 class CCELuaCallObject: public CCObject
 {
 public:
-	~CCELuaCallObject();
+	virtual ~CCELuaCallObject();
 
 public:
 	static CCELuaCallObject* create(CCELuaApplication* app, const char* fun);
@@ -114,7 +114,7 @@ protected:
 class CCELuaClosureObject : public CCObject
 {
 public:
-	~CCELuaClosureObject();
+	virtual ~CCELuaClosureObject();
 
 public:
 	static CCELuaClosureObject* create(CCELuaApplication* app, int cid);
