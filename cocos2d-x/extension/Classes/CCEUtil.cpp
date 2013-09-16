@@ -36,6 +36,31 @@ void StringUtil::split(std::string& s, std::string delim,std::vector< std::strin
 	}
 }
 
+void StringUtil::parseProperties(std::string& s, const char* propDelim, const char* keyValueDelim, std::map<std::string, std::string>* ret)
+{
+	if(propDelim!=NULL) {
+		std::vector<std::string> plist;
+		split(s, propDelim, &plist);
+		std::vector<std::string>::const_iterator it = plist.begin();
+		for(;it!=plist.end();it++) {
+			std::string str = *it;
+			parseProperties(str, NULL, keyValueDelim, ret);
+		}
+		return;
+	}
+
+	std::string str = trim(s);
+	if(str.size()==0)return;
+	size_t idx = str.find_first_of(keyValueDelim);
+	if(idx==std::string::npos) {
+		(*ret)[str] = "";
+	} else {
+		std::string key = str.substr(0, idx);
+		std::string value = str.substr(idx+1);
+		(*ret)[key] = value;
+	}
+}
+
 int StringUtil::replaceAll(std::string& str,  const std::string& pattern,  const std::string& newpat) 
 { 
 	int count = 0; 
@@ -53,8 +78,9 @@ int StringUtil::replaceAll(std::string& str,  const std::string& pattern,  const
 }
 
 std::string StringUtil::trim(std::string& str)
-{
+{	
 	std::string s = str;
+	if(s.size()==0)return s;
 	std::string::iterator c;
 	for (c = s.begin(); c != s.end() && iswspace(*c++);); s.erase(s.begin(), --c);
 	for (c = s.end(); c != s.begin() && iswspace(*--c);); s.erase(++c, s.end());

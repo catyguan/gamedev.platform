@@ -31,10 +31,17 @@ Classes/CCEScene.cpp \
 Classes/CCEScrollView.cpp \
 Classes/CCESpriteFrameUtil.cpp \
 Classes/CCETouch.cpp \
+Classes/CCEUpgradeManager.cpp \
 Classes/CCEUtil.cpp \
 Classes/CCO4File.cpp \
 Classes/CCO4HttpClient.cpp \
-Classes/CCScale9Sprite.cpp
+Classes/CCScale9Sprite.cpp \
+Classes/editbox/CCEditBox.cpp \
+Classes/editbox/CCEditBoxImplAndroid.cpp \
+Classes/CCERootScene.cpp \
+Classes/CCEDEVScene.cpp \
+Classes/CCEDEVUpgradeScene.cpp \
+Classes/CCEDEVUpgradeConfigScene.cpp
 
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/Classes
 

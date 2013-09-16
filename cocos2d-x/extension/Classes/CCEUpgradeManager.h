@@ -14,10 +14,17 @@ typedef struct _UpgradeConfig {
 	int step;
 } UpgradeConfig;
 
+typedef struct _UpgradeInfo {
+	bool end;
+	bool fail;
+	int finishWork;
+	int totalWork;
+	std::string message;
+} UpgradeInfo;
+
 #define UPGRADE_STATUS_END		0
 #define UPGRADE_STATUS_PROCESS	1
 #define UPGRADE_STATUS_FAIL		-1	
-typedef bool (CALLBACK *CCEUpgradeProcesser)(void* data, int status, int remainStep, float currentStepPer);
 
 class CCEUpgradeManager
 {
@@ -32,24 +39,24 @@ public:
 	bool setConfig(UpgradeConfig* cfg);
 
 	bool isProcessing();
-	bool start(CCEUpgradeProcesser processer,void *data);
+	bool start();
+	void queryInfo(UpgradeInfo* info);
 	bool cancel();
 
 	void handleDownload(CCValueArray& params, int type, int fstype, std::string fileName);
 
 protected:
+	void addWorks(std::string s);
 	void doProcess();
 	bool _doProcess();
 	void download(std::string url, std::string host, CCValueMap* params, int type, int fstype, std::string fileName);
-	void callback(int status, float per);
+	void finishWork(int status, const char* msg);
 
 protected:	
-	CCEUpgradeProcesser m_processer;
-	void* m_processerData;
-
 	bool m_processing;
 	UpgradeConfig m_config;
-	std::vector<std::string> m_stepList;
+	UpgradeInfo m_info;	
+	std::vector<std::string> m_workList;
 
 	int m_httpclientRequestId;
 };

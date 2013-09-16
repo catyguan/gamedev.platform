@@ -20,6 +20,9 @@
     <ClInclude Include="..\Classes\CCEButton.h" />
     <ClInclude Include="..\Classes\CCEContainer.h" />
     <ClInclude Include="..\Classes\CCEControl.h" />
+    <ClInclude Include="..\Classes\CCEDEVScene.h" />
+    <ClInclude Include="..\Classes\CCEDEVUpgradeConfigScene.h" />
+    <ClInclude Include="..\Classes\CCEDEVUpgradeScene.h" />
     <ClInclude Include="..\Classes\CCEDialog.h" />
     <ClInclude Include="..\Classes\CCEDialogue.h" />
     <ClInclude Include="..\Classes\CCEDirector.h" />
@@ -29,11 +32,11 @@
     <ClInclude Include="..\Classes\CCELabelButton.h" />
     <ClInclude Include="..\Classes\CCELayerTouch.h" />
     <ClInclude Include="..\Classes\CCELayoutUtil.h" />
-    <ClInclude Include="..\Classes\CCELogoScene.h" />
     <ClInclude Include="..\Classes\CCELuaApplication.h" />
     <ClInclude Include="..\Classes\CCENarrate.h" />
     <ClInclude Include="..\Classes\CCEPixelNode.h" />
     <ClInclude Include="..\Classes\CCERectsNode.h" />
+    <ClInclude Include="..\Classes\CCERootScene.h" />
     <ClInclude Include="..\Classes\CCEScene.h" />
     <ClInclude Include="..\Classes\CCEScrollView.h" />
     <ClInclude Include="..\Classes\CCESocket.h" />
@@ -51,6 +54,9 @@
     <ClInclude Include="..\Classes\CCO4ThriftRemote.h" />
     <ClInclude Include="..\Classes\CCO4UserDefault.h" />
     <ClInclude Include="..\Classes\CCScale9Sprite.h" />
+    <ClInclude Include="..\Classes\editbox\CCEditBox.h" />
+    <ClInclude Include="..\Classes\editbox\CCEditBoxImplWin.h" />
+    <ClInclude Include="..\Classes\editbox\Win32InputBox.h" />
     <ClInclude Include="..\sqlite\SQLiteVFS.h" />
     <ClInclude Include="..\thrift\protocol\TBinaryProtocol.h" />
     <ClInclude Include="..\thrift\protocol\TProtocol.h" />
@@ -73,6 +79,9 @@
     <ClCompile Include="..\Classes\CCEButton.cpp" />
     <ClCompile Include="..\Classes\CCEContainer.cpp" />
     <ClCompile Include="..\Classes\CCEControl.cpp" />
+    <ClCompile Include="..\Classes\CCEDEVScene.cpp" />
+    <ClCompile Include="..\Classes\CCEDEVUpgradeConfigScene.cpp" />
+    <ClCompile Include="..\Classes\CCEDEVUpgradeScene.cpp" />
     <ClCompile Include="..\Classes\CCEDialog.cpp" />
     <ClCompile Include="..\Classes\CCEDialogue.cpp" />
     <ClCompile Include="..\Classes\CCEDirector.cpp" />
@@ -82,11 +91,11 @@
     <ClCompile Include="..\Classes\CCELabelButton.cpp" />
     <ClCompile Include="..\Classes\CCELayerTouch.cpp" />
     <ClCompile Include="..\Classes\CCELayoutUtil.cpp" />
-    <ClCompile Include="..\Classes\CCELogoScene.cpp" />
     <ClCompile Include="..\Classes\CCELuaApplication.cpp" />
     <ClCompile Include="..\Classes\CCENarrate.cpp" />
     <ClCompile Include="..\Classes\CCEPixelNode.cpp" />
     <ClCompile Include="..\Classes\CCERectsNode.cpp" />
+    <ClCompile Include="..\Classes\CCERootScene.cpp" />
     <ClCompile Include="..\Classes\CCEScene.cpp" />
     <ClCompile Include="..\Classes\CCEScrollView.cpp" />
     <ClCompile Include="..\Classes\CCESocket.cpp" />
@@ -103,6 +112,9 @@
     <ClCompile Include="..\Classes\CCO4ThriftRemote.cpp" />
     <ClCompile Include="..\Classes\CCO4UserDefault.cpp" />
     <ClCompile Include="..\Classes\CCScale9Sprite.cpp" />
+    <ClCompile Include="..\Classes\editbox\CCEditBox.cpp" />
+    <ClCompile Include="..\Classes\editbox\CCEditBoxImplWin.cpp" />
+    <ClCompile Include="..\Classes\editbox\Win32InputBox.cpp" />
     <ClCompile Include="..\sqlite\SQLiteVFS.cpp" />
     <ClCompile Include="..\thrift\protocol\TScheme.cpp" />
     <ClCompile Include="..\thrift\TApplicationException.cpp" />
