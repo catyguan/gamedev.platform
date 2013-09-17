@@ -325,6 +325,23 @@ public:
 
 	virtual bool hasEventHandler(const char* name);
 	virtual bool raiseEvent(const char* name, CCNodeEvent*);
+
+	// cc_call
+	CC_DECLARE_CALLS_BEGIN	
+	CC_DECLARE_CALL(text)
+	CC_DECLARE_CALL(fontName)
+	CC_DECLARE_CALL(fontSize)
+	CC_DECLARE_CALL(fontColor)
+	CC_DECLARE_CALL(placeholderText)
+	CC_DECLARE_CALL(placeholderFontName)
+	CC_DECLARE_CALL(placeholderFontSize)
+	CC_DECLARE_CALL(placeholderFontColor)
+	CC_DECLARE_CALL(maxLength)
+	CC_DECLARE_CALL(inputMode)
+	CC_DECLARE_CALL(inputFlag)
+	CC_DECLARE_CALL(returnType)
+	CC_DECLARE_CALLS_END
+	// end cc_call
     
 protected:
     CCEditBoxImpl*      m_pEditBoxImpl;

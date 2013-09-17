@@ -33,7 +33,7 @@
 #include "ExtensionMacros.h"
 #include "CCEditBoxImpl.h"
 
-NS_CC_EXT_BEGIN
+USING_NS_CC;
 
 class CCEditBox;
 
@@ -84,9 +84,6 @@ private:
     int   m_nMaxLength;
     CCSize m_EditSize;
 };
-
-
-NS_CC_EXT_END
 
 #endif /* #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) */
 

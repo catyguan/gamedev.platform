@@ -9,6 +9,7 @@
 #include "CCEAction.h"
 #include "CCEButton.h"
 #include "CCEScrollView.h"
+#include "editbox\CCEditBox.h"
 #include "misc_nodes\CCRenderTexture.h"
 
 USING_NS_CC;
@@ -210,6 +211,25 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 		o->setup(cfg);
 		return o;
 	}	
+	if(strcmp(type,"CCEditBox")==0) {
+		CCEditBox* o = NULL;
+		CCSize sz;
+		
+		CCValueReader r(&cfg);
+		if(r.isMap()) {
+			CCValue* v;			
+			v = r.getNull("size");
+			if(v!=NULL) {
+				sz = CCValueUtil::size(*v);
+				r.remove("size");
+			}
+				
+			
+		}
+		o = CCEditBox::create(sz);
+		o->setup(cfg);
+		return o;
+	}
 	if(strcmp(type,"CCEDialogue")==0) {
 		CCEDialogue* o = CCEDialogue::create();
 		o->setup(cfg);

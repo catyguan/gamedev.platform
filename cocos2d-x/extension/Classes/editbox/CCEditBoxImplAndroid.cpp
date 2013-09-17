@@ -28,11 +28,10 @@
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 
 #include "CCEditBox.h"
-#include "jni/Java_org_cocos2dx_lib_Cocos2dxBitmap.h"
-#include "jni/Java_org_cocos2dx_lib_Cocos2dxHelper.h"
+#include "platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxBitmap.h"
+#include "platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxHelper.h"
 
-
-NS_CC_EXT_BEGIN
+USING_NS_CC;
 
 CCEditBoxImpl* __createSystemEditBox(CCEditBox* pEditBox)
 {
@@ -257,12 +256,11 @@ static void editBoxCallbackFunc(const char* pText, void* ctx)
     }
     
     CCEditBox* pEditBox = thiz->getCCEditBox();
-    if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
+    if (NULL != pEditBox)
     {
-        cocos2d::CCScriptEngineProtocol* pEngine = cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine();
-        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "changed",pEditBox);
-        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "ended",pEditBox);
-        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "return",pEditBox);
+        pEditBox->raiseEvent(NODE_EVENT_EDITBOX_CHANGED, NULL);		
+		pEditBox->raiseEvent(NODE_EVENT_EDITBOX_ENDED, NULL);
+		pEditBox->raiseEvent(NODE_EVENT_EDITBOX_RETURN, NULL);
     }
 }
 
@@ -273,10 +271,9 @@ void CCEditBoxImplAndroid::openKeyboard()
         m_pDelegate->editBoxEditingDidBegin(m_pEditBox);
     }
     CCEditBox* pEditBox = this->getCCEditBox();
-    if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
+    if (NULL != pEditBox)
     {
-        cocos2d::CCScriptEngineProtocol* pEngine = cocos2d::CCScriptEngineManager::sharedManager()->getScriptEngine();
-        pEngine->executeEvent(pEditBox->getScriptEditBoxHandler(), "began",pEditBox);
+        pEditBox->raiseEvent(NODE_EVENT_EDITBOX_BEGAN,NULL);
     }
 	
     showEditTextDialogJNI(  m_strPlaceHolder.c_str(),
@@ -294,8 +291,6 @@ void CCEditBoxImplAndroid::closeKeyboard()
 {
 	
 }
-
-NS_CC_EXT_END
 
 #endif /* #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) */
 

@@ -26,6 +26,7 @@
 #include "CCEditBox.h"
 #include "CCEditBoxImpl.h"
 #include "CCETouch.h"
+#include "cocoa\CCValueSupport.h"
 
 USING_NS_CC;
 
@@ -390,4 +391,107 @@ void CCEditBox::keyboardWillHide(CCIMEKeyboardNotificationInfo& info)
 void CCEditBox::keyboardDidHide(CCIMEKeyboardNotificationInfo& info)
 {
 	
+}
+
+// cc_call
+CC_BEGIN_CALLS(CCEditBox, CCEControl)
+	CC_DEFINE_CALL(CCEditBox, text)
+	CC_DEFINE_CALL(CCEditBox, fontName)
+	CC_DEFINE_CALL(CCEditBox, fontSize)
+	CC_DEFINE_CALL(CCEditBox, fontColor)
+	CC_DEFINE_CALL(CCEditBox, placeholderText)	
+	CC_DEFINE_CALL(CCEditBox, placeholderFontName)
+	CC_DEFINE_CALL(CCEditBox, placeholderFontSize)
+	CC_DEFINE_CALL(CCEditBox, placeholderFontColor)
+	CC_DEFINE_CALL(CCEditBox, maxLength)
+	CC_DEFINE_CALL(CCEditBox, inputMode)
+	CC_DEFINE_CALL(CCEditBox, inputFlag)
+	CC_DEFINE_CALL(CCEditBox, returnType)
+CC_END_CALLS(CCEditBox, CCEControl)
+
+CCValue CCEditBox::CALLNAME(text)(CCValueArray& params) {
+	if(params.size()>0) {
+		setText(params[0].stringValue().c_str());
+	}
+	return CCValue::stringValue(getText());
+}
+
+CCValue CCEditBox::CALLNAME(fontName)(CCValueArray& params) {
+	if(params.size()>0) {
+		setFontName(params[0].stringValue().c_str());
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(fontSize)(CCValueArray& params) {
+	if(params.size()>0) {
+		int sz = params[0].intValue();
+		setFontSize(sz);
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(fontColor)(CCValueArray& params) {
+	if(params.size()>0) {
+		ccColor3B color = CCValueUtil::color3b(params[0]);
+		setFontColor(color);
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(placeholderText)(CCValueArray& params) {
+	if(params.size()>0) {
+		setPlaceHolder(params[0].stringValue().c_str());
+	}
+	return CCValue::stringValue(getPlaceHolder());
+}
+
+CCValue CCEditBox::CALLNAME(placeholderFontName)(CCValueArray& params) {
+	if(params.size()>0) {
+		setPlaceholderFontName(params[0].stringValue().c_str());
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(placeholderFontSize)(CCValueArray& params) {
+	if(params.size()>0) {
+		setPlaceholderFontSize(params[0].intValue());
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(placeholderFontColor)(CCValueArray& params) {
+	if(params.size()>0) {
+		ccColor3B color = CCValueUtil::color3b(params[0]);
+		setPlaceholderFontColor(color);
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(maxLength)(CCValueArray& params) {
+	if(params.size()>0) {
+		setMaxLength(params[0].intValue());
+	}
+	return CCValue::intValue(getMaxLength());
+}
+
+CCValue CCEditBox::CALLNAME(inputMode)(CCValueArray& params) {
+	if(params.size()>0) {
+		setInputMode(EditBoxInputMode(params[0].intValue()));
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(inputFlag)(CCValueArray& params) {
+	if(params.size()>0) {
+		setInputFlag(EditBoxInputFlag(params[0].intValue()));
+	}
+	return CCValue::nullValue();
+}
+
+CCValue CCEditBox::CALLNAME(returnType)(CCValueArray& params) {
+	if(params.size()>0) {
+		setReturnType(KeyboardReturnType(params[0].intValue()));
+	}
+	return CCValue::nullValue();
 }
