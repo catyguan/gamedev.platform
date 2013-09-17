@@ -204,8 +204,15 @@ bool CCEUpgradeManager::_doProcess()
 			return false;
 		}
 		if(cmd.compare("end")==0) {
+			props.clear();
+			StringUtil::parseProperties(param,",","=", &props);			
+			std::string newVersion = prop(props,"v");
+
 			std::string msg = StringUtil::format("version %s done", m_config.version.c_str());
 			CCLOG("Upgrade: %s", msg.c_str());
+			if(newVersion.size()>0) {
+				m_config.version = newVersion;
+			}
 			m_config.step = UPGRADE_STEP_QUERY;
 			setConfig(&m_config);
 			finishWork(UPGRADE_STATUS_END, msg.c_str());
@@ -220,7 +227,7 @@ bool CCEUpgradeManager::_doProcess()
 			std::string url = prop(props, "l");
 			CCLOG("Upgrade: download %d,%s from %s ...", fstype, fileName.c_str(), url.c_str());
 			download(url,host,NULL,2, fstype, fileName);
-			return false;			
+			return false;
 		}
 		if(cmd.compare("rm")==0) {
 			props.clear();

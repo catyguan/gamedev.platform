@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+                     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<context:annotation-config />	
+	
+	<bean id="upgradeFileSystem" class="ge.gsupgrade.UpgradeFileSystem">
+		<property name="paths">
+			<list>
+				<bean class="ge.gsupgrade.PathSetting">
+					<property name="fileSystemType" value="3"/>
+					<property name="id" value="lbc"/>
+					<property name="path" value="d:/workroom/gamedev.platform/lua.libs/src"/>
+				</bean>
+			</list>
+		</property>
+	</bean>
+		
+	<!-- server -->
+	<bean id="upgradeServer" class="ge.gsupgrade.UpgradeWebServer" init-method="init"
+		destroy-method="close">
+		<property name="port" value="8080" />
+		<property name="worker" value="5" />
+		<property name="accessUrl" value="http://localhost:8080/update" />
+		<property name="fileSystem" ref="upgradeFileSystem" />
+	</bean>	
+	
+	<!-- BOOT -->
+	<!-- bma.common.langutil.ai.boot.AIServerBoot -->	
+	<!-- booter -->
+	<bean id="booter" class="bma.common.langutil.spring.SimpleServerBooter">
+        <property name="mainList">
+        	<list>
+        		<ref bean="upgradeServer"/>   
+        	</list>
+        </property>
+    </bean>	 
+
+</beans>

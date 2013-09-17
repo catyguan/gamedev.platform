@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ge.upgradeWebServer" default="main" xmlns:artifact="urn:maven-artifact-ant">
+	
+	<property name="project.path" value="D:/workroom/gamedev.platform/gservice/gsupgrade"/>
+
+	<tstamp/>
+	<property name="public.time" value="${DSTAMP}"/>
+	
+	<target name="init_env">
+		<available property="env.properties.present" file="../${env}.properties" type="file" />
+		<fail unless="env.properties.present" message="env file not exists" />
+		<property file="../${env}.properties" />		
+		<property name="zipfile" value="ge_upgrade_webserver_${public.time}_v1.0.0.${env}.zip" />
+		<!-- ant tool -->
+		<path id="mylib">
+			<fileset dir="${ant.libs}" includes="*.jar" />
+		</path>
+		<typedef resource="bma/ant/commons/types.properties" classpathref="mylib" />
+		<taskdef resource="bma/ant/commons/tasks.properties" classpathref="mylib" />
+	</target>
+
+	<target name="init_maven" depends="init_env">
+		<!-- maven tool -->
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="mylib" />
+	</target>
+
+	<target name="install_ge" depends="init_env">
+		<!-- install task -->
+		<exec executable="${mvn.bat}">
+			<arg line="-gs ${mvn.gs} -f ${project.path}/pom.xml clean" />
+		</exec>
+		<exec executable="${mvn.bat}">
+			<arg line="-gs ${mvn.gs} -f ${project.path}/pom.xml install" />
+		</exec>		
+    </target>		
+	
+	<target name="package_app" depends="init_env">
+		<exec executable="${mvn.bat}">
+			<arg line="-gs ${mvn.gs} -f ${basedir}/pom.xml clean" />
+		</exec>
+		<exec executable="${mvn.bat}">
+			<arg line="-gs ${mvn.gs} -f ${basedir}/pom.xml install" />
+		</exec>	
+	</target>
+	
+	<target name="cleanup" depends="init_env">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${work.basedir}" includes="**/*" defaultexcludes="false" />
+		</delete>
+	</target>
+			
+	<target name="unpack" depends="init_maven">
+	    <artifact:pom id="maven.project" file="${basedir}/pom.xml" />        
+		<echo>unpack the ${maven.project.build.finalName}.jar</echo>
+		<property name="appjarfile" value="${maven.project.build.directory}/${maven.project.build.finalName}.jar"/>
+		<unzip src="${appjarfile}" dest="${work.basedir}/jar" />
+	</target>
+
+	<target name="writeConf" depends="init_env">
+		<copy todir="${work.basedir}/deploy_jar" filtering="true" encoding="UTF-8">
+			<fileset dir="${work.basedir}/jar" includes="">
+				<include name="**/*.properties"/>
+			</fileset>
+			<filterset begintoken="${" endtoken="}">
+				<filtersfile file="${deploy_env.file}" />
+			</filterset>
+		</copy>
+		<copy todir="${work.basedir}/deploy_jar" encoding="UTF-8">
+			<fileset dir="${work.basedir}/jar" />
+		</copy>		
+	</target>
+
+	<target name="repack" depends="init_maven">
+		<jar destfile="${work.basedir}/workspace/libs/${maven.project.build.finalName}.jar" basedir="${work.basedir}/deploy_jar"/>
+	</target>
+	
+	<target name="build_workspace" depends="init_env">
+		<copy todir="${work.basedir}/workspace" filtering="true" encoding="UTF-8">
+			<fileset dir="${basedir}/workspace" />
+			<filterset begintoken="$[" endtoken="]">
+				<filtersfile file="${deploy_env.file}" />
+			</filterset>
+		</copy>
+		<copy todir="${work.basedir}/workspace/libs" encoding="UTF-8">
+			<fileset dir="${basedir}/target/libs" />
+		</copy>	
+		<copy todir="${work.basedir}/workspace/classes" encoding="UTF-8">
+			<fileset dir="${work.basedir}/deploy_jar" includes="**/*" />
+		</copy>
+		<zip destfile="${basedir}/${zipfile}" basedir="${work.basedir}/workspace" />
+	</target>
+	
+	<target name="package" depends="cleanup,install_ge,package_app,unpack,writeConf,build_workspace"/>
+	
+	<target name="main">
+		<echo message="package?" />
+	</target>
+
+</project>

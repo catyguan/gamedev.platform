@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>%date [%thread] %-5level %logger{80} - %msg%n</pattern>
+		</layout>
+	</appender>
+	
+	<logger name="com.mchange.v2" additivity="false">
+		<level value="INFO" />
+	</logger>
+	
+	<logger name="org.hibernate" additivity="false">
+		<level value="INFO" />
+	</logger>
+	
+	<logger name="net.sf.ehcache" additivity="false">
+		<level value="INFO" />
+	</logger>
+	
+	<logger name="bma.common.langutil.concurrent.ProcessTimeWheel" additivity="false">
+		<level value="INFO" />
+	</logger>	
+
+	<root>
+		<level value="INFO" />
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>

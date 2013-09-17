@@ -1,0 +1,6 @@
+dl:l=http://127.0.0.1:8080/test/abc1.txt,t=1,f=test/abc1.txt
+dl:l=http://127.0.0.1:8080/test/abc1.txt,t=2,f=test/abc1.txt
+dl:l=http://127.0.0.1:8080/test/abc1.txt,t=3,f=test/abc1.txt
+dl:l=http://127.0.0.1:8080/test/abc1.txt,t=4,f=test/abc1.txt
+rm:t=4,f=test/abc1.txt
+end

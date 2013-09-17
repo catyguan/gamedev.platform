@@ -32,7 +32,7 @@ public class UpgradeWebServerTC extends TestCase {
 	public void test_server() {
 		NettyWebServer s = server();
 		s.start();
-		ObjectUtil.waitFor(this, 60 * 1000);
+		ObjectUtil.waitFor(this, 30*60 * 1000);
 		s.close();
 	}
 
