@@ -25,7 +25,7 @@
 
 #include "CCEditBox.h"
 #include "CCEditBoxImpl.h"
-#include "CCETouch.h"
+#include "..\CCETouch.h"
 #include "cocoa\CCValueSupport.h"
 
 USING_NS_CC;

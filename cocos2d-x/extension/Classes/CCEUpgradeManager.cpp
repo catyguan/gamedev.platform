@@ -187,6 +187,8 @@ bool CCEUpgradeManager::_doProcess()
 		std::string ln = *it;
 		m_workList.erase(it);
 
+		CCLOG("work >> %s", ln.c_str());
+
 		ln = StringUtil::trim(ln);
 		if(ln.size()==0) {
 			finishWork(UPGRADE_STATUS_PROCESS, NULL);

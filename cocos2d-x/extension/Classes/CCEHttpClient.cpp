@@ -200,7 +200,7 @@ size_t httpclient_writeFunction( void *ptr, size_t size, size_t nmemb, void *use
 		req->data = tmp;
 		req->datasize = gs;
 	}
-	memcpy(req->data, ptr, sz);
+	memcpy(req->data+req->size, ptr, sz);
 	req->size+=sz;
 	return sz; 
 }

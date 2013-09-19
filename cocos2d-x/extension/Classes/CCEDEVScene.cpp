@@ -21,7 +21,8 @@ const int g_DevMenu[] = {
 	DEV_RESET_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, -1
 };
 
-#define LINE_SPACE          40
+#define MY_FONT_SIZE			64
+#define MY_LINE_SPACE          (MY_FONT_SIZE+8)
 
 // layer
 class CCEDEVSceneLayer : public CCLayer
@@ -93,7 +94,7 @@ void CCEDEVSceneLayer::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
         return;
     }
 
-	float ny = ((DEV_COUNT + 1)* LINE_SPACE - CCEAppUtil::getVisibleRect().size.height);
+	float ny = ((DEV_COUNT + 1)* MY_LINE_SPACE - CCEAppUtil::getVisibleRect().size.height);
 	if(ny<0.0f)ny=0.0f;
     if (nextPos.y > ny)
     {
@@ -127,14 +128,14 @@ CCEDEVScene* CCEDEVScene::create(fnAppStartup fn, void* data)
 		while(g_DevMenu[i]!=-1)
 		{
 			int id = g_DevMenu[i];
-			CCLabelTTF* label = CCLabelTTF::create(g_DevMenuNames[id].c_str(), "Arial", 32);
+			CCLabelTTF* label = CCLabelTTF::create(g_DevMenuNames[id].c_str(), "Arial", MY_FONT_SIZE);
 			CCMenuItemLabel* pMenuItem = CCMenuItemLabel::create(label, r, menu_selector(CCEDEVScene::menuCallback));
 			menu->addChild(pMenuItem, 0, id);
-			pMenuItem->setPosition( ccp( CCEAppUtil::getVisibleCenter().x, (CCEAppUtil::getVisibleTop().y - (i + 1) * LINE_SPACE) ));
+			pMenuItem->setPosition( ccp( CCEAppUtil::getVisibleCenter().x, (CCEAppUtil::getVisibleTop().y - (i + 1) * MY_LINE_SPACE) ));
 			i++;
 		}
 
-		menu->setContentSize(CCSizeMake(CCEAppUtil::getVisibleRect().size.width, (DEV_COUNT + 1) * (LINE_SPACE)));
+		menu->setContentSize(CCSizeMake(CCEAppUtil::getVisibleRect().size.width, (DEV_COUNT + 1) * (MY_LINE_SPACE)));
 		menu->setPosition(s_tCurPos);
 
 		CCEDEVSceneLayer *layer = CCEDEVSceneLayer::create(menu);
