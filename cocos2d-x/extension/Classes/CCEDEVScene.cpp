@@ -1,5 +1,6 @@
 #include "CCEDEVScene.h"
 #include "CCEAppUtil.h"
+#include "CCEDEVConst.h"
 
 USING_NS_CC;
 
@@ -21,8 +22,7 @@ const int g_DevMenu[] = {
 	DEV_RESET_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, -1
 };
 
-#define MY_FONT_SIZE			64
-#define MY_LINE_SPACE          (MY_FONT_SIZE+8)
+#define MY_LINE_SPACE          (DEV_BUTTON_FONT_SIZE+8)
 
 // layer
 class CCEDEVSceneLayer : public CCLayer
@@ -128,7 +128,7 @@ CCEDEVScene* CCEDEVScene::create(fnAppStartup fn, void* data)
 		while(g_DevMenu[i]!=-1)
 		{
 			int id = g_DevMenu[i];
-			CCLabelTTF* label = CCLabelTTF::create(g_DevMenuNames[id].c_str(), "Arial", MY_FONT_SIZE);
+			CCLabelTTF* label = CCLabelTTF::create(g_DevMenuNames[id].c_str(), DEV_FONT_NAME, DEV_BUTTON_FONT_SIZE);
 			CCMenuItemLabel* pMenuItem = CCMenuItemLabel::create(label, r, menu_selector(CCEDEVScene::menuCallback));
 			menu->addChild(pMenuItem, 0, id);
 			pMenuItem->setPosition( ccp( CCEAppUtil::getVisibleCenter().x, (CCEAppUtil::getVisibleTop().y - (i + 1) * MY_LINE_SPACE) ));

@@ -4,10 +4,11 @@
 #include "CCEUtil.h"
 #include "editbox\CCEditBox.h"
 #include "CCEUpgradeManager.h"
+#include "CCEDEVConst.h"
 
 USING_NS_CC;
 
-// CCEDEVUpgradeScene
+// CCEDEVUpgradeConfigScene
 CCEDEVUpgradeConfigScene::CCEDEVUpgradeConfigScene()
 {
 
@@ -34,8 +35,8 @@ bool CCEDEVUpgradeConfigScene::init()
 	float y = sz.height - 100;
 	float h = 40;
 	
-	const char* fontName = "Arial";
-	CCLabelTTF* l1 = CCLabelTTF::create("url: ", fontName, 24);
+	const char* fontName = DEV_FONT_NAME;
+	CCLabelTTF* l1 = CCLabelTTF::create("url: ", fontName, DEV_LABEL_FONT_SIZE);
 	l1->setAnchorPoint(CCPointZero);
 	l1->setPosition(ccp(x,y));
 	h = l1->getContentSize().height;
@@ -43,35 +44,35 @@ bool CCEDEVUpgradeConfigScene::init()
 
 	CCEditBox* e1 = CCEditBox::create(CCSizeMake(600,h));
 	e1->setFontName(fontName);
-	e1->setFontSize(24);
+	e1->setFontSize(DEV_EDITOR_FONT_SIZE);
 	e1->setAnchorPoint(ccp(0, 0));
 	e1->setPosition(ccp(l1->getContentSize().width+x, y));	
 	e1->setText(cfg.url.c_str());
 	y -= (e1->getContentSize().height + 16);
 	layer->addChild(e1);
 
-	CCLabelTTF* l2 = CCLabelTTF::create("host: ", fontName, 24);
+	CCLabelTTF* l2 = CCLabelTTF::create("host: ", fontName, DEV_LABEL_FONT_SIZE);
 	l2->setAnchorPoint(CCPointZero);
 	l2->setPosition(ccp(x,y));
 	layer->addChild(l2);
 
 	CCEditBox* e2 = CCEditBox::create(CCSizeMake(600,h));
 	e2->setFontName(fontName);
-	e2->setFontSize(24);
+	e2->setFontSize(DEV_EDITOR_FONT_SIZE);
 	e2->setAnchorPoint(ccp(0, 0));
 	e2->setPosition(ccp(l2->getContentSize().width+x, y));	
 	e2->setText(cfg.host.c_str());
 	y -= (e2->getContentSize().height + 16);
 	layer->addChild(e2);
 
-	CCLabelTTF* l3 = CCLabelTTF::create("current version: ", fontName, 24);
+	CCLabelTTF* l3 = CCLabelTTF::create("current version: ", fontName, DEV_LABEL_FONT_SIZE);
 	l3->setAnchorPoint(CCPointZero);
 	l3->setPosition(ccp(x,y));
 	layer->addChild(l3);
 
 	CCEditBox* e3 = CCEditBox::create(CCSizeMake(600,h));
 	e3->setFontName(fontName);
-	e3->setFontSize(24);
+	e3->setFontSize(DEV_EDITOR_FONT_SIZE);
 	e3->setAnchorPoint(ccp(0, 0));
 	e3->setPosition(ccp(l3->getContentSize().width+x, y));	
 	e3->setText(cfg.version.c_str());
@@ -79,7 +80,7 @@ bool CCEDEVUpgradeConfigScene::init()
 	layer->addChild(e3);
 
 	y -= 100;
-	CCLabelTTF* lb1 = CCLabelTTF::create("GoBack ", "Arial", 32);
+	CCLabelTTF* lb1 = CCLabelTTF::create("GoBack ", "Arial", DEV_LABEL_FONT_SIZE);
 	CCEButton* b1 = CCEButton::create(lb1, NULL);
 	b1->setAnchorPoint(ccp(0,0.5));
 	b1->setPosition(ccp(x,y));

@@ -2,6 +2,7 @@
 #include "CCELayerTouch.h"
 #include "CCEButton.h"
 #include "CCEUtil.h"
+#include "CCEDEVConst.h"
 
 USING_NS_CC;
 
@@ -28,14 +29,14 @@ bool CCEDEVUpgradeScene::init()
 	float x = 100;
 	float y = sz.height - 100;
 
-	CCLabelTTF* l1 = CCLabelTTF::create("Status: ", "Arial", 32);
+	CCLabelTTF* l1 = CCLabelTTF::create("Status: ", DEV_FONT_NAME, DEV_LABEL_FONT_SIZE);
 	l1->setTag(1);
 	l1->setAnchorPoint(ccp(0, 0.5));
 	l1->setPosition(ccp(x, y));
 	y -= (l1->getContentSize().height + 16);
 	layer->addChild(l1);
 
-	CCLabelTTF* l2 = CCLabelTTF::create("Progress: ", "Arial", 32);
+	CCLabelTTF* l2 = CCLabelTTF::create("Progress: ", DEV_FONT_NAME, DEV_LABEL_FONT_SIZE);
 	l2->setTag(2);
 	l2->setAnchorPoint(ccp(0, 0.5));
 	l2->setPosition(ccp(x, y));
@@ -43,14 +44,14 @@ bool CCEDEVUpgradeScene::init()
 	layer->addChild(l2);
 		
 	y -= 100;
-	CCLabelTTF* l4 = CCLabelTTF::create("Upgrade!", "Arial", 32);
+	CCLabelTTF* l4 = CCLabelTTF::create("Upgrade!", DEV_FONT_NAME, DEV_BUTTON_FONT_SIZE);
 	CCEButton* b2 = CCEButton::create(l4, NULL);
 	b2->setAnchorPoint(ccp(0,0.5));
 	b2->setPosition(ccp(x,y));
 	y -= (b2->getContentSize().height + 16);
 	layer->addChild(b2);
 
-	CCLabelTTF* l3 = CCLabelTTF::create("GoBack ", "Arial", 32);
+	CCLabelTTF* l3 = CCLabelTTF::create("GoBack ", DEV_FONT_NAME, DEV_BUTTON_FONT_SIZE);
 	CCEButton* b1 = CCEButton::create(l3, NULL);
 	b1->setAnchorPoint(ccp(0,0.5));
 	b1->setPosition(ccp(x,y));

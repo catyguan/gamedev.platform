@@ -20,6 +20,7 @@
     <ClInclude Include="..\Classes\CCEButton.h" />
     <ClInclude Include="..\Classes\CCEContainer.h" />
     <ClInclude Include="..\Classes\CCEControl.h" />
+    <ClInclude Include="..\Classes\CCEDEVConst.h" />
     <ClInclude Include="..\Classes\CCEDEVScene.h" />
     <ClInclude Include="..\Classes\CCEDEVUpgradeConfigScene.h" />
     <ClInclude Include="..\Classes\CCEDEVUpgradeScene.h" />
