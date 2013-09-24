@@ -80,7 +80,7 @@ bool CCEDEVUpgradeConfigScene::init()
 	layer->addChild(e3);
 
 	y -= 100;
-	CCLabelTTF* lb1 = CCLabelTTF::create("GoBack ", "Arial", DEV_LABEL_FONT_SIZE);
+	CCLabelTTF* lb1 = CCLabelTTF::create("GoBack ", DEV_FONT_NAME, DEV_LABEL_FONT_SIZE);
 	CCEButton* b1 = CCEButton::create(lb1, NULL);
 	b1->setAnchorPoint(ccp(0,0.5));
 	b1->setPosition(ccp(x,y));

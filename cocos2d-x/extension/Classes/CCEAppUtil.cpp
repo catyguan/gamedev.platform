@@ -1,6 +1,47 @@
 #include "CCEAppUtil.h"
+#include "CCEConfig.h"
+#include "platform\CCFileSystem.h"
+#include "CCEUtil.h"
 
 USING_NS_CC;
+
+void CCEAppUtil::readConfig(CCEAppConfig* cfg)
+{
+	cfg->appId = CCEConfig::get("appid").stringValue();
+	cfg->designWidth = CCEConfig::get("design_width").intValue();
+	cfg->designHeight = CCEConfig::get("design_height").intValue();
+	cfg->designPolicy = CCEConfig::get("design_policy").intValue();
+
+	std::string str = CCFileSystem::sharedFileSystem()->fileReadString(kAppData, "app.ini");
+	std::map<std::string, std::string> props;
+	StringUtil::parseProperties(str, "\n", "=", &props);
+
+	std::map<std::string, std::string>::const_iterator it = props.begin();
+	for(;it!=props.end();it++) {
+		std::string key = it->first;
+		std::string val = it->second;
+
+		if(key.compare("appid")==0) {
+			cfg->appId = val;
+		} else if(key.compare("design_width")==0) {
+			cfg->designWidth = atoi(val.c_str());
+		} else if(key.compare("design_height")==0) {
+			cfg->designHeight = atoi(val.c_str());
+		} else if(key.compare("design_policy")==0) {
+			cfg->designPolicy = atoi(val.c_str());
+		}
+	}
+}
+
+bool CCEAppUtil::writeConfig(CCEAppConfig* cfg)
+{
+	std::string content = "";
+	content += StringUtil::format("appid=%s\n",cfg->appId.c_str());
+	content += StringUtil::format("design_width=%d\n", cfg->designWidth);
+	content += StringUtil::format("design_height=%d\n", cfg->designHeight);
+	content += StringUtil::format("design_policy=%d\n", cfg->designPolicy);
+	return CCFileSystem::sharedFileSystem()->fileWriteString(kAppData, "app.ini", content);
+}
 
 void CCEAppUtil::initViewResolution(cocos2d::CCEGLView* view, Resource* resources, CCSize designResolutionSize)
 {

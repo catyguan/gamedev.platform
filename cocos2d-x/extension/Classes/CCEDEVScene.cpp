@@ -9,6 +9,7 @@ enum
     DEV_RESET_APP = 0,
 	DEV_UPGRADE,
 	DEV_UPGRADE_CONFIG,
+	DEV_APP_CONFIG,
     DEV_COUNT,    
 };
 
@@ -16,10 +17,11 @@ const std::string g_DevMenuNames[DEV_COUNT] = {
     "Start Application",
 	"Upgrade",
 	"Upgrade Config",
+	"App Config",
 };
 
 const int g_DevMenu[] = {
-	DEV_RESET_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, -1
+	DEV_RESET_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, DEV_APP_CONFIG, -1
 };
 
 #define MY_LINE_SPACE          (DEV_BUTTON_FONT_SIZE+8)
@@ -152,6 +154,7 @@ CCEDEVScene* CCEDEVScene::create(fnAppStartup fn, void* data)
 
 #include "CCEDEVUpgradeScene.h"
 #include "CCEDEVUpgradeConfigScene.h"
+#include "CCEDEVAppConfigScene.h"
 
 void CCEDEVScene::menuCallback(CCObject * pSender)
 {
@@ -170,6 +173,11 @@ void CCEDEVScene::menuCallback(CCObject * pSender)
 		}
 	case DEV_UPGRADE_CONFIG: {
 			CCEDEVUpgradeConfigScene* s2 = CCEDEVUpgradeConfigScene::create();
+			CCDirector::sharedDirector()->pushScene(s2);
+			break;
+		}
+	case DEV_APP_CONFIG: {
+			CCEDEVAppConfigScene* s2 = CCEDEVAppConfigScene::create();
 			CCDirector::sharedDirector()->pushScene(s2);
 			break;
 		}

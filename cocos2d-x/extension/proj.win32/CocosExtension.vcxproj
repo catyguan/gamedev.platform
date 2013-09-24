@@ -20,6 +20,7 @@
     <ClInclude Include="..\Classes\CCEButton.h" />
     <ClInclude Include="..\Classes\CCEContainer.h" />
     <ClInclude Include="..\Classes\CCEControl.h" />
+    <ClInclude Include="..\Classes\CCEDEVAppConfigScene.h" />
     <ClInclude Include="..\Classes\CCEDEVConst.h" />
     <ClInclude Include="..\Classes\CCEDEVScene.h" />
     <ClInclude Include="..\Classes\CCEDEVUpgradeConfigScene.h" />
@@ -80,6 +81,7 @@
     <ClCompile Include="..\Classes\CCEButton.cpp" />
     <ClCompile Include="..\Classes\CCEContainer.cpp" />
     <ClCompile Include="..\Classes\CCEControl.cpp" />
+    <ClCompile Include="..\Classes\CCEDEVAppConfigScene.cpp" />
     <ClCompile Include="..\Classes\CCEDEVScene.cpp" />
     <ClCompile Include="..\Classes\CCEDEVUpgradeConfigScene.cpp" />
     <ClCompile Include="..\Classes\CCEDEVUpgradeScene.cpp" />

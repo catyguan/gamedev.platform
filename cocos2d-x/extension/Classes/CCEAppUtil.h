@@ -9,9 +9,20 @@ typedef struct tagResource
     cocos2d::CCSize size;    
 } Resource;
 
+typedef struct _CCEAppConfig
+{
+	std::string appId;
+	int designWidth;
+	int designHeight;
+	int designPolicy;
+} CCEAppConfig;
+
 class CCEAppUtil
 {
 public:    
+	static void readConfig(CCEAppConfig* cfg);
+	static bool writeConfig(CCEAppConfig* cfg);
+
 	static void initViewResolution(cocos2d::CCEGLView* view, Resource* resources, cocos2d::CCSize designResolutionSize);
 
 	static cocos2d::CCRect getVisibleRect();
