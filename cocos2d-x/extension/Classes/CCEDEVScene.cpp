@@ -6,7 +6,7 @@ USING_NS_CC;
 
 enum
 {
-    DEV_RESET_APP = 0,
+	DEV_START_APP = 0,
 	DEV_UPGRADE,
 	DEV_UPGRADE_CONFIG,
 	DEV_APP_CONFIG,
@@ -14,14 +14,14 @@ enum
 };
 
 const std::string g_DevMenuNames[DEV_COUNT] = {
-    "Start Application",
+    "Start/Reset Application",
 	"Upgrade",
 	"Upgrade Config",
 	"App Config",
 };
 
 const int g_DevMenu[] = {
-	DEV_RESET_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, DEV_APP_CONFIG, -1
+	DEV_START_APP, DEV_UPGRADE, DEV_UPGRADE_CONFIG, DEV_APP_CONFIG, -1
 };
 
 #define MY_LINE_SPACE          (DEV_BUTTON_FONT_SIZE+8)
@@ -163,7 +163,7 @@ void CCEDEVScene::menuCallback(CCObject * pSender)
 	int nIdx = pMenuItem->getTag();
 
 	switch(nIdx) {
-	case DEV_RESET_APP:
+	case DEV_START_APP:
 		startupApp();
 		break;
 	case DEV_UPGRADE: {

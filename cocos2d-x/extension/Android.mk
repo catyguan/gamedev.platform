@@ -41,7 +41,8 @@ Classes/editbox/CCEditBoxImplAndroid.cpp \
 Classes/CCERootScene.cpp \
 Classes/CCEDEVScene.cpp \
 Classes/CCEDEVUpgradeScene.cpp \
-Classes/CCEDEVUpgradeConfigScene.cpp
+Classes/CCEDEVUpgradeConfigScene.cpp \
+Classes/CCEDEVAppConfigScene.cpp
 
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/Classes
 
