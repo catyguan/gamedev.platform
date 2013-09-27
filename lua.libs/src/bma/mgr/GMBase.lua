@@ -1,20 +1,8 @@
 -- bma/mgr/GMBase.lua
 local Class = class.define("bma.mgr.GMBase",{})
 
-function Class:getClassName(clsName, submod)
-	if clsName:sub(1,1)=="@" then
-		return clsName:sub(2)
-	end
-	if self.packageName~=nil then
-		local sp
-		if submod~=nil then
-			sp = "." .. submod .. "."
-		else
-			sp = "."
-		end
-		return self.packageName..sp..clsName
-	end
-	return clsName
+function Class:ctor()
+	self.activities = {}
 end
 
 function Class:beforeRunScene(f)
@@ -25,7 +13,7 @@ function Class:beforeRunScene(f)
 end
 
 function Class:runScene(clsName, ...)
-	local cname = self:getClassName(clsName, "scenes")
+	local cname = APP_CLASS_NAME(clsName, "scenes")
 	local obj = class.new(cname)
 	obj:init(...)
 	local scene = obj:create()
@@ -49,20 +37,20 @@ function Class:runScene(clsName, ...)
 end
 
 function Class:unloadScene(clsName)
-	local cname = self:getClassName(clsName, "scenes")
+	local cname = APP_CLASS_NAME(clsName, "scenes")
 	class.unset(cname)
 	unrequire(cname)
 end
 
-function Class:deployService(sid, clsName)	
-	local app = class.instance("application")
-	if app.services[sid]==nil then
-		local name = self:getClassName(clsName, "services")
-		local s = class.new(name)
-		if s.id ~= sid then error(name.." serviceId not match - "..sid) end
-		s:install()		
-	end
+function Class:deployActivity(clsName)	
+	local name = APP_CLASS_NAME(clsName, "activities")
+	local s = class.new(name)	
+	s:install(self)	
 	return s
+end
+
+function Class:getActivity(id)
+	return self.activities[id]
 end
 
 function Class:nextFrame(f)

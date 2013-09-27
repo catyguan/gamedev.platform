@@ -1,11 +1,11 @@
--- bma/mgr/services/ProfileService.lua
+-- bma/mgr/activities/ProfileActivity.lua
 require("bma.lang.ext.Json")
 
-local Class = class.define("bma.mgr.services.ProfileService",{"bma.app.ApplicationService"})
+local Class = class.define("bma.mgr.activities.ProfileActivity", {"bma.mgr.ActivityBase"})
 
 local info = function(self)
 	if self._object==nil then
-		local o = class.new("bma.mgr.services.FileObjectBase")
+		local o = class.new("bma.mgr.activities.FileObjectBase")
 		o:loadData("/profiles.ldf")
 		self._object = o
 	end
@@ -25,17 +25,17 @@ function Class:initProfiles(maxNum)
 	local o = info(self)
 	if o.profiles==nil then o.profiles = {} end
 	local tmp = {}
-	local r = #o.profiles~=maxNum
+	local modify = #o.profiles~=maxNum
 	for i=1, maxNum do
 		if o.profiles[i]==nil then
 			tmp[i] = {}
-			r = true
+			modify = true
 		else
 			tmp[i] = o.profiles[i]
 		end
 	end
 	o.profiles = tmp
-	if r then
+	if modify then
 		o:saveData()
 	end
 end

@@ -22,7 +22,7 @@ function Class.startup()
 end
 
 function Class:ctor()
-	self.services = {}
+	
 end
 
 function Class:init()	
@@ -33,7 +33,23 @@ function Class:close()
 	
 end
 
-function SERVICE(id)
-	local app = class.instance("application")	
-	return app.services[id]
+function Class:getClassName(clsName, submod)
+	if clsName:sub(1,1)=="@" then
+		return clsName:sub(2)
+	end
+	if self.packageName~=nil then
+		local sp
+		if submod~=nil then
+			sp = "." .. submod .. "."
+		else
+			sp = "."
+		end
+		return self.packageName..sp..clsName
+	end
+	return clsName
+end
+
+APP_CLASS_NAME = function(clsName, submod)
+	local app = class.instance("application")
+	return app:getClassName(clsName, submod)
 end

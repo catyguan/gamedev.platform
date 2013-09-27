@@ -1,11 +1,11 @@
--- bma/mgr/services/GlobalService.lua
+-- bma/mgr/activities/GlobalActivity.lua
 require("bma.lang.ext.Json")
 
-local Class = class.define("bma.mgr.services.GlobalService",{"bma.app.ApplicationService"})
+local Class = class.define("bma.mgr.activities.GlobalActivity", {"bma.mgr.ActivityBase"})
 
 local obj = function(self)
 	if self._object==nil then
-		self._object = class.new("bma.mgr.services.FileObjectBase")
+		self._object = class.new("bma.mgr.activities.FileObjectBase")
 		self._object:loadData("/global.ldf")
 	end
 	return self._object

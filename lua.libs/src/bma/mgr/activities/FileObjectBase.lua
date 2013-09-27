@@ -1,8 +1,8 @@
--- bma/mgr/services/FileObjectBase.lua
+-- bma/mgr/activities/FileObjectBase.lua
 require("bma.lang.Class")
 require("bma.lang.ext.Json")
 
-local Class = class.define("bma.mgr.services.FileObjectBase",{})
+local Class = class.define("bma.mgr.activities.FileObjectBase",{})
 
 local LDEBUG = LOG:debugEnabled()
 local LTAG = "FileObject"
