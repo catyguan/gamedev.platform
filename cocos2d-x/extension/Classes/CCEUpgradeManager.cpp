@@ -201,7 +201,7 @@ bool CCEUpgradeManager::_doProcess()
 		std::string param = parts.size()>1?parts[1]:"";
 		if(cmd.compare("no")==0) {
 			std::string msg("no upgrade");
-			CCLOG("Upgrade: no upgrade", msg.c_str());
+			CCLOG("Upgrade: %s", msg.c_str());
 			finishWork(UPGRADE_STATUS_END, msg.c_str());
 			return false;
 		}

@@ -35,6 +35,7 @@ Classes/CCEUpgradeManager.cpp \
 Classes/CCEUtil.cpp \
 Classes/CCO4File.cpp \
 Classes/CCO4HttpClient.cpp \
+Classes/CCO4Audio.cpp \
 Classes/CCScale9Sprite.cpp \
 Classes/editbox/CCEditBox.cpp \
 Classes/editbox/CCEditBoxImplAndroid.cpp \
@@ -53,6 +54,7 @@ LOCAL_C_INCLUDES += $(C2DX_PATH)/cocos2dx
 LOCAL_C_INCLUDES += $(C2DX_PATH)/cocos2dx/include
 LOCAL_C_INCLUDES += $(C2DX_PATH)/cocos2dx/kazmath/include
 LOCAL_C_INCLUDES += $(C2DX_PATH)/cocos2dx/platform/android
+LOCAL_C_INCLUDES += $(C2DX_PATH)/CocosDenshion/include
 LOCAL_C_INCLUDES += $(C2DX_PATH)/extensions
 
 include $(BUILD_STATIC_LIBRARY)
