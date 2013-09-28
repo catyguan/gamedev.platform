@@ -6,7 +6,7 @@ local Class = class.define("bma.mgr.activities.FileObjectBase",{})
 
 local LDEBUG = LOG:debugEnabled()
 local LTAG = "FileObject"
-local file = application.file
+local file = hostapp.file
 
 function Class:ctor()
 	

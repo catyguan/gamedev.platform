@@ -9,7 +9,7 @@ function Class.install()
 	class.setInstance("bma.http.client.Service", o)
 end
 
-local httpclient = application.httpclient
+local httpclient = hostapp.httpclient
 
 function Class:process(req, callback)
 	local this = self
