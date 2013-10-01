@@ -1,6 +1,7 @@
 #include "CCEDirector.h"
 #include "CCELuaApplication.h"
 #include "cocoa/CCValueSupport.h"
+#include "CCEConfig.h"
 
 USING_NS_CC;
 
@@ -390,4 +391,8 @@ CCValue CCEDirector::CALLNAME(createNodeFrame)(CCValueArray& params) {
 CCValue CCEDirector::CALLNAME(resetApplication)(CCValueArray& params) {
 	CCApplication::sharedApplication()->resetApplication();
 	return CCValue::nullValue();
+}
+
+CCValue CCEDirector::CALLNAME(deviceId)(CCValueArray& params) {
+	return CCEConfig::get("device_id");
 }
