@@ -13,7 +13,7 @@ function Class:ctor()
 end
 
 function Class:loadData(fileName)
-	local str = file.load(fileName)
+	local str = file:load(fileName)
 	if LDEBUG then
 		LOG:debug(LTAG, "load "..fileName.." ==> " .. tostring(str))
 	end
@@ -34,7 +34,7 @@ function Class:saveData(fileName)
 	if LDEBUG then
 		LOG:debug(LTAG, "save "..fileName.." ==> "..tostring(str))
 	end
-	file.save(fileName, str)	
+	file:save(fileName, str)	
 end
 
 function Class:deleteData(fileName)
@@ -42,7 +42,7 @@ function Class:deleteData(fileName)
 	if LDEBUG then
 		LOG:debug(LTAG, "delete "..fileName)
 	end
-	file.delete(fileName)	
+	file:delete(fileName)	
 end
 
 function Class:value(n,v, save)	

@@ -212,21 +212,21 @@ CCValue CCEContainer::CALLNAME(getAllRefs)(CCValueArray& params) {
 	return CCValue::arrayValue(arr);
 }
 
-// CCEPanel
-CCEPanel::CCEPanel()
+// CCEGrid
+CCEGrid::CCEGrid()
 {
 	m_padding = 0;
 	m_gridWidth = m_gridHeight = 1;
 }
 
-CCEPanel::~CCEPanel()
+CCEGrid::~CCEGrid()
 {
 
 }
 
-CCEPanel* CCEPanel::create()
+CCEGrid* CCEGrid::create()
 {
-	CCEPanel *pRet = new CCEPanel();
+	CCEGrid *pRet = new CCEGrid();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -238,10 +238,10 @@ CCEPanel* CCEPanel::create()
     return pRet;
 }
 
-void CCEPanel::setItems(std::vector<CCEPanelGridItem>& items)
+void CCEGrid::setItems(std::vector<CCEGridItem>& items)
 {
 	m_items.clear();
-	std::vector<CCEPanelGridItem>::const_iterator it = items.begin();
+	std::vector<CCEGridItem>::const_iterator it = items.begin();
 	int mrow,mcol;
 	mrow = mcol = 0;
 	for(;it!=items.end();it++) {		
@@ -261,11 +261,11 @@ void CCEPanel::setItems(std::vector<CCEPanelGridItem>& items)
 }
 
 typedef struct _LGridItem {
-	CCEPanelGridItem* item;
+	CCEGridItem* item;
 	CCRect rect;
 	bool span;
 } LGridItem;
-void CCEPanel::doLayout(bool deep)
+void CCEGrid::doLayout(bool deep)
 {
 	if(m_items.size()==0 && getChildrenCount()>0) {
 		LayoutUtil::doLayout(this, deep);
@@ -281,14 +281,14 @@ void CCEPanel::doLayout(bool deep)
 			}
 		}
 
-		std::vector<CCEPanelGridItem>::const_iterator it = m_items.begin();
+		std::vector<CCEGridItem>::const_iterator it = m_items.begin();
 		for(;it!=m_items.end();it++) {
 			for(int row=0;row<it->rowspan;row++)
 			{
 				for(int col=0;col<it->colspan;col++)
 				{			
 					LGridItem& o = g[row+it->row-1][col+it->col-1];
-					o.item = (CCEPanelGridItem*) &(*it);
+					o.item = (CCEGridItem*) &(*it);
 					if(row==0 && col==0) {
 						o.span = false;
 					} else {
@@ -408,13 +408,13 @@ void CCEPanel::doLayout(bool deep)
 	}
 }
 
-CC_BEGIN_CALLS(CCEPanel, CCEContainer)
-	CC_DEFINE_CALL(CCEPanel, doLayout)
-	CC_DEFINE_CALL(CCEPanel, padding)
-	CC_DEFINE_CALL(CCEPanel, grid)
-CC_END_CALLS(CCEPanel, CCEContainer)
+CC_BEGIN_CALLS(CCEGrid, CCEContainer)
+	CC_DEFINE_CALL(CCEGrid, doLayout)
+	CC_DEFINE_CALL(CCEGrid, padding)
+	CC_DEFINE_CALL(CCEGrid, grid)
+CC_END_CALLS(CCEGrid, CCEContainer)
 
-CCValue CCEPanel::CALLNAME(padding)(CCValueArray& params) {
+CCValue CCEGrid::CALLNAME(padding)(CCValueArray& params) {
 	if(params.size()>0) {
 		float v = params[0].floatValue();
 		setPadding(v);
@@ -422,7 +422,7 @@ CCValue CCEPanel::CALLNAME(padding)(CCValueArray& params) {
 	return CCValue::numberValue(getPadding());
 }
 
-static void createItem(CCValue* val, CCEPanelGridItem& item)
+static void createItem(CCValue* val, CCEGridItem& item)
 {
 	if(val->isNull()) {
 		item.node = NULL;
@@ -477,8 +477,8 @@ static void createItem(CCValue* val, CCEPanelGridItem& item)
 	}
 }
 
-CCValue CCEPanel::CALLNAME(grid)(CCValueArray& params) {
-	std::vector<CCEPanelGridItem> list;
+CCValue CCEGrid::CALLNAME(grid)(CCValueArray& params) {
+	std::vector<CCEGridItem> list;
 
 	if(params.size()>0) {
 		CCValueReader vr(&params[0]);
@@ -491,7 +491,7 @@ CCValue CCEPanel::CALLNAME(grid)(CCValueArray& params) {
 					int col = 1;
 					for(int j=0;j<c2;j++) {
 						CCValue* val = vr.get(j);
-						CCEPanelGridItem item;
+						CCEGridItem item;
 						item.node = NULL;
 						item.row = row;
 						item.col = col;
@@ -506,7 +506,7 @@ CCValue CCEPanel::CALLNAME(grid)(CCValueArray& params) {
 					vr.pop();
 				} else {
 					CCValue* val = vr.get(i);
-					CCEPanelGridItem item;
+					CCEGridItem item;
 					item.node = NULL;
 					item.row = row;
 					item.col = 1;
@@ -525,7 +525,162 @@ CCValue CCEPanel::CALLNAME(grid)(CCValueArray& params) {
 	return CCValue::nullValue();
 }
 
+CCValue CCEGrid::CALLNAME(doLayout)(CCValueArray& params) {
+	doLayout(ccvpBoolean(params, 0));
+	return CCValue::nullValue();
+}
+
+// CCEPanel
+CCEPanel::CCEPanel()
+{
+	m_padding = 0;
+	m_vertical = false;
+	m_autoSize = false;
+	m_calSize = false;
+}
+
+CCEPanel::~CCEPanel()
+{
+
+}
+
+CCEPanel* CCEPanel::create()
+{
+	CCEPanel *pRet = new CCEPanel();
+    if (pRet && pRet->init())
+    {
+        pRet->autorelease();
+    }
+    else
+    {
+        CC_SAFE_DELETE(pRet);
+    }
+    return pRet;
+}
+
+const CCSize& CCEPanel::getContentSize() const
+{
+	if(m_autoSize && !m_calSize) {
+		((CCEPanel*) this)->autoResize();
+	}
+	return CCEContainer::getContentSize();
+}
+
+void CCEPanel::addChild(CCNode* child, int zOrder, int tag)
+{
+	m_calSize = false;
+	CCEContainer::addChild(child, zOrder, tag);
+}
+
+void CCEPanel::removeChild(CCNode* child, bool cleanup)
+{
+	m_calSize = false;
+	CCEContainer::removeChild(child, cleanup);
+}
+
+void CCEPanel::autoResize()
+{
+	float mw = 0;
+	float mh = 0;
+
+	CCArray* children = getChildren();
+	if(children!=NULL) {		
+		for(size_t i=0;i<children->count();i++) {
+			CCNode* ch = dynamic_cast<CCNode*>(children->objectAtIndex(i));
+			if(ch!=NULL) {
+				CCSize sz = ch->getContentSize();
+				if(m_vertical) {
+					if(i!=0)mh+=m_padding;
+					mh+=sz.height;
+					if(sz.width>mw)mw = sz.width;
+				} else {
+					if(i!=0)mw+=m_padding;
+					mw+=sz.width;
+					if(sz.height>mh)mh = sz.height;
+				}
+			}
+		}
+	}	
+	setContentSize(CCSizeMake(mw, mh));
+}
+
+void CCEPanel::doLayout(bool deep)
+{
+	CCSize msz = getContentSize();
+	CCRect rect = CCRectMake(0,0,msz.width,msz.height);
+	LayoutUtil::marginLayout(this, rect);
+
+	float pos = m_vertical?msz.height:0;
+	CCArray* children = getChildren();
+	if(children!=NULL) {		
+		bool has = false;
+		for(size_t i=0;i<children->count();i++) {
+			CCNode* ch = dynamic_cast<CCNode*>(children->objectAtIndex(i));
+			if(ch!=NULL) {				
+				LayoutItem item;
+				LayoutUtil::createLayoutItem(ch, item);
+				LayoutUtil::resizeLayout(ch, rect, item.width, item.height);
+				LayoutUtil::alignLayout(ch, rect, item.align, item.valign);
+				
+				CCSize sz = ch->getContentSize();
+				CCPoint pt =  ch->isIgnoreAnchorPointForPosition()?CCPointZero:ch->getAnchorPointInPoints();;
+				if(m_vertical) {
+					if(item.valign==-1) {
+						if(has)pos-=m_padding;
+						has = true;
+						ch->setPositionY(pos-sz.height+pt.y);
+						pos-=sz.height;
+					}
+				} else {
+					if(item.align==-1) {
+						if(has)pos+=m_padding;
+						has = true;
+						ch->setPositionX(pos+pt.x);
+						pos+=sz.width;
+					}
+				}
+
+				if(deep) {
+					LayoutUtil::layout(ch, deep);
+				}
+			}
+		}
+	}	
+}
+
+CC_BEGIN_CALLS(CCEPanel, CCEContainer)
+	CC_DEFINE_CALL(CCEPanel, doLayout)
+	CC_DEFINE_CALL(CCEPanel, padding)
+	CC_DEFINE_CALL(CCEPanel, vertical)
+	CC_DEFINE_CALL(CCEPanel, autoSize)
+CC_END_CALLS(CCEPanel, CCEContainer)
+
 CCValue CCEPanel::CALLNAME(doLayout)(CCValueArray& params) {
 	doLayout(ccvpBoolean(params, 0));
 	return CCValue::nullValue();
 }
+
+CCValue CCEPanel::CALLNAME(padding)(CCValueArray& params) {
+	if(params.size()>0) {
+		float v = params[0].floatValue();
+		setPadding(v);
+	}
+	return CCValue::numberValue(getPadding());
+}
+
+CCValue CCEPanel::CALLNAME(vertical)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		setVertical(v);
+	}
+	return CCValue::booleanValue(getVertical());
+}
+
+CCValue CCEPanel::CALLNAME(autoSize)(CCValueArray& params) {
+	if(params.size()>0) {
+		bool v = params[0].booleanValue();
+		setAutoSize(v);
+	}
+	return CCValue::booleanValue(isAutoSize());
+}
+

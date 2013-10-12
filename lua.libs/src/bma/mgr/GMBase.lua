@@ -33,7 +33,9 @@ function Class:runScene(clsName, ...)
 		end
 	end
 	
-	director:runScene(scene)
+	self:nextFrame(function()
+		director:runScene(scene)
+	end)
 end
 
 function Class:unloadScene(clsName)

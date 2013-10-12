@@ -53,31 +53,67 @@ typedef struct _CCEPanelGridItem {
 	std::string width;
 	std::string height;
 	CCNode* node;
-} CCEPanelGridItem;
-class CCEPanel : public CCEContainer
+} CCEGridItem;
+class CCEGrid : public CCEContainer
 {
 	CC_SYNTHESIZE(float, m_padding, Padding)
 	CC_SYNTHESIZE(int, m_gridWidth, GridWidth)
 	CC_SYNTHESIZE(int, m_gridHeight, GridHeight)
 
 public:
-	static CCEPanel* create();
+	static CCEGrid* create();
 
-	void setItems(std::vector<CCEPanelGridItem>& items);
+	void setItems(std::vector<CCEGridItem>& items);
 
 	virtual void doLayout(bool deep);
 
 public:
-    CCEPanel();    
-    virtual ~CCEPanel();
+    CCEGrid();    
+    virtual ~CCEGrid();
 
 protected:
-	std::vector<CCEPanelGridItem> m_items;
+	std::vector<CCEGridItem> m_items;
 	
 	CC_DECLARE_CALLS_BEGIN
 	CC_DECLARE_CALL(doLayout)
 	CC_DECLARE_CALL(padding)
 	CC_DECLARE_CALL(grid)
+	CC_DECLARE_CALLS_END
+};
+
+class CCEPanel : public CCEContainer
+{
+	CC_SYNTHESIZE(float, m_padding, Padding)
+	CC_SYNTHESIZE(bool, m_vertical, Vertical)
+	
+
+public:
+	static CCEPanel* create();
+
+	void setAutoSize(bool v){m_autoSize = v;m_calSize = false;};
+	bool isAutoSize(){return m_autoSize;};
+
+	virtual void doLayout(bool deep);
+	virtual const CCSize& getContentSize() const;
+	virtual void addChild(CCNode* child, int zOrder, int tag);
+	virtual void removeChild(CCNode* child, bool cleanup);
+
+protected:
+	void autoResize();
+
+protected:
+	bool m_calSize;
+	bool m_autoSize;
+
+public:
+    CCEPanel();    
+    virtual ~CCEPanel();
+	
+	CC_DECLARE_CALLS_BEGIN
+	CC_DECLARE_CALL(doLayout)	
+	CC_DECLARE_CALL(padding)
+	CC_DECLARE_CALL(vertical)
+	CC_DECLARE_CALL(autoSize)
 	CC_DECLARE_CALLS_END
 };
 

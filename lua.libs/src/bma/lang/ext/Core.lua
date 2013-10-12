@@ -7,6 +7,7 @@ function V(v,d)
 end
 
 READONLY = function(t)
+	if t==nil then return nil end
 	local r = {}
 	for k,v in pairs(t) do
 		r[k] = v
@@ -182,10 +183,12 @@ class.walk = function(cls,f)
 	if V(r,false) then
 		return r, ret
 	end
-	for _,s in ipairs(cls.super) do
-		r,ret = class.walk(s,f)
-		if V(r,false) then
-			return r, ret
+	if cls.super then
+		for _,s in ipairs(cls.super) do
+			r,ret = class.walk(s,f)
+			if V(r,false) then
+				return r, ret
+			end
 		end
 	end
 	return false

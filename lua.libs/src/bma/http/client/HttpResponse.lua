@@ -50,6 +50,15 @@ function Class:get200Content()
 	return self.data.content
 end
 
+function Class:get200JsonData()
+	local r = self:get200Content()
+	if r~="" then
+		require("bma.lang.ext.Json")
+		return r:json()
+	end
+	return nil
+end
+
 function Class:toString(contentLen)
 	local d = "<nil>"
 	local len = 0

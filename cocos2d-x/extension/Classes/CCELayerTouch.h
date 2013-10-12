@@ -116,10 +116,15 @@ public:
 public:
 	CCETouchBuilder& bind(CCNode* node);
 	CCETouchBuilder& on(std::string type);
+	CCETouchBuilder& on(std::string type, CCValueArray& params, size_t idx);
 	CCETouchBuilder& onFocus(CCObject* obj,SEL_NodeEventHandler handler);
 	CCETouchBuilder& onTap(CCObject* obj,SEL_NodeEventHandler handler);
 	CCETouchBuilder& onHoldpress(CCObject* obj,SEL_NodeEventHandler handler);
 	CCETouchBuilder& onHoldpress(CCObject* obj,SEL_NodeEventHandler handler,int timeThreshold, int moveThreshold, float checkInterval);
+	CCETouchBuilder& onSlide(CCObject* obj,SEL_NodeEventHandler handler);
+	CCETouchBuilder& onSlide(CCObject* obj,SEL_NodeEventHandler handler,int moveThreshold, bool slideOut);
+	CCETouchBuilder& onPan(CCObject* obj,SEL_NodeEventHandler handler);
+	CCETouchBuilder& onPan(CCObject* obj,SEL_NodeEventHandler handler,int moveThreshold, bool slideOut, int mode);
 
 	void setPriority(int newPriority){priority=newPriority;}
 	int getPriority(){return priority;}

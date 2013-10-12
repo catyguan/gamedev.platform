@@ -47,10 +47,11 @@ CCValue CCO4File::CALLNAME(save)(CCValueArray& params)
 	std::string name = ccvpString(params,0);
 	std::string content = ccvpString(params, 1);
 	
+	unsigned long len = content.length();
 	CCFileSystem* fs = CCFileSystem::sharedFileSystem();
-	unsigned long wcount = fs->fileWrite(kAppData, name.c_str(), (unsigned char*) content.c_str(), content.length());
+	unsigned long wcount = fs->fileWrite(kAppData, name.c_str(), (unsigned char*) content.c_str(),len);
 	
-	bool r = wcount!=content.length();	
+	bool r = wcount==len;	
 
 	if(!r) {
 		std::string msg = "file.save(";

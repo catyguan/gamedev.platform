@@ -112,7 +112,7 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 	}
 	if(strcmp(type,"CCLabelTTF")==0) {
 		CCValueReader r(&cfg);
-		CCLabelTTF* o;
+		CCLabelTTF* o = NULL;
 		if(r.isMap()) {
 			CCValue* v;
 			std::string str;
@@ -167,6 +167,11 @@ CCObject* CCEApplication::createObject(const char* type, CCValue& cfg)
 	}
 	if(strcmp(type,"CCEPanel")==0) {
 		CCEPanel* o = CCEPanel::create();
+		o->setup(cfg);
+		return o;
+	}
+	if(strcmp(type,"CCEGrid")==0) {
+		CCEGrid* o = CCEGrid::create();
 		o->setup(cfg);
 		return o;
 	}

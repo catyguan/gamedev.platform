@@ -10,6 +10,7 @@ USING_NS_CC;
 #define NODE_EVENT_FOCUS		"focus"
 #define NODE_EVENT_TAP			"tap"
 #define NODE_EVENT_HOLDPRESS	"holdpress"
+#define NODE_EVENT_SLIDE		"slide"
 #define NODE_EVENT_PAN			"pan"
 #define NODE_EVENT_PINCH		"pinch"
 #define NODE_EVENT_SWIPE		"swipe"
@@ -62,11 +63,11 @@ protected:
 	bool m_hold;
 };
 
-class CCETouchPanEvent : public CCETouchEvent
+class CCETouchSlideEvent : public CCETouchEvent
 {
 public:
-	CCETouchPanEvent(CCPoint from, CCPoint to) : CCETouchEvent(to) {m_from = from;};
-	virtual ~CCETouchPanEvent(){};
+	CCETouchSlideEvent(CCPoint from, CCPoint to) : CCETouchEvent(to) {m_from = from;};
+	virtual ~CCETouchSlideEvent(){};
 
 	CCPoint getFrom(){return m_from;};
 
@@ -74,6 +75,24 @@ public:
 
 protected:
 	CCPoint m_from;
+};
+
+#define TOUCH_PAN_TYPE_DOWN		2
+#define TOUCH_PAN_TYPE_LEFT		4
+#define TOUCH_PAN_TYPE_RIGHT	6
+#define TOUCH_PAN_TYPE_UP		8
+class CCETouchPanEvent : public CCETouchSlideEvent
+{
+public:
+	CCETouchPanEvent(CCPoint from, CCPoint to, int type) : CCETouchSlideEvent(from, to) {m_type = type;};
+	virtual ~CCETouchPanEvent(){};
+
+	int getType(){return m_type;};
+
+	virtual CCValue toValue();
+
+protected:
+	int m_type;
 };
 
 class CCEGestureRecognizer {
@@ -213,6 +232,57 @@ protected:
 	bool m_hold;
 	long m_holdBeginTime;
 	CCPoint m_holdPos;
+};
+
+class CCEGestureRecognizer4Slide : public CCEGestureRecognizer4Node {
+
+public:
+	CCEGestureRecognizer4Slide();
+	virtual ~CCEGestureRecognizer4Slide();
+
+public:
+	virtual void init(CCNode* node, int moveThreshold, bool slideOut);
+
+	static CCEGestureRecognizer4Slide* create(CCNode* node);
+	static CCEGestureRecognizer4Slide* create(CCNode* node,int moveThreshold, bool slideOut);
+
+	// return active?
+	virtual bool touchBegan(int id, CCPoint touch);
+	virtual bool touchMoved(int id, CCPoint touch);	
+    virtual bool touchEnded(int id, CCPoint touch);
+	virtual void touchCancelled(int id, CCPoint touch);
+	// already recognize
+	virtual bool isRecognized();
+
+protected:
+	virtual bool checkSlide(CCPoint pt);
+	void cancelHold(CCPoint pt);
+
+protected:
+	int m_moveThreshold;
+
+	bool m_hold;
+	bool m_slideOut;
+	CCPoint m_holdPos;
+};
+
+#define PAN_MODE_HORIZONTAL		1
+#define PAN_MODE_VERTICAL		2
+class CCEGestureRecognizer4Pan : public CCEGestureRecognizer4Slide {
+
+public:
+	CCEGestureRecognizer4Pan();
+	virtual ~CCEGestureRecognizer4Pan();
+
+public:
+	static CCEGestureRecognizer4Pan* create(CCNode* node);
+	static CCEGestureRecognizer4Pan* create(CCNode* node,int moveThreshold, bool slideOut, int m_mode);
+
+protected:
+	virtual bool checkSlide(CCPoint pt);
+
+protected:
+	int m_mode;
 };
 
 #endif

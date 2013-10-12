@@ -432,11 +432,15 @@ CCValue CCELayerTouch::CALLNAME(enableTouch)(CCValueArray& params) {
 	if(ename.size()==0) {
 		throw new std::string("param 2 event name");
 	}
-	if(params.size()>2) {
-		p = params[2].intValue();
+	size_t idx = 2;
+	if(params.size()>idx) {
+		if(!params[idx].isNull()) {
+			p = params[idx].intValue();
+		}
+		idx ++;
 	}
 	CCETouchBuilder b;
-	b.bind(node).on(ename);
+	b.bind(node).on(ename, params, idx);
 	if(p>=0) {
 		b.setPriority(p);
 	}
@@ -500,6 +504,12 @@ CCETouchBuilder& CCETouchBuilder::bind(CCNode* n)
 
 CCETouchBuilder& CCETouchBuilder::on(std::string type)
 {
+	CCValueArray ps;
+	return on(type, ps, 0);
+}
+
+CCETouchBuilder& CCETouchBuilder::on(std::string type, CCValueArray& params, size_t idx)
+{
 	std::string delim(",");
 	std::vector<std::string> list;
 	StringUtil::split(type, delim, &list);
@@ -511,7 +521,67 @@ CCETouchBuilder& CCETouchBuilder::on(std::string type)
 			} else if(type.compare("focus")==0) {
 				onFocus(NULL,NULL);
 			} else if(type.compare("holdpress")==0) {
-				onHoldpress(NULL,NULL);
+				int timeThreshold = 750;
+				int moveThreshold = -1;
+				float checkInterval = 0.1f;
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						timeThreshold = params[idx].intValue();
+					}
+					idx++;
+				}
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						moveThreshold = params[idx].intValue();
+					}
+					idx++;
+				}
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						checkInterval = params[idx].floatValue();
+					}
+					idx++;
+				}
+				onHoldpress(NULL,NULL, timeThreshold, moveThreshold, checkInterval);
+			} else if(type.compare("slide")==0) {
+				int moveThreshold = 0;
+				bool slideOut = false;
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						moveThreshold = params[idx].intValue();
+					}
+					idx++;
+				}
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						slideOut = params[idx].booleanValue();
+					}
+					idx++;
+				}
+				onSlide(NULL,NULL, moveThreshold, slideOut);
+			} else if(type.compare("pan")==0) {
+				int moveThreshold = 40;
+				bool slideOut = false;
+				int mode = 0;
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						moveThreshold = params[idx].intValue();
+					}
+					idx++;
+				}
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						slideOut = params[idx].booleanValue();
+					}
+					idx++;
+				}
+				if(idx<params.size()) {
+					if(!params[idx].isNull()) {
+						mode = params[idx].intValue();
+					}
+					idx++;
+				}
+				onPan(NULL,NULL, moveThreshold, slideOut, mode);
 			}
 		}
 	}
@@ -562,6 +632,49 @@ CCETouchBuilder& CCETouchBuilder::onHoldpress(CCObject* obj,SEL_NodeEventHandler
 	return *this;
 }
 
+CCETouchBuilder& CCETouchBuilder::onSlide(CCObject* obj,SEL_NodeEventHandler handler)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Slide* gr = CCEGestureRecognizer4Slide::create(node);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_SLIDE, obj, handler);
+	}
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+CCETouchBuilder& CCETouchBuilder::onSlide(CCObject* obj,SEL_NodeEventHandler handler,int moveThreshold, bool slideOut)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Slide* gr = CCEGestureRecognizer4Slide::create(node,moveThreshold,slideOut);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_SLIDE, obj, handler);
+	}
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+CCETouchBuilder& CCETouchBuilder::onPan(CCObject* obj,SEL_NodeEventHandler handler)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Pan* gr = CCEGestureRecognizer4Pan::create(node);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_PAN, obj, handler);
+	}
+	addGestureRecognizer(gr);
+	return *this;
+}
+
+CCETouchBuilder& CCETouchBuilder::onPan(CCObject* obj,SEL_NodeEventHandler handler,int moveThreshold, bool slideOut, int mode)
+{
+	CC_ASSERT(node!=NULL);	
+	CCEGestureRecognizer4Pan* gr = CCEGestureRecognizer4Pan::create(node,moveThreshold,slideOut,mode);
+	if(obj!=NULL && handler!=NULL) {
+		node->onEvent(NODE_EVENT_PAN, obj, handler);
+	}
+	addGestureRecognizer(gr);
+	return *this;
+}
 
 void CCETouchBuilder::createTouch(CCELayerTouch* layer)
 {

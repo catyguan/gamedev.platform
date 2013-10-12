@@ -26,6 +26,7 @@ public:
 	static void resizeLayout(CCNode* node, CCRect& rect, std::string width, std::string height);
 	static void margin(CCValue& v, float* top, float* left, float* bottom, float* right);
 	static CCValue margin(float top, float left, float bottom, float right);
+	static void marginLayout(CCNode* node, CCRect& rect);
 
 	static bool parseSize(std::string& str, int* percent, int* value);
 };

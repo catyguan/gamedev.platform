@@ -26,10 +26,20 @@ CCValue CCETouchHoldEvent::toValue()
 	return CCValue::mapValue(map);
 }
 
-CCValue CCETouchPanEvent::toValue()
+CCValue CCETouchSlideEvent::toValue()
 {
 	CCValueMap map;
 	map["from"] = CCValueUtil::point(m_from.x, m_from.y);
+	map["position"] = CCValueUtil::point(m_touch.x, m_touch.y);
+	return CCValue::mapValue(map);
+}
+
+CCValue CCETouchPanEvent::toValue()
+{
+	CCValueMap map;
+	map["type"] = CCValue::intValue(m_type);
+	map["from"] = CCValueUtil::point(m_from.x, m_from.y);
+	map["position"] = CCValueUtil::point(m_touch.x, m_touch.y);
 	return CCValue::mapValue(map);
 }
 
@@ -451,4 +461,159 @@ void CCEGestureRecognizer4Holdpress::cancelHold(CCPoint pt)
 		m_node->raiseEvent(NODE_EVENT_HOLDPRESS, &e);
 	}
 	m_hold = false;
+}
+
+
+//
+// CCEGestureRecognizer4Slide
+//
+CCEGestureRecognizer4Slide::CCEGestureRecognizer4Slide()
+	: m_moveThreshold(0)
+	, m_slideOut(false)
+	, m_hold(false)
+{
+	
+}
+
+CCEGestureRecognizer4Slide::~CCEGestureRecognizer4Slide()
+{
+	
+}
+
+CCEGestureRecognizer4Slide* CCEGestureRecognizer4Slide::create(CCNode* node)
+{
+	return create(node, 0, false);
+}
+
+CCEGestureRecognizer4Slide* CCEGestureRecognizer4Slide::create(CCNode* node,int moveThreshold,bool slideOut)
+{
+	CCEGestureRecognizer4Slide* r = new CCEGestureRecognizer4Slide();
+	r->init(node, moveThreshold, slideOut);
+	return r;
+}
+
+void CCEGestureRecognizer4Slide::init(CCNode* node,int moveThreshold, bool slideOut)
+{
+	CCEGestureRecognizer4Node::init(node);
+	m_moveThreshold = moveThreshold;
+	m_slideOut = slideOut;
+}
+
+bool CCEGestureRecognizer4Slide::touchBegan(int id, CCPoint touch)
+{
+	CCPoint local = m_node->convertToNodeSpace(touch);
+	if(m_node->containsPoint(local)) {
+		m_holdPos = touch;
+	}
+	return true;
+}
+
+bool CCEGestureRecognizer4Slide::touchMoved(int id, CCPoint touch)
+{
+	return checkSlide(touch);
+}
+
+void CCEGestureRecognizer4Slide::touchCancelled(int id, CCPoint touch)
+{
+	cancelHold(touch);
+}
+
+bool CCEGestureRecognizer4Slide::touchEnded(int id, CCPoint touch)
+{
+	cancelHold(touch);
+	return false;
+}
+
+bool CCEGestureRecognizer4Slide::isRecognized()
+{	
+	return m_hold;
+}
+
+bool CCEGestureRecognizer4Slide::checkSlide(CCPoint pt)
+{
+	if(!m_slideOut) {
+		CCPoint local = m_node->convertToNodeSpace(pt);
+		if(!m_node->containsPoint(local)) {
+			cancelHold(pt);
+			return true;
+		}
+	}
+
+	// check slide
+	if(abs(pt.x-m_holdPos.x)>m_moveThreshold ||
+		abs(pt.y-m_holdPos.y)>m_moveThreshold)
+	{
+		CCETouchSlideEvent event(m_holdPos, pt);
+		m_node->raiseEvent(NODE_EVENT_SLIDE, &event);
+	}
+	return true;
+}
+
+void CCEGestureRecognizer4Slide::cancelHold(CCPoint pt)
+{	
+	m_hold = false;
+}
+
+//
+// CCEGestureRecognizer4Pan
+//
+CCEGestureRecognizer4Pan::CCEGestureRecognizer4Pan()
+	: m_mode(0)
+{
+	
+}
+
+CCEGestureRecognizer4Pan::~CCEGestureRecognizer4Pan()
+{
+	
+}
+
+CCEGestureRecognizer4Pan* CCEGestureRecognizer4Pan::create(CCNode* node)
+{
+	return create(node, 40, false, 0);
+}
+
+CCEGestureRecognizer4Pan* CCEGestureRecognizer4Pan::create(CCNode* node,int moveThreshold,bool slideOut, int mode)
+{
+	CCEGestureRecognizer4Pan* r = new CCEGestureRecognizer4Pan();
+	r->init(node, moveThreshold, slideOut);
+	r->m_mode = mode;
+	return r;
+}
+
+bool CCEGestureRecognizer4Pan::checkSlide(CCPoint pt)
+{
+	if(!m_slideOut) {
+		CCPoint local = m_node->convertToNodeSpace(pt);
+		if(!m_node->containsPoint(local)) {
+			cancelHold(pt);
+			return true;
+		}
+	}
+
+	// check pan
+	float x = abs(pt.x-m_holdPos.x);
+	float y = abs(pt.y-m_holdPos.y);
+	bool xm = x>m_moveThreshold && (m_mode==0 || m_mode==PAN_MODE_HORIZONTAL);
+	bool ym = y>m_moveThreshold && (m_mode==0 || m_mode==PAN_MODE_VERTICAL);
+	if(xm || ym)
+	{
+		int type = 0;
+		if(xm && ym && y>x) {
+			xm = false;
+		}
+		if(ym) {
+			type = pt.y>m_holdPos.y?TOUCH_PAN_TYPE_UP:TOUCH_PAN_TYPE_DOWN;
+		}
+		if(xm) {
+			type = pt.x>m_holdPos.x?TOUCH_PAN_TYPE_RIGHT:TOUCH_PAN_TYPE_LEFT;
+		}
+		
+		CCETouchPanEvent event(m_holdPos, pt, type);
+		m_node->raiseEvent(NODE_EVENT_PAN, &event);
+
+		m_hold = false;
+		return false;
+	}
+	return true;
 }
