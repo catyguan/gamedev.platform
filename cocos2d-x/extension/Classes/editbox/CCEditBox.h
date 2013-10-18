@@ -122,10 +122,10 @@ enum EditBoxInputFlag
 
 };
 
-#define NODE_EVENT_EDITBOX_CHANGED	"editbox.changed"
-#define NODE_EVENT_EDITBOX_ENDED	"editbox.ended"
-#define NODE_EVENT_EDITBOX_RETURN	"editbox.return"
-#define NODE_EVENT_EDITBOX_BEGAN	"editbox.began"
+#define NODE_EVENT_EDITBOX_CHANGED	"editboxChanged"
+#define NODE_EVENT_EDITBOX_ENDED	"editboxEnded"
+#define NODE_EVENT_EDITBOX_RETURN	"editboxReturn"
+#define NODE_EVENT_EDITBOX_BEGAN	"editboxBegan"
 
 class CCEditBox;
 class CCEditBoxImpl;

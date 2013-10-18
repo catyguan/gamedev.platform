@@ -14,8 +14,8 @@ typedef enum {
 
 class CCEScrollViewBase;
 
-#define NODE_EVENT_SCROLLVIEW_SCROLL	"scrollview.scroll"
-#define NODE_EVENT_SCROLLVIEW_ZOOM		"scrollview.zoom"
+#define NODE_EVENT_SCROLLVIEW_SCROLL	"scrollviewScroll"
+#define NODE_EVENT_SCROLLVIEW_ZOOM		"scrollviewZoom"
 
 /**
  * ScrollView support for cocos2d for iphone.
